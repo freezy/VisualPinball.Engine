@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Packaging Materials | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Packaging Materials | VPE Documentation ">
+      
+      <meta name="description" content="How VPE represents material intent beyond glTF and how a renderer consumes that contract.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/packaging/materials.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+      <script src="./../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-packaging-materials">
+<h1 id="packaging-materials">Packaging Materials</h1>
+
+<p>This page covers the material side of the <code>.vpe</code> format, for two readers:</p>
+<ul>
+<li>anyone trying to understand why materials are split between glTF and VPE metadata</li>
+<li>developers implementing a renderer for a different pipeline</li>
+</ul>
+<h2 id="gltf-versus-custom-materials">glTF versus Custom Materials</h2>
+<p>glTF carries the scene graph, meshes, transforms, lights, images, and a subset of physically based material data. For a mesh with a base color and a normal map, it is enough on its own.</p>
+<p>Pinball tables need more than that: alpha-bearing inserts and plastics, HDRP mask packing, decals whose albedo alpha drives where they apply, and renderer state glTF has no way to describe. A <code>.vpe</code> file also has to stay table content rather than a dependency on HDRP — it describes what a material should do, not which Unity shader property the authoring project happened to set.</p>
+<p>VPE therefore defines its own material vocabulary:</p>
+<ul>
+<li>export translates authoring materials into VPE's schema</li>
+<li>runtime reads that schema and asks the active renderer to realize it</li>
+<li>the renderer realizes it with HDRP, URP, or anything else</li>
+</ul>
+<p>In code, that vocabulary lives in:</p>
+<ul>
+<li><code>VpeMaterialsPayload</code></li>
+<li><code>VpeMaterialProfile</code></li>
+<li><code>VpeTexture</code></li>
+<li><code>VpeRendererState</code></li>
+</ul>
+<p>The schema is versioned by a <code>FormatVersion</code> field on the payload rather than by a type-name suffix; readers check it and skip versions they don't understand.</p>
+<h2 id="gltf-data">glTF Data</h2>
+<p>The GLB carries the scene itself, plus a material fallback for shaders VPE does not translate.</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Where it lives</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Scene hierarchy</td>
+<td><code>table.glb</code></td>
+<td>Native glTF responsibility.</td>
+</tr>
+<tr>
+<td>Meshes and transforms</td>
+<td><code>table.glb</code></td>
+<td>Native glTF responsibility.</td>
+</tr>
+<tr>
+<td>Lights</td>
+<td><code>table.glb</code></td>
+<td>Exported through glTF/glTFast light support.</td>
+</tr>
+<tr>
+<td>Materials for <strong>unsupported</strong> shaders</td>
+<td>Imported GLB material (+ its textures)</td>
+<td>VPE has no profile for them, so the imported glTF material is the fallback. These are the only materials whose textures stay in the GLB.</td>
+</tr>
+</tbody>
+</table>
+<p>Earlier the GLB also carried the pixel data for &quot;well-behaved&quot; maps (opaque base color, emissive, normals) while only special maps were side-channeled. That split is gone: for every material VPE captures, <strong>all</strong> of its textures move to the source layer (<code>table/textures/</code>) and the GLB holds no image bytes for them. A profile that reads a texture from the imported GLB material (an <em>imported</em> texture reference) now only happens for those unsupported-shader fallbacks.</p>
+<h2 id="vpe-data">VPE Data</h2>
+<p>VPE owns the data where glTF is lossy, underspecified for the feature, or too fragile in practice.</p>
+<h3 id="texture-and-state">Texture and State</h3>
+<table>
+<thead>
+<tr>
+<th>Authoring concern</th>
+<th>VPE field(s)</th>
+<th>Why it is not left to glTF</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HDRP <code>MaskMap</code></td>
+<td><code>VpeLitProfile.MaskMap</code>, <code>MaskPacking</code></td>
+<td>HDRP mask packing is renderer-specific and not lossless in plain glTF.</td>
+</tr>
+<tr>
+<td>HDRP <code>ThicknessMap</code></td>
+<td><code>VpeLitProfile.ThicknessMap</code></td>
+<td>Thickness/transmission intent is outside plain glTF's core model.</td>
+</tr>
+<tr>
+<td>Lit base color (incl. transparent / alpha-tested)</td>
+<td><code>VpeLitProfile.BaseColor.Texture</code> with <code>TextureId</code></td>
+<td>The alpha channel is load-bearing for inserts and plastics; the bytes ship in the source layer, not the GLB.</td>
+</tr>
+<tr>
+<td>Decal base color</td>
+<td><code>VpeDecalProfile.BaseColor.Texture</code> with <code>TextureId</code></td>
+<td>The decal albedo alpha controls where the decal applies.</td>
+</tr>
+<tr>
+<td>Decal mask map</td>
+<td><code>VpeDecalProfile.MaskMap</code></td>
+<td>Same problem as HDRP mask packing: the meaning is renderer-specific.</td>
+</tr>
+<tr>
+<td>Per-renderer shadow and lighting state</td>
+<td><code>VpeRendererState</code></td>
+<td>glTF does not carry Unity's shadow casting mode, receive-shadows flag, or rendering layer mask.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="storage">Storage</h3>
+<p>Those VPE-owned textures are serialized as <code>VpeTexture</code> entries, and their bytes ship as plain PNG/JPEG files under <code>table/textures/</code> — one zip entry per texture, stored uncompressed. There is no packed blob and no byte-range index: the entry points at its file by name and the zip central directory does the rest.</p>
+<p>Each entry records:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Id</code></td>
+<td>Stable logical identifier used by <code>TextureId</code>.</td>
+</tr>
+<tr>
+<td><code>FileName</code></td>
+<td>The texture's file name inside <code>table/textures/</code>.</td>
+</tr>
+<tr>
+<td><code>MimeType</code></td>
+<td>Declared encoding of the stored bytes (<code>image/png</code> or <code>image/jpeg</code>).</td>
+</tr>
+<tr>
+<td><code>ColorSpace</code></td>
+<td><code>sRGB</code> or <code>Linear</code>.</td>
+</tr>
+<tr>
+<td><code>WrapMode</code>, <code>FilterMode</code>, <code>AnisoLevel</code></td>
+<td>Texture sampling intent.</td>
+</tr>
+<tr>
+<td><code>GenerateMipMaps</code></td>
+<td>Whether the runtime should generate/keep mips for this texture. Honored for both <code>sRGB</code> and <code>Linear</code>.</td>
+</tr>
+<tr>
+<td><code>RuntimeCompress</code></td>
+<td>Whether a reader <em>without</em> a cook path should call <code>Texture2D.Compress(...)</code> after decoding. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>Width</code>, <code>Height</code></td>
+<td>Source dimensions (after any importer max-size clamp).</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ownership-model">Ownership Model</h2>
+<p>Each authored material becomes one logical VPE profile, keyed by normalized material name. The profile contains semantic intent; it does not try to preserve the authoring shader as data.</p>
+<p>There are two texture-reference modes in the schema:</p>
+<table>
+<thead>
+<tr>
+<th>Reference style</th>
+<th>Shape</th>
+<th>Runtime behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Imported texture ref</td>
+<td><code>TextureId = null</code></td>
+<td>Read the texture from the imported GLB material. Only used for unsupported-shader fallback materials.</td>
+</tr>
+<tr>
+<td>Source texture ref</td>
+<td><code>TextureId != null</code></td>
+<td>Resolve the texture through its <code>VpeTexture</code> entry and load the file from <code>table/textures/</code> (cooked through the local cache). This is the path captured materials use.</td>
+</tr>
+</tbody>
+</table>
+<p>This split is what keeps the schema portable. A profile can record &quot;base color texture for a transparent insert&quot; without binding that data to a particular HDRP shader property.</p>
+<h2 id="supported-material-types">Supported Material Types</h2>
+<p>The schema currently defines eight material types:</p>
+<table>
+<thead>
+<tr>
+<th>VPE type</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vpe.lit</code></td>
+<td>Main physically based table materials, including transparency, transmission, and mask-based surface properties.</td>
+</tr>
+<tr>
+<td><code>vpe.decal</code></td>
+<td>Projected decal materials.</td>
+</tr>
+<tr>
+<td><code>vpe.unlit</code></td>
+<td>Unlit color-based materials.</td>
+</tr>
+<tr>
+<td><code>vpe.metal</code></td>
+<td>VPE metal shader graph materials. The profile stores a player template key and a <code>vpe.lit</code> fallback payload.</td>
+</tr>
+<tr>
+<td><code>vpe.rubber</code></td>
+<td>VPE rubber shader graph materials. The profile stores a player template key and a <code>vpe.lit</code> fallback payload.</td>
+</tr>
+<tr>
+<td><code>vpe.dmd</code></td>
+<td>Dot-matrix display materials. The profile stores a player template key, with no <code>vpe.lit</code> fallback.</td>
+</tr>
+<tr>
+<td><code>vpe.fabric.silk</code></td>
+<td>HDRP fabric/silk materials. The profile carries a <code>vpe.lit</code> fallback plus HDRP thread/fuzz hints.</td>
+</tr>
+<tr>
+<td><code>vpe.insert</code></td>
+<td>Playfield-insert parts (lens and reflector). The profile carries a part role plus a full <code>vpe.lit</code> payload.</td>
+</tr>
+</tbody>
+</table>
+<p>The HDRP translator maps these authoring shaders into those types:</p>
+<table>
+<thead>
+<tr>
+<th>Authoring shader</th>
+<th>VPE type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HDRP/Lit</code></td>
+<td><code>vpe.lit</code></td>
+</tr>
+<tr>
+<td><code>HDRP/Decal</code></td>
+<td><code>vpe.decal</code></td>
+</tr>
+<tr>
+<td><code>HDRP/Unlit</code></td>
+<td><code>vpe.unlit</code></td>
+</tr>
+<tr>
+<td>HDRP fabric/silk shader</td>
+<td><code>vpe.fabric.silk</code></td>
+</tr>
+<tr>
+<td>VPE metal shader graph</td>
+<td><code>vpe.metal</code></td>
+</tr>
+<tr>
+<td>VPE rubber shader graph</td>
+<td><code>vpe.rubber</code></td>
+</tr>
+<tr>
+<td>VPE DMD shader graph</td>
+<td><code>vpe.dmd</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>vpe.insert</code> is not selected by shader name. It is a <em>promotion</em> of <code>vpe.lit</code>: an <code>HDRP/Lit</code> material is re-typed as an insert when the translator's scene heuristic identifies it as one (see the <code>vpe.insert</code> spec below). The captured data is the same lit payload either way.</p>
+<p>Unsupported shaders are not fatal: they produce no VPE profile, and runtime falls back to the imported GLB material for them.</p>
+<h2 id="runtime-resolution">Runtime Resolution</h2>
+<p>The package never instantiates pipeline-specific materials directly. Instead, runtime performs a translation step:</p>
+<ol>
+<li><code>VpeMaterialReader</code> parses <code>materials.json</code>.</li>
+<li>It resolves source textures from <code>table/textures/</code>, cooking them through the local cache.</li>
+<li>It matches imported materials by normalized name.</li>
+<li>It calls the active <code>IVpeMaterialResolver</code>.</li>
+</ol>
+<p>The last step is the pipeline-specific one. For HDRP, <code>HdrpMaterialResolver</code> clones authored template materials, applies VPE intent onto them, and lets HDRP reconcile the resulting state.</p>
+<p>The package stays portable; the player owns the final rendering behavior.</p>
+<p>Because a resolver builds these materials at runtime, the shader variants it produces are not present on any build-time material. A player that ships standalone builds must therefore preload those variants, or runtime-resolved materials render with the wrong variant in the build even though resolution succeeds. See <a href="shader-variants.html">Shader Variants</a>.</p>
+<h2 id="specs">Specs</h2>
+<p>This section is the renderer-facing contract — the part to read if you are implementing a new pipeline. It is a subset of HDRP and will grow as table builds start using more attributes. The tables link to the relevant HDRP documentation.</p>
+<h3 id="inputs-a-renderer-must-consume">Inputs a renderer must consume</h3>
+<p>A resolver implementation must be able to work with:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VpeMaterialsPayload</code></td>
+<td>Top-level material payload.</td>
+</tr>
+<tr>
+<td><code>VpeMaterialProfile</code></td>
+<td>Per-material semantic intent.</td>
+</tr>
+<tr>
+<td><code>VpeTexture</code></td>
+<td>Metadata for a source texture file.</td>
+</tr>
+<tr>
+<td>Imported fallback <code>Material</code></td>
+<td>Access point for textures on unsupported-shader fallback materials.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="matching">Matching</h3>
+<p>Profiles are matched to imported materials by normalized material name. A renderer should therefore treat the imported material name as the lookup key and degrade gracefully when there is no match.</p>
+<h3 id="texture-source-contract">Texture-source contract</h3>
+<p>A renderer must support both texture-source modes:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>How to detect it</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Imported</td>
+<td><code>TextureId == null</code></td>
+<td>Read the texture from the imported material using aliases appropriate for the pipeline.</td>
+</tr>
+<tr>
+<td>Source</td>
+<td><code>TextureId != null</code></td>
+<td>Resolve the <code>VpeTexture</code>, load its file from <code>table/textures/</code>, create a texture, and apply the stored sampling/color-space settings.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="vpelit"><code>vpe.lit</code></h3>
+<p><code>vpe.lit</code> is a reduced HDRP Lit material. Read the table as a translation guide: each VPE field names a behavior to reproduce, not a Unity property another renderer is required to bind to.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>HDRP counterpart</th>
+<th>HDRP documentation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BaseColor.Color</code>, <code>BaseColor.Texture</code>, <code>BaseColor.Texture.Scale</code>, <code>BaseColor.Texture.Offset</code></td>
+<td>HDRP Lit <code>Base Map</code>, including base tint, texture, tiling, and offset. The base-map alpha is also the source for transparency on transparent Lit materials.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Base Map</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a></td>
+</tr>
+<tr>
+<td><code>Metallic</code>, <code>Smoothness</code></td>
+<td>HDRP Lit scalar <code>Metallic</code> and <code>Smoothness</code> fallback values when no packed mask texture is driving those channels.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Metallic / Smoothness</a></td>
+</tr>
+<tr>
+<td><code>OcclusionStrength</code></td>
+<td>Closest to HDRP ambient occlusion contribution from the mask map. This is not a clean one-to-one HDRP inspector property in the current subset, so other renderers should treat it as the scalar AO contribution knob.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Mask Map / Ambient Occlusion Remapping</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html">Mask and detail maps</a></td>
+</tr>
+<tr>
+<td><code>MaskMap</code>, <code>MaskPacking</code></td>
+<td>HDRP Lit <code>Mask Map</code>. In HDRP the packed layout is <code>R=Metallic</code>, <code>G=Ambient Occlusion</code>, <code>B=Detail Mask</code>, <code>A=Smoothness</code>. VPE keeps the packing explicit because other pipelines may not share HDRP's assumptions.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Mask Map</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html">Mask and detail maps</a></td>
+</tr>
+<tr>
+<td><code>MetallicRemap</code>, <code>SmoothnessRemap</code>, <code>AoRemap</code>, <code>AlphaRemap</code></td>
+<td>HDRP Lit remap sliders for packed texture channels.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Metallic / Smoothness / Ambient Occlusion / Alpha Remapping</a></td>
+</tr>
+<tr>
+<td><code>NormalMap.Texture</code>, <code>NormalMap.Texture.Scale</code>, <code>NormalMap.Texture.Offset</code>, <code>NormalMap.Strength</code>, <code>NormalMap.Packing</code></td>
+<td>HDRP Lit <code>Normal Map</code>, <code>Normal Map Space</code>, and normal intensity. VPE's packing enum preserves source intent so runtime can convert or reinterpret it as needed.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Normal Map</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Glossary.html">HDRP Glossary: tangent space normal map / object space normal map</a></td>
+</tr>
+<tr>
+<td><code>NormalMap.RuntimeCompress</code></td>
+<td>Whether HDRP should call <code>Texture2D.Compress(...)</code> after repacking an imported/runtime-loaded normal map into HDRP's expected layout. Older packages default to <code>true</code>.</td>
+<td>No dedicated HDRP material page.</td>
+</tr>
+<tr>
+<td><code>Emissive.Color</code>, <code>Emissive.Texture</code>, <code>Emissive.Texture.Scale</code>, <code>Emissive.Texture.Offset</code>, <code>Emissive.Intensity</code>, <code>Emissive.IntensityUnit</code>, <code>Emissive.ExposureWeight</code></td>
+<td>HDRP Lit <code>Emission Map</code>, emission color, emission intensity, physical light units, and exposure weight.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Emission inputs</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Physical-Light-Units.html">Physical light units</a></td>
+</tr>
+<tr>
+<td><code>SurfaceType</code></td>
+<td>HDRP <code>Surface Type</code> and the extra transparent workflow it unlocks.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a></td>
+</tr>
+<tr>
+<td><code>AlphaCutoff</code></td>
+<td>HDRP <code>Alpha Clipping &gt; Threshold</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Alpha-Clipping.html">Alpha Clipping</a></td>
+</tr>
+<tr>
+<td><code>DoubleSided</code>, <code>DoubleSidedGi</code></td>
+<td>HDRP <code>Double Sided</code> and <code>Double-Sided GI</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Double-Sided.html">Double sided</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Double-Sided GI</a></td>
+</tr>
+<tr>
+<td><code>TransparentBlendMode</code></td>
+<td>HDRP transparent <code>Blending Mode</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a></td>
+</tr>
+<tr>
+<td><code>EnableFogOnTransparent</code>, <code>TransparentDepthPrepass</code>, <code>TransparentDepthPostpass</code>, <code>TransparentWritesMotionVectors</code></td>
+<td>HDRP transparent-surface options for fog participation, depth pre/post passes, and transparent motion vectors.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Surface Options</a></td>
+</tr>
+<tr>
+<td><code>DisableSsr</code>, <code>DisableSsrTransparent</code></td>
+<td>HDRP <code>Receive SSR</code> and <code>Receive SSR Transparent</code>. VPE names the field from the opt-out direction, HDRP names the inspector property from the opt-in direction.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html">Lit Material Inspector reference: Receive SSR / Receive SSR Transparent</a></td>
+</tr>
+<tr>
+<td><code>RenderQueueOverride</code></td>
+<td>Closest to HDRP sorting / render-pass override behavior. This is one of the places where VPE carries an explicit renderer-facing escape hatch rather than a pure material meaning.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a></td>
+</tr>
+<tr>
+<td><code>RefractionModel</code>, <code>Ior</code></td>
+<td>HDRP transparent refraction settings: <code>Refraction Model</code> and <code>Index of Refraction</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a></td>
+</tr>
+<tr>
+<td><code>HasTransmission</code>, <code>Thickness</code>, <code>ThicknessMap</code></td>
+<td>HDRP transmission / translucent workflow. In HDRP this spans <code>Transmission</code>, <code>Thickness Map</code>, <code>Thickness</code>, and the <code>Diffusion Profile</code> asset.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Material-Type.html">Material Type</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/diffusion-profile-reference.html">Diffusion Profile reference</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="vpedecal"><code>vpe.decal</code></h3>
+<p><code>vpe.decal</code> is the decal-projector/material subset that VPE currently uses. HDRP exposes most of this through the Decal Material inspector.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>HDRP counterpart</th>
+<th>HDRP documentation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BaseColor.Color</code>, <code>BaseColor.Texture</code>, <code>BaseColor.Texture.Scale</code>, <code>BaseColor.Texture.Offset</code></td>
+<td>HDRP Decal <code>Base Map / Opacity</code>. In HDRP, the base-map alpha is part of the decal effect and also feeds other opacity-related controls.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html">Decal Material Inspector reference: Base Map / Opacity</a></td>
+</tr>
+<tr>
+<td><code>NormalMap.Texture</code>, <code>NormalMap.Texture.Scale</code>, <code>NormalMap.Texture.Offset</code>, <code>NormalMap.Strength</code>, <code>NormalMap.Packing</code></td>
+<td>HDRP Decal <code>Normal Map</code> plus its opacity-source behavior. VPE preserves the normal payload and strength; HDRP's extra opacity-source choices are currently hidden behind the resolver.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html">Decal Material Inspector reference: Normal Map / Normal Opacity channel</a></td>
+</tr>
+<tr>
+<td><code>MaskMap</code>, <code>MaskPacking</code></td>
+<td>HDRP Decal <code>Mask Map</code>. In HDRP decal materials the packed layout is <code>R=Metallic</code>, <code>G=Ambient Occlusion</code>, <code>B=Opacity Mask</code>, <code>A=Smoothness</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html">Decal Material Inspector reference: Mask Map</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html">Mask and detail maps</a></td>
+</tr>
+<tr>
+<td><code>AffectAlbedo</code>, <code>AffectNormal</code>, <code>AffectMask</code></td>
+<td>HDRP Decal <code>Affect BaseColor</code>, <code>Affect Normal</code>, and the mask-derived surface toggles (<code>Affect Metal</code>, <code>Affect Ambient Occlusion</code>, <code>Affect Smoothness</code>). VPE collapses those mask-derived toggles into one semantic switch today.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html">Decal Material Inspector reference: Affect BaseColor / Affect Normal / Affect Metal / Affect Ambient Occlusion / Affect Smoothness</a></td>
+</tr>
+<tr>
+<td><code>DecalBlend</code>, <code>NormalBlendSrc</code>, <code>MaskBlendSrc</code></td>
+<td>HDRP decal blending behavior. There is no tidy single inspector property with these exact names in the docs, so these should be read as VPE's explicit representation of HDRP decal blend-source behavior.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decals.html">Decals</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html">Decal Material Inspector reference</a></td>
+</tr>
+<tr>
+<td><code>Smoothness</code>, <code>Metallic</code>, <code>AmbientOcclusion</code></td>
+<td>HDRP Decal scalar controls for the corresponding channels.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html">Decal Material Inspector reference: Metallic / Ambient Occlusion / Smoothness</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="vpeunlit"><code>vpe.unlit</code></h3>
+<p><code>vpe.unlit</code> is small: it covers only the part of HDRP Unlit that VPE tables use.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>HDRP counterpart</th>
+<th>HDRP documentation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BaseColor.Color</code>, <code>BaseColor.Texture</code>, <code>BaseColor.Texture.Scale</code>, <code>BaseColor.Texture.Offset</code></td>
+<td>HDRP Unlit <code>Color</code>, including the base texture, color multiplier, tiling, and offset.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html">Unlit Material Inspector reference: Color</a></td>
+</tr>
+<tr>
+<td><code>SurfaceType</code></td>
+<td>HDRP Unlit <code>Surface type</code> and transparent workflow.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html">Unlit Material Inspector reference: Surface type</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html">Surface Type</a></td>
+</tr>
+<tr>
+<td><code>AlphaCutoff</code></td>
+<td>HDRP Unlit <code>Alpha Clipping</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html">Unlit Material Inspector reference: Alpha Clipping</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Alpha-Clipping.html">Alpha Clipping</a></td>
+</tr>
+<tr>
+<td><code>DoubleSided</code></td>
+<td>HDRP Unlit <code>Double-Sided</code>.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html">Unlit Material Inspector reference: Double-Sided</a>, <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Double-Sided.html">Double sided</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="vpemetal"><code>vpe.metal</code></h3>
+<p><code>vpe.metal</code> covers VPE's measured metal shader-graph materials. They are authored as VPE-owned shader graphs rather than plain HDRP Lit materials, so the profile carries both a template key and a portable <code>vpe.lit</code> fallback for players that do not ship the same templates.</p>
+<p>The profile contains:</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Metal.TemplateName</code></td>
+<td>Stable template key owned by the player. HDRP resolves this through its measured-material override table and clones that template when available.</td>
+</tr>
+<tr>
+<td><code>Lit</code></td>
+<td>Fallback material intent built from the shader graph's exposed properties. The fallback includes color, mask map, metallic/smoothness/AO remaps, surface options, emissive settings, and renderer hints.</td>
+</tr>
+</tbody>
+</table>
+<p>For HDRP, <code>HdrpMaterialResolver</code> first tries to create the material from <code>Metal.TemplateName</code>. If no matching player template exists, it falls back to the <code>Lit</code> payload and builds a normal HDRP Lit material.</p>
+<h3 id="vperubber"><code>vpe.rubber</code></h3>
+<p><code>vpe.rubber</code> follows the same template-plus-fallback pattern as <code>vpe.metal</code>, but targets VPE's measured rubber shader graph materials.</p>
+<p>The profile contains:</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Rubber.TemplateName</code></td>
+<td>Stable template key owned by the player. HDRP resolves this through its measured-material override table and clones that template when available.</td>
+</tr>
+<tr>
+<td><code>Lit</code></td>
+<td>Fallback material intent built from the shader graph's exposed properties. The fallback includes base color, optional base color texture, normal map, mask map, smoothness/AO remaps, surface options, emissive settings, and renderer hints.</td>
+</tr>
+</tbody>
+</table>
+<p>For HDRP, <code>HdrpMaterialResolver</code> first tries to create the material from <code>Rubber.TemplateName</code>. If no matching player template exists, it falls back to the <code>Lit</code> payload and builds a normal HDRP Lit material.</p>
+<h3 id="vpedmd"><code>vpe.dmd</code></h3>
+<p><code>vpe.dmd</code> covers dot-matrix display materials, which are VPE-owned shader graphs.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Dmd.TemplateName</code></td>
+<td>Stable template key owned by the player. HDRP clones the matching template when available.</td>
+</tr>
+</tbody>
+</table>
+<p>Unlike <code>vpe.metal</code>/<code>vpe.rubber</code>, <code>vpe.dmd</code> carries <strong>no</strong> <code>vpe.lit</code> fallback: a DMD has no meaningful Lit approximation, so if the player ships no matching template the material is skipped rather than substituted.</p>
+<h3 id="vpefabricsilk"><code>vpe.fabric.silk</code></h3>
+<p><code>vpe.fabric.silk</code> covers HDRP fabric/silk materials. The profile follows the fallback pattern but adds fabric-specific HDRP hints.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Fabric.Lit</code></td>
+<td>Portable <code>vpe.lit</code> fallback for readers without an HDRP fabric implementation.</td>
+</tr>
+<tr>
+<td><code>Fabric.Hdrp</code></td>
+<td>HDRP fabric/silk hints: optional thread map (with AO/normal/smoothness strengths and UV channel) and fuzz map (with strength and UV scale).</td>
+</tr>
+</tbody>
+</table>
+<p>For HDRP, <code>HdrpMaterialResolver</code> clones the fabric/silk template and applies the hints; if no fabric template is configured it returns no material (the imported fallback then stays in place). Other pipelines can render the carried <code>vpe.lit</code> fallback.</p>
+<h3 id="vpeinsert"><code>vpe.insert</code></h3>
+<p><code>vpe.insert</code> marks the two physical parts of a playfield insert: the <em>lens</em> flush with the playfield surface, and the faceted <em>reflector</em> body below it that shapes the lamp light. In HDRP both parts are ordinary translucent Lit materials, so the profile carries no data beyond a plain <code>vpe.lit</code> payload — the semantic type exists for pipelines <strong>without</strong> HDRP's translucency, diffusion profiles, and refraction. Knowing &quot;this is an insert lens&quot; lets such a pipeline substitute a purpose-built approximation instead of a generic (and hopeless) translation of a 10%-alpha transmissive surface.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Insert.Part</code></td>
+<td><code>lens</code> or <code>reflector</code>.</td>
+</tr>
+<tr>
+<td><code>Insert.Lit</code></td>
+<td>Full portable material intent, identical in shape to a <code>vpe.lit</code> payload (transmittance color, thickness map, IOR, refraction model, normal map, surface state, HDRP hints).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classification</strong> happens at export time, by heuristic rather than by shader: a transparent, transmissive <code>HDRP/Lit</code> material used by a renderer that sits under a <code>LightComponent</code> is an insert part. The part with a refraction model is the reflector; the one without is the lens. Opaque emissive materials under the same light (faux bulbs) are unaffected and stay <code>vpe.lit</code>.</p>
+<p><strong>Color identity caveat for readers:</strong> in authored tables, a <em>reflector's</em> saturated color is its transmittance tint, while a <em>lens</em> usually carries its color in the base color — lens transmittance is often a generic value shared across all insert colors. A renderer approximating inserts should pick its tint source per part accordingly.</p>
+<p><strong>Realization:</strong></p>
+<ul>
+<li>HDRP resolves <code>Insert.Lit</code> through exactly the same path as <code>vpe.lit</code> (translucent template plus hints); output is identical to the pre-<code>vpe.insert</code> behavior.</li>
+<li>URP builds both parts as alpha-blended URP/Lit materials: the tint becomes the visible body color (with a per-part opacity floor), and the lamp glow becomes emission whose baseline the runtime lamp system (<code>LightComponent</code>) reads at startup, zeroes, and then drives with the live lamp value. Because the parts stay in the transparent render queue, the lamp system treats them as lamp-lit <em>surfaces</em> (emission drive only) rather than faux bulbs (which are hidden when the lamp is off).</li>
+<li>A resolver that does not implement <code>vpe.insert</code> should skip it; runtime then keeps the imported GLB material, like any unsupported type.</li>
+</ul>
+<h3 id="renderer-state">Renderer state</h3>
+<p>In addition to material properties, a renderer should restore <code>VpeRendererState</code>. Only part of this has a dedicated HDRP manual page, because some of it is ordinary Unity renderer state rather than HDRP-specific shader behavior.</p>
+<table>
+<thead>
+<tr>
+<th>VPE field</th>
+<th>HDRP / Unity counterpart</th>
+<th>HDRP documentation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CastShadows</code></td>
+<td>Unity <code>Renderer.shadowCastingMode</code>. This is renderer state, not an HDRP material feature.</td>
+<td>No dedicated HDRP material page.</td>
+</tr>
+<tr>
+<td><code>ReceiveShadows</code></td>
+<td>Unity <code>Renderer.receiveShadows</code>. This is renderer state, not an HDRP material feature.</td>
+<td>No dedicated HDRP material page.</td>
+</tr>
+<tr>
+<td><code>RenderingLayerMask</code></td>
+<td>HDRP rendering layers for light / decal filtering.</td>
+<td><a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Rendering-Layers.html">Use light rendering layers</a></td>
+</tr>
+<tr>
+<td><code>Hdrp.RayTracingMode</code></td>
+<td>HDRP per-renderer ray-tracing mode override (<code>-1</code> = no override).</td>
+<td>No dedicated HDRP material page.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="failure-behavior">Failure behavior</h3>
+<p>A package should stay loadable even if a renderer implements only part of the vocabulary, so a resolver should behave conservatively:</p>
+<ul>
+<li>unknown material types should be skipped with a warning</li>
+<li>missing texture IDs should be skipped with a warning</li>
+<li>unsupported semantics should degrade gracefully rather than abort package loading</li>
+<li>if no resolver is registered, runtime should leave the imported GLB materials in place</li>
+</ul>
+<p>That degrades the visuals, but keeps the content loadable while a renderer is still being brought up.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/packaging/materials.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
