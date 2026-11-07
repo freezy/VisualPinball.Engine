@@ -105,6 +105,11 @@ namespace VisualPinball.Unity.Editor
 			var devices = component.ListNudgeInputDevices();
 			UpdateCalibration(component, devices);
 			foreach (var device in devices) {
+				if (NudgeSensorSetup.TryCreateGamepadSensor(device, out _)) {
+					EditorGUILayout.LabelField(device.Name, EditorStyles.miniBoldLabel);
+					if (GUILayout.Button("Map Left Stick")) ApplyNudgePreset(component, device, false);
+					continue;
+				}
 				var opd = NudgeSensorSetup.IsOpenPinballDevice(device);
 				if (!device.IsConnected || (!opd && !NudgeSensorSetup.IsPinscape(device))) continue;
 				EditorGUILayout.LabelField(device.Name, EditorStyles.miniBoldLabel);
@@ -112,8 +117,8 @@ namespace VisualPinball.Unity.Editor
 					? "Open Pinball Device. Select Velocity if enabled in firmware. Check the configured full-scale range before play."
 					: "Standard Pinscape layout. Select Velocity only after enabling RX/RY velocity in firmware. Check the mapped full-scale range before play.", MessageType.Info);
 				EditorGUILayout.BeginHorizontal();
-				if (GUILayout.Button("Acceleration")) ApplyCabinetPreset(component, device, false);
-				if (GUILayout.Button("Velocity")) ApplyCabinetPreset(component, device, true);
+				if (GUILayout.Button("Acceleration")) ApplyNudgePreset(component, device, false);
+				if (GUILayout.Button("Velocity")) ApplyNudgePreset(component, device, true);
 				EditorGUILayout.EndHorizontal();
 			}
 			if (devices.Count == 0) {
@@ -181,14 +186,15 @@ namespace VisualPinball.Unity.Editor
 			SetStatus(message, success ? MessageType.Info : MessageType.Warning);
 		}
 
-		private void ApplyCabinetPreset(SimulationThreadComponent component, NativeInputDeviceInfo device, bool velocity)
+		private void ApplyNudgePreset(SimulationThreadComponent component, NativeInputDeviceInfo device, bool velocity)
 		{
-			if (!NudgeSensorSetup.TryCreateCabinetPreset(device, velocity, out var sensor)) {
+			var gamepad = NudgeSensorSetup.TryCreateGamepadSensor(device, out var sensor);
+			if (!gamepad && !NudgeSensorSetup.TryCreateCabinetPreset(device, velocity, out sensor)) {
 				SetStatus("The required axes are unavailable.", MessageType.Warning);
 				return;
 			}
 			_calibration = null;
-			Undo.RecordObject(component, "Map Pinscape nudge sensor");
+			Undo.RecordObject(component, "Map nudge sensor");
 			component.NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
 			if (component.NudgeSensors.Count > 0) {
 				var old = component.NudgeSensors[0];
@@ -204,7 +210,8 @@ namespace VisualPinball.Unity.Editor
 			}
 			component.ApplyNudgeSensorSettings();
 			EditorUtility.SetDirty(component);
-			SetStatus("Mapped the first sensor slot. Check the range and calibrate at rest.", MessageType.Info);
+			SetStatus(gamepad ? "Mapped the left stick to the first sensor slot."
+				: "Mapped the first sensor slot. Check the range and calibrate at rest.", MessageType.Info);
 		}
 
 		/// <summary>

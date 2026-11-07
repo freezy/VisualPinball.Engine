@@ -26,6 +26,24 @@ namespace VisualPinball.Unity.Test
 		public void AutoSetupRejectsGenericGamepadXY()
 		{
 			Assert.That(NudgeSensorSetup.TryCreateCabinetSensor(Device("Xbox controller"), out _), Is.False);
+			Assert.That(NudgeSensorSetup.TryCreateGamepadSensor(Device("Xbox controller"), out _), Is.False);
+		}
+
+		[Test]
+		public void GamepadPresetUsesStandardizedLeftStickAxes()
+		{
+			var device = new NativeInputDeviceInfo(1, "sdl-gamepad:test", "Gamepad", true, new[] {
+				new NativeInputAxisInfo(2, "Right Stick X", 0xff00, 2, NativeInputApi.AxisKind.Position, 0f, 0),
+				new NativeInputAxisInfo(5, "Left Stick Y", 0xff00, 1, NativeInputApi.AxisKind.Position, 0f, 0),
+				new NativeInputAxisInfo(3, "Left Stick X", 0xff00, 0, NativeInputApi.AxisKind.Position, 0f, 0)
+			});
+			Assert.That(NudgeSensorSetup.TryCreateGamepadSensor(device, out var settings), Is.True);
+			var sensor = settings.ToEngineConfig();
+			Assert.That(sensor.Type, Is.EqualTo(NudgeSensorType.GamepadIntent));
+			Assert.That(sensor.X.DeviceId, Is.EqualTo(device.Id));
+			Assert.That(sensor.X.AxisId, Is.EqualTo(3));
+			Assert.That(sensor.Y.AxisId, Is.EqualTo(5));
+			Assert.That(sensor.X.Kind, Is.EqualTo(SensorMappingKind.Position));
 		}
 
 		[TestCase("mjrnet Pinscape Controller")]
