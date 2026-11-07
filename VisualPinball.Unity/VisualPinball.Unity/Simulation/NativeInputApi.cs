@@ -223,13 +223,55 @@ namespace VisualPinball.Unity.Simulation
 			public static bool TryCreate(InputAction action, int buttonId, string deviceId, out InputButtonBinding binding)
 			{
 				binding = default;
-				if (buttonId < 0 || string.IsNullOrEmpty(deviceId) || deviceId.IndexOf('\0') >= 0
-					|| Encoding.UTF8.GetByteCount(deviceId) >= DeviceIdSize) return false;
-				var bytes = new byte[DeviceIdSize];
-				Encoding.UTF8.GetBytes(deviceId, 0, deviceId.Length, bytes, 0);
+				if (buttonId < 0 || !TryEncodeDeviceId(deviceId, out var bytes)) return false;
 				binding = new InputButtonBinding { Action = (int)action, ButtonId = buttonId, _deviceId = bytes };
 				return true;
 			}
+		}
+
+		public enum InputControlKind { Button, AxisAbove, AxisBelow }
+
+		[StructLayout(LayoutKind.Sequential, Pack = 4)]
+		public struct InputControlBinding
+		{
+			public int Action;
+			public int Group;
+			public InputControlKind Kind;
+			public int ControlId;
+			public float Threshold;
+
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = DeviceIdSize)]
+			private byte[] _deviceId;
+
+			public string DeviceId => DecodeUtf8(_deviceId);
+
+			public static bool TryCreate(InputAction action, int group, InputControlKind kind, int controlId,
+				float threshold, string deviceId, out InputControlBinding binding)
+			{
+				binding = default;
+				var validDirection = kind switch {
+					InputControlKind.Button => true,
+					InputControlKind.AxisAbove => threshold > 0f,
+					InputControlKind.AxisBelow => threshold < 0f,
+					_ => false
+				};
+				if (group < 0 || controlId < 0 || !validDirection
+					|| !float.IsFinite(threshold) || threshold is < -1f or > 1f || !TryEncodeDeviceId(deviceId, out var bytes)) return false;
+				binding = new InputControlBinding {
+					Action = (int)action, Group = group, Kind = kind, ControlId = controlId, Threshold = threshold, _deviceId = bytes
+				};
+				return true;
+			}
+		}
+
+		private static bool TryEncodeDeviceId(string deviceId, out byte[] bytes)
+		{
+			bytes = null;
+			if (string.IsNullOrEmpty(deviceId) || deviceId.IndexOf('\0') >= 0
+				|| Encoding.UTF8.GetByteCount(deviceId) >= DeviceIdSize) return false;
+			bytes = new byte[DeviceIdSize];
+			Encoding.UTF8.GetBytes(deviceId, 0, deviceId.Length, bytes, 0);
+			return true;
 		}
 
 		[StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -375,6 +417,15 @@ namespace VisualPinball.Unity.Simulation
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void VpeInputSetButtonBindings([In] InputButtonBinding[] bindings, int count);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void VpeInputSetControlBindings([In] InputControlBinding[] controls, int count);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void VpeInputStartControlCapture(int mode);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int VpeInputReadControlCapture([Out] InputControlBinding[] controls, int maxControls);
 
 		/// <summary>
 		/// Returns the native high-resolution timestamp in microseconds.
