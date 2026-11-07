@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Plugin helpers resolve table-local media directories by controller namespace and game ID, with case-insensitive matching for VPX folder layouts.
+
 - Windows Open Pinball Device support for Pinscape Pico with named nudge axes, firmware scale presets and preassigned cabinet buttons. The updated NativeInput library is required for OPD discovery.
 
 - Shared Pinscape joystick nudge setup and sampled rest calibration in the editor and Player, with explicit velocity presets, device-axis selection, editable SI scales, and sensor state reset on disconnect.
