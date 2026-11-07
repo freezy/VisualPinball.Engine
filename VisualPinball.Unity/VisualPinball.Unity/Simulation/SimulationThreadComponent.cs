@@ -86,6 +86,7 @@ namespace VisualPinball.Unity.Simulation
 		/// center.
 		/// </summary>
 		/// <returns>The number of mappings whose raw center was updated.</returns>
+		[Obsolete("Use NudgeSensorCalibration to collect fresh rest samples. This method captures a single snapshot.")]
 		public int CalibrateRawCenters(IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			var count = 0;
@@ -109,23 +110,6 @@ namespace VisualPinball.Unity.Simulation
 			ResetRawCenter(ref AccelerationY);
 			ResetRawCenter(ref VelocityX);
 			ResetRawCenter(ref VelocityY);
-		}
-
-		/// <summary>
-		/// Builds a serialized mapping from a native device/axis pair.
-		/// </summary>
-		internal static string BuildMapping(NativeInputDeviceInfo device, NativeInputAxisInfo axis,
-			SensorMappingKind kind, float scale, float rawCenter)
-		{
-			return new SensorMapping {
-				DeviceId = device.Id,
-				AxisId = axis.AxisId,
-				Kind = kind,
-				DeadZone = 0.02f,
-				Scale = scale,
-				Limit = 1f,
-				RawCenter = rawCenter
-			}.ToString();
 		}
 
 		/// <summary>
@@ -707,6 +691,7 @@ namespace VisualPinball.Unity.Simulation
 		/// not report exactly zero, while the physics-side gain calibrator continues
 		/// to learn velocity/acceleration scale from motion.
 		/// </remarks>
+		[Obsolete("Use NudgeSensorCalibration to collect fresh rest samples. This method captures a single snapshot.")]
 		public int CalibrateNudgeSensorCenters()
 		{
 			var devices = ListNudgeInputDevices();
@@ -747,47 +732,27 @@ namespace VisualPinball.Unity.Simulation
 		/// Attempts to map the first connected cabinet-style device to acceleration
 		/// X/Y channels.
 		/// </summary>
-		/// <remarks>
-		/// The heuristic prefers HID X/Y accelerometer usages, then falls back to
-		/// named X/Y axes, and finally any two non-Z acceleration axes. This keeps
-		/// one-click setup useful for KL25Z/Pinscape boards without hard-coding a
-		/// vendor-specific device name.
-		/// </remarks>
 		public bool TryAutoConfigureFirstCabinetSensor(out string message)
 		{
-			var devices = ListNudgeInputDevices();
-			for (var i = 0; i < devices.Count; i++) {
-				var device = devices[i];
-				if (!device.IsConnected || device.Axes == null) {
+			foreach (var device in ListNudgeInputDevices()) {
+				if (!NudgeSensorSetup.TryCreateCabinetSensor(device, out var sensor)) {
 					continue;
 				}
-				if (TryPickAxisPair(device, out var xAxis, out var yAxis)) {
-					NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
-					var existingSensor = NudgeSensors.Count == 0 ? null : NudgeSensors[0];
-					var sensor = new SimulationThreadNudgeSensorConfig {
-						Type = NudgeSensorType.CabinetDirect,
-						Strength = 1f,
-						CabinetMassKg = 113f,
-						MountRotation = existingSensor?.MountRotation ?? NudgeSensorMountRotation.Rotation0,
-						MountMirror = existingSensor?.MountMirror ?? false,
-						AccelerationX = SimulationThreadNudgeSensorConfig.BuildMapping(device, xAxis,
-							SensorMappingKind.Acceleration, 9.81f, xAxis.RawValue),
-						AccelerationY = SimulationThreadNudgeSensorConfig.BuildMapping(device, yAxis,
-							SensorMappingKind.Acceleration, 9.81f, yAxis.RawValue)
-					};
-					if (NudgeSensors.Count == 0) {
-						NudgeSensors.Add(sensor);
-					} else {
-						NudgeSensors[0] = sensor;
-					}
-					ApplyNudgeSensorSettings();
-					var deviceName = string.IsNullOrEmpty(device.Name) ? device.Id : device.Name;
-					message = $"Mapped {deviceName} axes {AxisName(xAxis)}/{AxisName(yAxis)}.";
-					return true;
+				NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
+				if (NudgeSensors.Count > 0) {
+					sensor.mountRotation = (int)(NudgeSensors[0]?.MountRotation ?? NudgeSensorMountRotation.Rotation0);
+					sensor.mountMirror = NudgeSensors[0]?.MountMirror ?? false;
+					sensor.strength = NudgeSensors[0]?.Strength ?? 1f;
+					sensor.cabinetMassKg = NudgeSensors[0]?.CabinetMassKg ?? 113f;
+					NudgeSensors[0] = sensor.ToSimulationThreadConfig();
+				} else {
+					NudgeSensors.Add(sensor.ToSimulationThreadConfig());
 				}
+				ApplyNudgeSensorSettings();
+				message = $"Mapped {device.Name} acceleration X/Y. Check range and calibrate at rest.";
+				return true;
 			}
-
-			message = "No connected input device with two usable axes was found.";
+			message = "No recognized cabinet sensor found. Map generic joystick axes manually.";
 			return false;
 		}
 
@@ -895,99 +860,6 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		private static long TimestampUsec => VpeClock.NowUsec;
-
-		/// <summary>
-		/// Picks a likely X/Y axis pair from one native device.
-		/// </summary>
-		private static bool TryPickAxisPair(NativeInputDeviceInfo device, out NativeInputAxisInfo xAxis,
-			out NativeInputAxisInfo yAxis)
-		{
-			xAxis = default;
-			yAxis = default;
-			if (TryFindAxis(device, "X", 0x30, NativeInputApi.AxisKind.Acceleration, out xAxis) &&
-			    TryFindAxis(device, "Y", 0x31, NativeInputApi.AxisKind.Acceleration, out yAxis) &&
-			    xAxis.AxisId != yAxis.AxisId) {
-				return true;
-			}
-
-			var xSet = TryFindAxis(device, "X", 0x30, null, out xAxis);
-			var ySet = TryFindAxis(device, "Y", 0x31, null, out yAxis);
-			if (xSet && ySet && xAxis.AxisId != yAxis.AxisId) {
-				return true;
-			}
-
-			for (var i = 0; i < device.Axes.Count; i++) {
-				var axis = device.Axes[i];
-				if (axis.Kind != NativeInputApi.AxisKind.Acceleration || IsNamedAxis(axis, "Z", 0x32)) {
-					continue;
-				}
-				if ((xSet && axis.AxisId == xAxis.AxisId) || (ySet && axis.AxisId == yAxis.AxisId)) {
-					continue;
-				}
-				if (!xSet) {
-					xAxis = axis;
-					xSet = true;
-				} else {
-					yAxis = axis;
-					ySet = true;
-					break;
-				}
-			}
-
-			return xSet && ySet && xAxis.AxisId != yAxis.AxisId;
-		}
-
-		/// <summary>
-		/// Finds an axis by HID usage or display name, optionally constrained by
-		/// reported axis kind.
-		/// </summary>
-		private static bool TryFindAxis(NativeInputDeviceInfo device, string axisName, int usage,
-			NativeInputApi.AxisKind? kind, out NativeInputAxisInfo axis)
-		{
-			if (device.Axes != null) {
-				for (var i = 0; i < device.Axes.Count; i++) {
-					var candidate = device.Axes[i];
-					if (kind.HasValue && candidate.Kind != kind.Value) {
-						continue;
-					}
-					if (IsNamedAxis(candidate, axisName, usage)) {
-						axis = candidate;
-						return true;
-					}
-				}
-			}
-			axis = default;
-			return false;
-		}
-
-		/// <summary>
-		/// Checks whether a native axis looks like the requested X/Y/Z axis.
-		/// </summary>
-		private static bool IsNamedAxis(NativeInputAxisInfo axis, string axisName, int usage)
-		{
-			if (axis.Usage == usage) {
-				return true;
-			}
-
-			var name = axis.Name;
-			if (string.IsNullOrEmpty(name)) {
-				return false;
-			}
-			if (string.Equals(name, axisName, StringComparison.OrdinalIgnoreCase)) {
-				return true;
-			}
-			return name.EndsWith(" " + axisName, StringComparison.OrdinalIgnoreCase)
-			       || name.EndsWith("-" + axisName, StringComparison.OrdinalIgnoreCase)
-			       || name.EndsWith("_" + axisName, StringComparison.OrdinalIgnoreCase);
-		}
-
-		/// <summary>
-		/// Returns a human-readable axis label for inspector messages.
-		/// </summary>
-		private static string AxisName(NativeInputAxisInfo axis)
-		{
-			return string.IsNullOrEmpty(axis.Name) ? $"Axis {axis.AxisId}" : axis.Name;
-		}
 
 		/// <summary>
 		/// Updates smoothed simulation speed diagnostics for the inspector.

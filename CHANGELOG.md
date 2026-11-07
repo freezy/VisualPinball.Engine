@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Shared Pinscape joystick nudge setup and sampled rest calibration in the editor and Player, with explicit velocity presets, device-axis selection, editable SI scales, and sensor state reset on disconnect.
+
 - Closed shared cabinet output roles with independent LCD/HD game display routing and preserved custom scene bindings.
 
 - Cabinet output content rotation, mirroring, and explicit-load inset composition with asymmetric GPU validation.

@@ -47,6 +47,9 @@ namespace VisualPinball.Unity
 		public readonly NudgeSensorChannel Channel;
 		public readonly float Value;
 		public readonly ulong TimestampUsec;
+		public readonly bool IsConfiguration;
+		public readonly bool Enabled;
+		public readonly NudgeSensorRuntimeConfig Configuration;
 
 		/// <summary>
 		/// Creates a timestamped sensor sample for the configured sensor slot.
@@ -57,6 +60,20 @@ namespace VisualPinball.Unity
 			Channel = channel;
 			Value = value;
 			TimestampUsec = timestampUsec;
+			IsConfiguration = false;
+			Enabled = false;
+			Configuration = default;
+		}
+
+		public NudgeSensorSampleCommand(int sensorIndex, NudgeSensorRuntimeConfig configuration, bool enabled)
+		{
+			SensorIndex = sensorIndex;
+			Configuration = configuration;
+			Enabled = enabled;
+			IsConfiguration = true;
+			Channel = default;
+			Value = 0f;
+			TimestampUsec = 0;
 		}
 	}
 
@@ -133,7 +150,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Rebuilds one analog sensor slot from serialized/player configuration.
 		/// </summary>
-		public void ConfigureSensor(int index, NudgeSensorRuntimeConfig config)
+		public void ConfigureSensor(int index, NudgeSensorRuntimeConfig config, bool enabled = true)
 		{
 			if ((uint)index >= MaxSensors) {
 				return;
@@ -142,6 +159,9 @@ namespace VisualPinball.Unity
 			config.CabinetMassKg = math.clamp(config.CabinetMassKg <= 0f ? 113f : config.CabinetMassKg, 0f, 200f);
 			config.MountRotation = NudgeSensorMountTransform.NormalizeRotation(config.MountRotation);
 			ConfigureSensorState(index, config);
+			if (!enabled) {
+				DisableSensor(index);
+			}
 			if (index >= SensorCount) {
 				SensorCount = index + 1;
 			}

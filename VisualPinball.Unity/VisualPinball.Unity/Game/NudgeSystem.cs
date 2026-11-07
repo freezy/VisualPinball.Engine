@@ -96,6 +96,8 @@ namespace VisualPinball.Unity
 		private readonly object _configLock = new();
 		private readonly List<NudgeSensorConfig> _sensors = new(NudgeState.MaxSensors);
 		private volatile NativeInputManager _inputManager;
+		private HashSet<string> _connectedDevices = new();
+		private readonly bool[] _sensorAvailable = new bool[NudgeState.MaxSensors];
 
 		/// <summary>
 		/// Creates a nudge system attached to a physics engine.
@@ -142,10 +144,12 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				_physicsEngine.ConfigureNudgeSensorCount(_sensors.Count);
+				var configs = new NudgeSensorRuntimeConfig[_sensors.Count];
 				for (var i = 0; i < _sensors.Count; i++) {
-					_physicsEngine.ConfigureNudgeSensor(i, _sensors[i].ToRuntimeConfig());
+					configs[i] = _sensors[i].ToRuntimeConfig();
+					_sensorAvailable[i] = IsSensorAvailable(_sensors[i]);
 				}
+				_physicsEngine.ApplyNudgeSensorConfigurations(configs, _sensorAvailable);
 			}
 		}
 
@@ -161,6 +165,8 @@ namespace VisualPinball.Unity
 			_inputManager = inputManager;
 			if (_inputManager != null) {
 				_inputManager.AxisInputReceived += OnAxisInputReceived;
+				_inputManager.DevicesChanged += OnDevicesChanged;
+				OnDevicesChanged();
 			}
 		}
 
@@ -184,7 +190,9 @@ namespace VisualPinball.Unity
 		{
 			if (_inputManager != null) {
 				_inputManager.AxisInputReceived -= OnAxisInputReceived;
+				_inputManager.DevicesChanged -= OnDevicesChanged;
 				_inputManager = null;
+				UpdateConnectedDevices(Array.Empty<NativeInputDeviceInfo>());
 			}
 		}
 
@@ -209,7 +217,11 @@ namespace VisualPinball.Unity
 			}
 
 			lock (_configLock) {
+				if (_inputManager != inputManager) return;
 				for (var i = 0; i < _sensors.Count; i++) {
+					if (!_sensorAvailable[i]) {
+						continue;
+					}
 					var sensor = _sensors[i];
 					if (sensor.Type == NudgeSensorType.GamepadIntent) {
 						TryQueueSample(i, sensor.X, NudgeSensorChannel.X, deviceId, evt);
@@ -222,6 +234,50 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+		}
+
+		private void OnDevicesChanged()
+		{
+			var inputManager = _inputManager;
+			if (inputManager != null) {
+				var devices = inputManager.ListDevices();
+				lock (_configLock) {
+					if (_inputManager == inputManager) UpdateConnectedDevices(devices);
+				}
+			}
+		}
+
+		// Device notifications run on the input thread. Queue resets for physics instead
+		// of taking PhysicsLock while a simulation callback may be stopping input.
+		internal void UpdateConnectedDevices(IReadOnlyList<NativeInputDeviceInfo> devices)
+		{
+			lock (_configLock) {
+				var connected = new HashSet<string>();
+				foreach (var device in devices) {
+					if (device.IsConnected) connected.Add(device.Id);
+				}
+				_connectedDevices = connected;
+				for (var i = 0; i < _sensors.Count; i++) {
+					var available = IsSensorAvailable(_sensors[i]);
+					if (available == _sensorAvailable[i]) continue;
+					_sensorAvailable[i] = available;
+					_physicsEngine.EnqueueNudgeSensorReset(i, _sensors[i].ToRuntimeConfig(), available);
+				}
+			}
+		}
+
+		private bool IsSensorAvailable(NudgeSensorConfig sensor)
+		{
+			if (sensor.Type == NudgeSensorType.GamepadIntent) {
+				return IsMappingAvailable(sensor.X) && IsMappingAvailable(sensor.Y);
+			}
+			return IsMappingAvailable(sensor.AccelerationX) && IsMappingAvailable(sensor.AccelerationY)
+				&& IsMappingAvailable(sensor.VelocityX) && IsMappingAvailable(sensor.VelocityY);
+		}
+
+		private bool IsMappingAvailable(SensorMapping mapping)
+		{
+			return !mapping.IsMapped || _connectedDevices.Contains(mapping.DeviceId);
 		}
 
 		/// <summary>
