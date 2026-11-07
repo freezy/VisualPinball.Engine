@@ -372,7 +372,11 @@ namespace VisualPinball.Unity
 
 			foreach (var sample in _pendingNudgeSensorSamples) {
 				var nudgeState = _ctx.PhysicsEnv.Nudge;
-				nudgeState.ApplySensorSample(sample.SensorIndex, sample.Channel, sample.Value, sample.TimestampUsec);
+				if (sample.IsConfiguration) {
+					nudgeState.ConfigureSensor(sample.SensorIndex, sample.Configuration, sample.Enabled);
+				} else {
+					nudgeState.ApplySensorSample(sample.SensorIndex, sample.Channel, sample.Value, sample.TimestampUsec);
+				}
 				_ctx.PhysicsEnv.Nudge = nudgeState;
 			}
 		}

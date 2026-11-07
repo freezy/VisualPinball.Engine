@@ -499,28 +499,26 @@ namespace VisualPinball.Unity
 			_nudgeSystem?.ConfigureSensors(sensors);
 		}
 
-		/// <summary>
-		/// Updates the number of active analog sensor slots inside physics state.
-		/// </summary>
-		internal void ConfigureNudgeSensorCount(int count)
+		/// <summary>Replaces sensor state atomically and discards samples from the old mappings.</summary>
+		internal void ApplyNudgeSensorConfigurations(NudgeSensorRuntimeConfig[] configs, bool[] enabled)
 		{
 			lock (_ctx.PhysicsLock) {
+				lock (_ctx.PendingNudgeSensorSamplesLock) {
+					_ctx.PendingNudgeSensorSamples.Clear();
+				}
 				var nudge = _ctx.PhysicsEnv.Nudge;
-				nudge.ConfigureSensors(count);
+				nudge.ConfigureSensors(configs.Length);
+				for (var i = 0; i < configs.Length; i++) {
+					nudge.ConfigureSensor(i, configs[i], enabled[i]);
+				}
 				_ctx.PhysicsEnv.Nudge = nudge;
 			}
 		}
 
-		/// <summary>
-		/// Updates one analog nudge sensor slot inside physics state.
-		/// </summary>
-		internal void ConfigureNudgeSensor(int index, NudgeSensorRuntimeConfig config)
+		// Queued in the same stream as input samples so hotplug cannot race older motion.
+		internal void EnqueueNudgeSensorReset(int index, NudgeSensorRuntimeConfig config, bool enabled)
 		{
-			lock (_ctx.PhysicsLock) {
-				var nudge = _ctx.PhysicsEnv.Nudge;
-				nudge.ConfigureSensor(index, config);
-				_ctx.PhysicsEnv.Nudge = nudge;
-			}
+			EnqueueNudgeSensorCommand(new NudgeSensorSampleCommand(index, config, enabled));
 		}
 
 		/// <summary>
@@ -528,23 +526,35 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <remarks>
 		/// A streaming accelerometer can generate thousands of samples per second,
-		/// so the queue is bounded and drops the oldest sample if the drain stalls.
+		/// so the queue is bounded and discards stale motion if the drain stalls.
 		/// Fresh samples are more useful than stale motion history after a pause or
 		/// debugger break.
 		/// </remarks>
 		internal void EnqueueNudgeSensorSample(int sensorIndex, NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
+			EnqueueNudgeSensorCommand(new NudgeSensorSampleCommand(sensorIndex, channel, value, timestampUsec));
+		}
+
+		private void EnqueueNudgeSensorCommand(NudgeSensorSampleCommand command)
+		{
 			lock (_ctx.PendingNudgeSensorSamplesLock) {
 				if (_ctx.PendingNudgeSensorSamples.Count >= PendingSensorSampleQueueCap) {
-					// A stalled drain (pause, breakpoint) must not let a streaming
-					// accelerometer grow the queue without bound; new samples win.
-					_ctx.PendingNudgeSensorSamples.Dequeue();
+					// Motion history is stale after a long stall. Preserve the latest
+					// connection reset per sensor so overflow cannot leave a lost device active.
+					var resets = new NudgeSensorSampleCommand[NudgeState.MaxSensors];
+					while (_ctx.PendingNudgeSensorSamples.Count > 0) {
+						var pending = _ctx.PendingNudgeSensorSamples.Dequeue();
+						if (pending.IsConfiguration) resets[pending.SensorIndex] = pending;
+					}
+					foreach (var reset in resets) {
+						if (reset.IsConfiguration) _ctx.PendingNudgeSensorSamples.Enqueue(reset);
+					}
 					if (!_pendingSensorSampleQueueWarningIssued) {
 						_pendingSensorSampleQueueWarningIssued = true;
-						LogQueueWarning($"[PhysicsEngine] PendingNudgeSensorSamples backlog reached {PendingSensorSampleQueueCap} items, dropping oldest. Is the drain stalled?");
+						LogQueueWarning($"[PhysicsEngine] PendingNudgeSensorSamples backlog reached {PendingSensorSampleQueueCap} items, discarding stale motion. Is the drain stalled?");
 					}
 				}
-				_ctx.PendingNudgeSensorSamples.Enqueue(new NudgeSensorSampleCommand(sensorIndex, channel, value, timestampUsec));
+				_ctx.PendingNudgeSensorSamples.Enqueue(command);
 			}
 		}
 

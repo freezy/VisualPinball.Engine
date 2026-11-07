@@ -88,26 +88,25 @@ Sensor types mean:
 Most Xbox-style controllers do not provide accelerometer data for nudging. Map
 their sticks as `GamepadIntent`.
 
-KL25Z/Pinscape boards are cabinet sensors. Map their acceleration axes, then use
-mount rotation and mirror to match how the board is installed in the cabinet.
-The available rotations are 0, 90, 180, and 270 degrees. Mirror flips the board X
-axis before rotation.
+KL25Z/Pinscape boards are cabinet sensors. Map their acceleration axes, then use mount rotation and mirror to match how the board is installed in the cabinet. The available rotations are 0, 90, 180, and 270 degrees. Mirror flips the board X axis before rotation.
 
-## Editor Calibration
+### Pinscape Joystick Setup
 
-For direct play in the editor, use the `SimulationThreadComponent` inspector:
+On Windows, recognized Pinscape joystick layouts offer acceleration and velocity presets in the Player's Nudge settings and the `SimulationThreadComponent` inspector. Acceleration uses X/Y with an initial full-scale value of 9.80665 m/s² (1 g). Set the scale to match the range configured in firmware. The Player offers 1, 2, 4, and 8 g presets and an editable custom scale. Negative scale reverses an axis.
 
-1. Enter Play Mode with the cabinet sensor connected.
-2. Use auto-configuration if the first device should be mapped as the cabinet
-   sensor.
-3. Set mount rotation and mirror until graph movement matches cabinet movement.
-4. Keep the cabinet still and calibrate sensor centers.
-5. Nudge the cabinet lightly and watch the input graph.
+Velocity setup uses RX/RY with the default Pinscape joystick full-scale value of 0.2048 m/s. Enable velocity reporting in firmware before selecting this preset. Pinscape Pico can assign arbitrary signals to joystick axes, so use the named axis selectors and custom scales when its layout differs from the standard Pinscape layout. Velocity mode uses the reported integrated velocity directly through VPE's cabinet sensor model.
 
-Calibration captures the current resting raw value as zero. It does not remove
-spikes, pick better axes, or tune the overall gain. If the graph spikes while the
-cabinet is still, check the mapped axes, increase dead zone, reduce scale, or
-inspect the physical board/device signal.
+Auto-map recognizes cabinet layouts and explicitly typed accelerometer axes. Generic joystick X/Y axes require manual assignment. The Player adds a sensor slot when auto-mapping and preserves existing slots. The inspector's setup buttons configure its first sensor slot. Player settings are saved in the cabinet profile and applied to loaded tables.
+
+Pinscape Pico must expose joystick nudge axes for this input path. Open Pinball Device reports and native analog input on Linux/macOS need separate backend support.
+
+### Rest Calibration
+
+In the Player, open the Nudge settings and choose Calibrate under Rest Calibration. This works from the main menu before loading a table. In the editor, enter Play Mode and choose Calibrate Centers in the `SimulationThreadComponent` inspector.
+
+Keep the cabinet still for about one second. Calibration averages fresh input reports for every active mapped channel. It checks sample count, sample duration, and input variation before updating any center. A disconnected device, stale reports, or excessive motion causes calibration to fail with the saved centers intact. Changing settings or leaving the tab cancels a running calibration.
+
+Calibration adjusts neutral centers. Gain, axis selection, mount orientation, and dead zone remain explicit settings. Use the signed raw input labels to check side and forward directions, then check the cabinet acceleration/offset graph while a table runs. A disconnected sensor is cleared on the physics thread and resumes from rest when all of its mapped devices reconnect.
 
 ## Shipping Tables
 

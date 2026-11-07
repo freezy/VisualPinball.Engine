@@ -51,6 +51,9 @@ namespace VisualPinball.Unity.Editor
 		private MessageType _statusType = MessageType.Info;
 		private GUIStyle _graphLegendStyle;
 		private double _lastGraphSampleTime;
+		private NudgeSensorCalibration _calibration;
+		private List<NudgeSensorConfig> _calibrationSensors;
+		private double _calibrationStart;
 
 		/// <summary>
 		/// Draws default simulation fields plus live nudge calibration controls for
@@ -65,6 +68,7 @@ namespace VisualPinball.Unity.Editor
 			serializedObject.ApplyModifiedProperties();
 
 			if (targets.Length == 1 && target is SimulationThreadComponent component) {
+				if (changed) _calibration = null;
 				if (changed && Application.isPlaying) {
 					component.ApplyNudgeSensorSettings();
 				}
@@ -90,6 +94,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Nudge Calibration", EditorStyles.boldLabel);
 
 			if (!Application.isPlaying) {
+				_calibration = null;
 				EditorGUILayout.HelpBox("Enter Play Mode to read native input devices and calibrate the current sensor centers.", MessageType.Info);
 				return;
 			}
@@ -98,6 +103,16 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Input Thread", $"{component.InputThreadActualHz:0.#} Hz / target {component.InputThreadTargetHz:0.#} Hz");
 
 			var devices = component.ListNudgeInputDevices();
+			UpdateCalibration(component, devices);
+			foreach (var device in devices) {
+				if (!device.IsConnected || !NudgeSensorSetup.IsPinscape(device)) continue;
+				EditorGUILayout.LabelField(device.Name, EditorStyles.miniBoldLabel);
+				EditorGUILayout.HelpBox("Standard Pinscape layout. Select Velocity only after enabling RX/RY velocity in firmware. Check the mapped full-scale range before play.", MessageType.Info);
+				EditorGUILayout.BeginHorizontal();
+				if (GUILayout.Button("Pinscape Acceleration")) ApplyPinscapePreset(component, device, false);
+				if (GUILayout.Button("Pinscape Velocity")) ApplyPinscapePreset(component, device, true);
+				EditorGUILayout.EndHorizontal();
+			}
 			if (devices.Count == 0) {
 				EditorGUILayout.HelpBox("No native input devices are visible. Check that native input is enabled and that the device was connected before polling started.", MessageType.Warning);
 			} else {
@@ -108,7 +123,8 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUI.BeginDisabledGroup(devices.Count == 0);
-			if (GUILayout.Button("Auto-map First Device")) {
+			if (GUILayout.Button("Auto-map Cabinet Sensor")) {
+				_calibration = null;
 				Undo.RecordObject(component, "Auto-map nudge sensor");
 				if (component.TryAutoConfigureFirstCabinetSensor(out var message)) {
 					SetStatus(message, MessageType.Info);
@@ -121,20 +137,18 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUI.BeginDisabledGroup(devices.Count == 0 || component.NudgeSensors == null || component.NudgeSensors.Count == 0);
 			if (GUILayout.Button("Calibrate Centers")) {
-				Undo.RecordObject(component, "Calibrate nudge sensor centers");
-				var calibrated = component.CalibrateNudgeSensorCenters();
-				if (calibrated > 0) {
-					SetStatus($"Calibrated {calibrated} mapped nudge channel(s).", MessageType.Info);
-					EditorUtility.SetDirty(component);
-				} else {
-					SetStatus("No mapped channels matched the currently visible devices.", MessageType.Warning);
-				}
+				_calibrationSensors = CabinetNudgeSensorSettings.FromSimulationThreadSensors(component.NudgeSensors)
+					.ConvertAll(sensor => sensor.ToEngineConfig());
+				_calibration = new NudgeSensorCalibration(_calibrationSensors, devices);
+				_calibrationStart = EditorApplication.timeSinceStartup;
+				SetStatus("Calibrating. Keep the cabinet still...", MessageType.Info);
 			}
 			EditorGUI.EndDisabledGroup();
 			EditorGUILayout.EndHorizontal();
 
 			EditorGUI.BeginDisabledGroup(component.NudgeSensors == null || component.NudgeSensors.Count == 0);
 			if (GUILayout.Button("Reset Centers")) {
+				_calibration = null;
 				Undo.RecordObject(component, "Reset nudge sensor centers");
 				var reset = component.ResetNudgeSensorCenters();
 				SetStatus(reset > 0 ? "Cleared nudge sensor raw centers." : "No nudge sensors to reset.", MessageType.Info);
@@ -145,6 +159,49 @@ namespace VisualPinball.Unity.Editor
 			if (!string.IsNullOrEmpty(_statusMessage)) {
 				EditorGUILayout.HelpBox(_statusMessage, _statusType);
 			}
+		}
+
+		private void UpdateCalibration(SimulationThreadComponent component, IReadOnlyList<NativeInputDeviceInfo> devices)
+		{
+			if (_calibration == null) return;
+			_calibration.Sample(devices);
+			if (EditorApplication.timeSinceStartup - _calibrationStart < 1.2) return;
+			var success = _calibration.TryComplete(out var message);
+			_calibration = null;
+			if (success) {
+				Undo.RecordObject(component, "Calibrate nudge sensor centers");
+				component.NudgeSensors = _calibrationSensors.ConvertAll(sensor => CabinetNudgeSensorSettings.From(sensor).ToSimulationThreadConfig());
+				component.ApplyNudgeSensorSettings();
+				EditorUtility.SetDirty(component);
+			}
+			_calibrationSensors = null;
+			SetStatus(message, success ? MessageType.Info : MessageType.Warning);
+		}
+
+		private void ApplyPinscapePreset(SimulationThreadComponent component, NativeInputDeviceInfo device, bool velocity)
+		{
+			if (!NudgeSensorSetup.TryCreatePinscapeSensor(device, velocity, out var sensor)) {
+				SetStatus("The required joystick axes are unavailable.", MessageType.Warning);
+				return;
+			}
+			_calibration = null;
+			Undo.RecordObject(component, "Map Pinscape nudge sensor");
+			component.NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
+			if (component.NudgeSensors.Count > 0) {
+				var old = component.NudgeSensors[0];
+				if (old != null) {
+					sensor.mountRotation = (int)old.MountRotation;
+					sensor.mountMirror = old.MountMirror;
+					sensor.strength = old.Strength;
+					sensor.cabinetMassKg = old.CabinetMassKg;
+				}
+				component.NudgeSensors[0] = sensor.ToSimulationThreadConfig();
+			} else {
+				component.NudgeSensors.Add(sensor.ToSimulationThreadConfig());
+			}
+			component.ApplyNudgeSensorSettings();
+			EditorUtility.SetDirty(component);
+			SetStatus("Mapped the first sensor slot. Check the range and calibrate at rest.", MessageType.Info);
 		}
 
 		/// <summary>
