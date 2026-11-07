@@ -105,12 +105,15 @@ namespace VisualPinball.Unity.Editor
 			var devices = component.ListNudgeInputDevices();
 			UpdateCalibration(component, devices);
 			foreach (var device in devices) {
-				if (!device.IsConnected || !NudgeSensorSetup.IsPinscape(device)) continue;
+				var opd = NudgeSensorSetup.IsOpenPinballDevice(device);
+				if (!device.IsConnected || (!opd && !NudgeSensorSetup.IsPinscape(device))) continue;
 				EditorGUILayout.LabelField(device.Name, EditorStyles.miniBoldLabel);
-				EditorGUILayout.HelpBox("Standard Pinscape layout. Select Velocity only after enabling RX/RY velocity in firmware. Check the mapped full-scale range before play.", MessageType.Info);
+				EditorGUILayout.HelpBox(opd
+					? "Open Pinball Device. Select Velocity if enabled in firmware. Check the configured full-scale range before play."
+					: "Standard Pinscape layout. Select Velocity only after enabling RX/RY velocity in firmware. Check the mapped full-scale range before play.", MessageType.Info);
 				EditorGUILayout.BeginHorizontal();
-				if (GUILayout.Button("Pinscape Acceleration")) ApplyPinscapePreset(component, device, false);
-				if (GUILayout.Button("Pinscape Velocity")) ApplyPinscapePreset(component, device, true);
+				if (GUILayout.Button("Acceleration")) ApplyCabinetPreset(component, device, false);
+				if (GUILayout.Button("Velocity")) ApplyCabinetPreset(component, device, true);
 				EditorGUILayout.EndHorizontal();
 			}
 			if (devices.Count == 0) {
@@ -178,10 +181,10 @@ namespace VisualPinball.Unity.Editor
 			SetStatus(message, success ? MessageType.Info : MessageType.Warning);
 		}
 
-		private void ApplyPinscapePreset(SimulationThreadComponent component, NativeInputDeviceInfo device, bool velocity)
+		private void ApplyCabinetPreset(SimulationThreadComponent component, NativeInputDeviceInfo device, bool velocity)
 		{
-			if (!NudgeSensorSetup.TryCreatePinscapeSensor(device, velocity, out var sensor)) {
-				SetStatus("The required joystick axes are unavailable.", MessageType.Warning);
+			if (!NudgeSensorSetup.TryCreateCabinetPreset(device, velocity, out var sensor)) {
+				SetStatus("The required axes are unavailable.", MessageType.Warning);
 				return;
 			}
 			_calibration = null;

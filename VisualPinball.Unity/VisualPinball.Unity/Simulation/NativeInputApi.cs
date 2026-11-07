@@ -306,6 +306,9 @@ namespace VisualPinball.Unity.Simulation
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void VpeInputSetBindings(InputBinding[] bindings, int count);
 
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void VpeInputSetGameplayInputEnabled(int enabled);
+
 		/// <summary>
 		/// Starts native polling and dispatches events through the supplied callback.
 		/// </summary>

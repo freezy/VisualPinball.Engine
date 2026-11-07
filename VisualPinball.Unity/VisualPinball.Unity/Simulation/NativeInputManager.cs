@@ -37,6 +37,7 @@ namespace VisualPinball.Unity.Simulation
 
 		private volatile SimulationThread _simulationThread;
 		private bool _initialized = false;
+		private bool _hasNativeGameplayGate;
 		private bool _polling = false;
 		private int _pollIntervalUs = 0;
 		private const double PerfSampleWindowSeconds = 0.25;
@@ -159,6 +160,12 @@ namespace VisualPinball.Unity.Simulation
 			}
 
 			_initialized = true;
+			try {
+				NativeInputApi.VpeInputSetGameplayInputEnabled(_appFocused && !_gamePaused ? 1 : 0);
+				_hasNativeGameplayGate = true;
+			} catch (EntryPointNotFoundException) {
+				// Older plugins and other platforms still use the managed focus gate.
+			}
 			Logger.Info($"{LogPrefix} [NativeInputManager] Initialized");
 
 			// Setup default bindings
@@ -215,7 +222,12 @@ namespace VisualPinball.Unity.Simulation
 		public static bool AppFocused
 		{
 			get => _appFocused;
-			set => _appFocused = value;
+			set {
+				if (_appFocused == value) return;
+				if (!value) _instance?.SetNativeGameplayInput(false);
+				_appFocused = value;
+				if (value) _instance?.SetNativeGameplayInput(!_gamePaused);
+			}
 		}
 
 		/// <summary>
@@ -225,7 +237,17 @@ namespace VisualPinball.Unity.Simulation
 		public static bool GamePaused
 		{
 			get => _gamePaused;
-			set => _gamePaused = value;
+			set {
+				if (_gamePaused == value) return;
+				if (value) _instance?.SetNativeGameplayInput(false);
+				_gamePaused = value;
+				if (!value) _instance?.SetNativeGameplayInput(_appFocused);
+			}
+		}
+
+		private void SetNativeGameplayInput(bool enabled)
+		{
+			if (_hasNativeGameplayGate) NativeInputApi.VpeInputSetGameplayInputEnabled(enabled ? 1 : 0);
 		}
 
 		/// <summary>
@@ -366,8 +388,8 @@ namespace VisualPinball.Unity.Simulation
 			Logger.Info($"{LogPrefix} [NativeInputManager] Started polling at {pollIntervalUs}us interval ({1000000 / pollIntervalUs} Hz)");
 
 			// The native side switched to its polling device enumeration; refresh the
-			// index-to-device-id cache so axis events resolve against the right snapshot.
-			ListDevices();
+			// cache and notify sensor consumers about the devices that actually opened.
+			OnNativeDevicesChanged();
 
 			return true;
 		}
@@ -561,6 +583,7 @@ namespace VisualPinball.Unity.Simulation
 			{
 				NativeInputApi.VpeInputShutdown();
 				_initialized = false;
+				_hasNativeGameplayGate = false;
 			}
 
 			_instance = null;

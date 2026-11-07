@@ -98,7 +98,15 @@ Velocity setup uses RX/RY with the default Pinscape joystick full-scale value of
 
 Auto-map recognizes cabinet layouts and explicitly typed accelerometer axes. Generic joystick X/Y axes require manual assignment. The Player adds a sensor slot when auto-mapping and preserves existing slots. The inspector's setup buttons configure its first sensor slot. Player settings are saved in the cabinet profile and applied to loaded tables.
 
-Pinscape Pico must expose joystick nudge axes for this input path. Open Pinball Device reports and native analog input on Linux/macOS need separate backend support.
+### Pinscape Pico Open Pinball Device Setup
+
+Enable Open Pinball Device in the Pico firmware. With an OPD-capable Windows NativeInput library, VPE lists the Pico with an OPD suffix and named nudge axes. Auto-map prefers OPD when both interfaces are present. If you already mapped the Pico's joystick axes, select the OPD preset in that sensor slot to switch interfaces and then calibrate again.
+
+Auto-map uses acceleration. Choose the velocity preset if the firmware reports integrated X/Y nudge velocity. The Pico velocity preset uses 0.32768 m/s at full scale, matching the default firmware `vscale` of 100 counts per mm/s. Set custom scales if you use a different `vscale` or accelerometer range. The report format allows firmware to send zero for unused fields, so confirm which signals your firmware exposes.
+
+Preassigned OPD buttons use the existing VPE cabinet actions, including digital nudge and physical tilt. Physical tilt follows the table's tilt-bob routing and the Player's Tilt Source setting. OPD also exposes plunger position and speed for diagnostics. Mechanical plunger gameplay and generic OPD button assignments need their own input routing.
+
+For a local checkout, build the matching NativeInput branch and install its Windows DLL in `VisualPinball.Unity/Plugins/win-x64` before starting Unity. The default NuGet dependency supplies OPD after an OPD-capable NativeInput release is published and pinned. Linux and macOS use their existing keyboard backends.
 
 ### Rest Calibration
 

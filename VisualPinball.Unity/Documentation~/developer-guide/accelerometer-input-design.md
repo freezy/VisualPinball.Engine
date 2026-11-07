@@ -6,7 +6,7 @@ description: Proposed architecture for adding accelerometer-based nudging to VPE
 
 # Accelerometer Input Design
 
-This page records an earlier design proposal. VPE now has Windows HID joystick input, cabinet sensor fusion, editor and Player setup, and sampled rest calibration. See [Nudging](xref:nudging) and [Nudge System](nudge-system.md) for the implementation. Open Pinball Device and cross-platform analog backends are follow-up work.
+This page records an earlier design proposal. VPE now has Windows HID joystick and Open Pinball Device input, cabinet sensor fusion, editor and Player setup, and sampled rest calibration. See [Nudging](xref:nudging) and [Nudge System](nudge-system.md) for the implementation. Cross-platform analog backends are follow-up work.
 
 The proposal below describes the original design for adding accelerometer-based nudging to VPE. It covers the intended runtime architecture, where the work should land in the codebase, how Open Pinball Device support should fit into the plan, and how calibration should work for both velocity-capable and legacy-style devices.
 
