@@ -49,7 +49,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength,
 			KeyboardNudgeMode keyboardNudgeMode = KeyboardNudgeMode.CabModel, float keyboardNudgeStrength = 1f,
-			float nudgeTime = 5f, bool simulatedPlumb = true, float plumbDamping = 1f, float plumbThresholdAngle = 2f,
+			float nudgeTime = 5f, bool simulatedPlumb = true, float plumbDamping = PlumbState.DefaultDamping,
+			float plumbThresholdAngle = PlumbState.DefaultThresholdAngle,
 			float keyboardCabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio) : this()
 		{
 			StartTimeUsec = startTimeUsec;

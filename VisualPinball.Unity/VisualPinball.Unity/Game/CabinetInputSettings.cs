@@ -225,10 +225,7 @@ namespace VisualPinball.Unity
 			settings.keyboardStrength = physicsEngine.KeyboardNudgeStrength;
 			settings.keyboardCabinetDamping = physicsEngine.KeyboardCabinetDamping;
 			settings.visualStrength = physicsEngine.VisualNudgeStrength;
-			settings.plumb = new CabinetPlumbSettings {
-				enabled = true,
-				mode = TiltBobComponent.FindFor(physicsEngine)?.Mode ?? TiltBobMode.Simulated
-			};
+			settings.plumb = TiltBobComponent.FindFor(physicsEngine)?.CaptureSettings() ?? new CabinetPlumbSettings();
 			settings.Normalize();
 			return settings;
 		}
@@ -250,24 +247,25 @@ namespace VisualPinball.Unity
 		public TiltBobMode mode = TiltBobMode.Simulated;
 
 		/// <summary>
-		/// Legacy player-config fields retained for JSON compatibility. Current
-		/// tilt-bob tuning is authored on <see cref="TiltBobComponent"/>.
+		/// Applies player tuning in place of the table's authored values. The
+		/// opt-in flag keeps legacy profiles' unused tuning fields inactive.
 		/// </summary>
+		public bool overrideTuning;
 		[HideInInspector]
-		public float damping = 1f;
-
-		[HideInInspector]
-		public float thresholdDeg = 2f;
+		public bool hasCustomTuning;
+		public float damping = PlumbState.DefaultDamping;
+		public float thresholdDeg = PlumbState.DefaultThresholdAngle;
 
 		/// <summary>
-		/// Clamps the tilt-bob source mode and legacy tuning fields to useful ranges.
+		/// Clamps the tilt-bob source mode and tuning to supported ranges.
 		/// </summary>
 		public void Normalize()
 		{
 			enabled = true;
 			mode = (TiltBobMode)Mathf.Clamp((int)mode, (int)TiltBobMode.Simulated, (int)TiltBobMode.Physical);
-			damping = Mathf.Clamp(damping, 0f, 2f);
-			thresholdDeg = Mathf.Clamp(thresholdDeg, 0.5f, 4f);
+			hasCustomTuning |= overrideTuning;
+			damping = hasCustomTuning ? PlumbState.ClampDamping(damping) : PlumbState.DefaultDamping;
+			thresholdDeg = hasCustomTuning ? PlumbState.ClampThresholdAngle(thresholdDeg) : PlumbState.DefaultThresholdAngle;
 		}
 	}
 

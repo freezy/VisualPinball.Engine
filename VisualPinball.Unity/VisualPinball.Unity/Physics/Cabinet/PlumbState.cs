@@ -31,6 +31,13 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	public struct PlumbState
 	{
+		public const float DefaultDamping = 0.2f;
+		public const float MinDamping = 0f;
+		public const float MaxDamping = 2f;
+		public const float DefaultThresholdAngle = 4f;
+		public const float MinThresholdAngle = 0.15f;
+		public const float MaxThresholdAngle = 15f;
+
 		private const float Gravity = 9.80665f;
 		private const float DefaultPoleLength = 0.10f;
 		private const float DampingCoef0 = 1.25f;
@@ -69,7 +76,7 @@ namespace VisualPinball.Unity
 		public PlumbState(bool enabled, float damping, float tiltThresholdDeg)
 		{
 			PoleLength = DefaultPoleLength;
-			TiltThresholdRad = math.radians(math.clamp(tiltThresholdDeg, 0.5f, 4f));
+			TiltThresholdRad = math.radians(ClampThresholdAngle(tiltThresholdDeg));
 			Position = new float3(0f, 0f, -DefaultPoleLength);
 			AngularVelocity = float3.zero;
 			TiltIndex = 0;
@@ -78,8 +85,8 @@ namespace VisualPinball.Unity
 			PendingTiltStates = default;
 			_enabled = enabled ? (byte)1 : (byte)0;
 			_tiltHigh = 0;
-			_angularDamping0 = DampingCoef0 * math.clamp(damping, 0f, 2f);
-			_angularDamping1 = DampingCoef1 * math.clamp(damping, 0f, 2f);
+			_angularDamping0 = DampingCoef0 * ClampDamping(damping);
+			_angularDamping1 = DampingCoef1 * ClampDamping(damping);
 			_cabinetAccelerationScale = 1f;
 		}
 
@@ -91,20 +98,25 @@ namespace VisualPinball.Unity
 			// Runtime reconfiguration must not teleport the pendulum or lose the
 			// script-visible state (the reference setters preserve it too).
 			_enabled = enabled ? (byte)1 : (byte)0;
-			TiltThresholdRad = math.radians(math.clamp(tiltThresholdDeg, 0.5f, 4f));
-			_angularDamping0 = DampingCoef0 * math.clamp(damping, 0f, 2f);
-			_angularDamping1 = DampingCoef1 * math.clamp(damping, 0f, 2f);
+			TiltThresholdRad = math.radians(ClampThresholdAngle(tiltThresholdDeg));
+			_angularDamping0 = DampingCoef0 * ClampDamping(damping);
+			_angularDamping1 = DampingCoef1 * ClampDamping(damping);
 
-			// If the tilt switch is currently closed and the plumb no longer steps
-			// (disabled) or the threshold moved past the bob, emit a release edge so
-			// the consumer side doesn't stay stuck on "tilted".
-			if (TiltHigh && !enabled) {
-				TiltHigh = false;
-				if (PendingTiltStates.Length < PendingTiltStates.Capacity) {
+			if (!enabled) {
+				// Discard transitions from the old mode before simulation can resume.
+				PendingTiltStates.Clear();
+				if (TiltHigh) {
+					TiltHigh = false;
 					PendingTiltStates.Add(0);
 				}
 			}
 		}
+
+		internal static float ClampDamping(float value) =>
+			math.isfinite(value) ? math.clamp(value, MinDamping, MaxDamping) : DefaultDamping;
+
+		internal static float ClampThresholdAngle(float value) =>
+			math.isfinite(value) ? math.clamp(value, MinThresholdAngle, MaxThresholdAngle) : DefaultThresholdAngle;
 
 		/// <summary>
 		/// Integrates the plumb bob one millisecond in the accelerating cabinet

@@ -313,6 +313,19 @@ namespace VisualPinball.Unity.Simulation
 		/// only when that component exists and is enabled by player settings.
 		/// </summary>
 		public Action<bool> MainThreadTiltDispatcher { get; set; }
+		private sealed class TiltDispatchers
+		{
+			public readonly Action<bool> Physical;
+			public readonly Action<bool> Simulated;
+
+			public TiltDispatchers(Action<bool> physical, Action<bool> simulated)
+			{
+				Physical = physical;
+				Simulated = simulated;
+			}
+		}
+
+		private volatile TiltDispatchers _tiltDispatchers;
 		public Action<string, bool> MainThreadInputObserver { get; set; }
 		private readonly System.Collections.Concurrent.ConcurrentQueue<(int Action, bool Pressed, int Generation)> _inputNotifications = new();
 		private int _inputNotificationGeneration;
@@ -356,12 +369,19 @@ namespace VisualPinball.Unity.Simulation
 		/// <summary>
 		/// When true, native cabinet Tilt input is routed to
 		/// <see cref="MainThreadTiltDispatcher"/> instead of directly to any
-		/// input-action switch mapping. This is used for real cabinet plumb bobs.
+		/// input-action switch mapping when no tilt-bob component route is set.
 		/// </summary>
 		public bool DispatchPhysicalTiltInputToMainThread { get; set; }
 
-		private readonly Queue<bool> _mainThreadTiltStates = new();
+		private readonly Queue<(Action<bool> Dispatch, bool Pressed)> _mainThreadTiltStates = new();
 		private readonly object _mainThreadTiltLock = new();
+
+		internal void SetTiltBobDispatchers(Action<bool> physical, Action<bool> simulated)
+		{
+			lock (_mainThreadTiltLock) {
+				_tiltDispatchers = physical != null || simulated != null ? new TiltDispatchers(physical, simulated) : null;
+			}
+		}
 
 		/// <summary>
 		/// Flush any queued main-thread input dispatches.
@@ -387,21 +407,21 @@ namespace VisualPinball.Unity.Simulation
 			}
 
 			while (true) {
-				bool tiltState;
+				(Action<bool> Dispatch, bool Pressed) tiltState;
 				lock (_mainThreadTiltLock) {
 					if (_mainThreadTiltStates.Count == 0) {
 						break;
 					}
 					tiltState = _mainThreadTiltStates.Dequeue();
 				}
-				MainThreadTiltDispatcher?.Invoke(tiltState);
+				tiltState.Dispatch(tiltState.Pressed);
 			}
 		}
 
-		private void QueueMainThreadTiltState(bool tiltState)
+		private void QueueMainThreadTiltState(Action<bool> dispatch, bool pressed)
 		{
 			lock (_mainThreadTiltLock) {
-				_mainThreadTiltStates.Enqueue(tiltState);
+				_mainThreadTiltStates.Enqueue((dispatch, pressed));
 			}
 		}
 
@@ -751,12 +771,15 @@ namespace VisualPinball.Unity.Simulation
 
 				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
 
-				if (actionIndex == (int)NativeInputApi.InputAction.Tilt
-				    && DispatchPhysicalTiltInputToMainThread
-				    && MainThreadTiltDispatcher != null) {
-					QueueMainThreadTiltState(isPressed);
-					_inputEventsProcessed++;
-					continue;
+				if (actionIndex == (int)NativeInputApi.InputAction.Tilt) {
+					var dispatcher = _tiltDispatchers?.Physical;
+					if (dispatcher != null) {
+						QueueMainThreadTiltState(dispatcher, isPressed);
+					} else if (DispatchPhysicalTiltInputToMainThread && MainThreadTiltDispatcher is { } legacyDispatcher) {
+						QueueMainThreadTiltState(legacyDispatcher, isPressed);
+						_inputEventsProcessed++;
+						continue;
+					}
 				}
 
 				// Only forward to GLE once it's ready (or at least has started)
@@ -1246,18 +1269,16 @@ namespace VisualPinball.Unity.Simulation
 		/// </remarks>
 		private void ProcessPlumbTiltEvents()
 		{
-			if (MainThreadTiltDispatcher == null || DispatchPhysicalTiltInputToMainThread) {
-				return;
-			}
-
-			_pendingPlumbTiltEvents.Clear();
-			_physicsEngine.DrainPlumbTiltEvents(_pendingPlumbTiltEvents);
-			if (_pendingPlumbTiltEvents.Count == 0) {
-				return;
-			}
-
-			for (var i = 0; i < _pendingPlumbTiltEvents.Count; i++) {
-				QueueMainThreadTiltState(_pendingPlumbTiltEvents[i]);
+			lock (_mainThreadTiltLock) {
+				var routes = _tiltDispatchers;
+				var dispatcher = routes != null ? routes.Simulated
+					: DispatchPhysicalTiltInputToMainThread ? null : MainThreadTiltDispatcher;
+				if (dispatcher == null) return;
+				_pendingPlumbTiltEvents.Clear();
+				_physicsEngine.DrainPlumbTiltEvents(_pendingPlumbTiltEvents);
+				foreach (var pressed in _pendingPlumbTiltEvents) {
+					_mainThreadTiltStates.Enqueue((dispatcher, pressed));
+				}
 			}
 		}
 
