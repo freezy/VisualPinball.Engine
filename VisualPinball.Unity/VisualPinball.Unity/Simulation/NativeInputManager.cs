@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using System.Threading;
 using AOT;
@@ -58,6 +59,8 @@ namespace VisualPinball.Unity.Simulation
 		// StartPolling sends these to the native layer instead of the built-in defaults. Static so it
 		// survives the per-table singleton churn (Dispose nulls _instance).
 		private static volatile List<NativeInputApi.InputBinding> _configuredBindings;
+		private static volatile NativeInputApi.InputButtonBinding[] _configuredButtonBindings = Array.Empty<NativeInputApi.InputButtonBinding>();
+		private bool _hasNativeButtons;
 
 		// Set from the main thread (Application.isFocused). When the app window isn't focused, native input
 		// is dropped so background key presses (e.g. typing in another app) don't reach the game.
@@ -166,6 +169,12 @@ namespace VisualPinball.Unity.Simulation
 			} catch (EntryPointNotFoundException) {
 				// Older plugins and other platforms still use the managed focus gate.
 			}
+			try {
+				NativeInputApi.VpeInputListDeviceButtons(-1, null, 0);
+				_hasNativeButtons = true;
+			} catch (EntryPointNotFoundException) {
+				_hasNativeButtons = false;
+			}
 			Logger.Info($"{LogPrefix} [NativeInputManager] Initialized");
 
 			// Setup default bindings
@@ -213,6 +222,22 @@ namespace VisualPinball.Unity.Simulation
 		{
 			get => _configuredBindings;
 			set => _configuredBindings = value;
+		}
+
+		/// <summary>Applies controller bindings to current and future polling sessions.</summary>
+		public static void ConfigureButtonBindings(IReadOnlyList<NativeInputApi.InputButtonBinding> bindings)
+		{
+			_configuredButtonBindings = bindings?.ToArray() ?? Array.Empty<NativeInputApi.InputButtonBinding>();
+			TryGetExistingInstance()?.SendButtonBindings();
+		}
+
+		public bool SupportsControllerButtons => _hasNativeButtons;
+
+		private void SendButtonBindings()
+		{
+			if (!_initialized || !_hasNativeButtons) return;
+			var bindings = _configuredButtonBindings;
+			NativeInputApi.VpeInputSetButtonBindings(bindings, bindings.Length);
 		}
 
 		/// <summary>
@@ -339,6 +364,18 @@ namespace VisualPinball.Unity.Simulation
 			return result;
 		}
 
+		/// <summary>Reads the latest button snapshot without polling hardware from the caller.</summary>
+		public IReadOnlyList<NativeInputApi.InputButtonInfo> ListDeviceButtons(int deviceIndex)
+		{
+			if (!_initialized || !_hasNativeButtons) return Array.Empty<NativeInputApi.InputButtonInfo>();
+			var count = NativeInputApi.VpeInputListDeviceButtons(deviceIndex, null, 0);
+			if (count <= 0) return Array.Empty<NativeInputApi.InputButtonInfo>();
+			var buttons = new NativeInputApi.InputButtonInfo[count];
+			var available = NativeInputApi.VpeInputListDeviceButtons(deviceIndex, buttons, buttons.Length);
+			if (available < buttons.Length) Array.Resize(ref buttons, available);
+			return buttons;
+		}
+
 		/// <summary>
 		/// Starts native input polling and sends the current action bindings to the
 		/// native layer.
@@ -369,6 +406,7 @@ namespace VisualPinball.Unity.Simulation
 			var configured = _configuredBindings;
 			var toSend = configured != null && configured.Count > 0 ? configured.ToArray() : _bindings.ToArray();
 			NativeInputApi.VpeInputSetBindings(toSend, toSend.Length);
+			SendButtonBindings();
 			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured != null && configured.Count > 0 ? "custom" : "default");
 
 			// Create callback delegate (keep reference to prevent GC)
@@ -584,6 +622,7 @@ namespace VisualPinball.Unity.Simulation
 				NativeInputApi.VpeInputShutdown();
 				_initialized = false;
 				_hasNativeGameplayGate = false;
+				_hasNativeButtons = false;
 			}
 
 			_instance = null;
