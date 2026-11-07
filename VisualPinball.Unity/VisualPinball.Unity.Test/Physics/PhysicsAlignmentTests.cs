@@ -371,9 +371,10 @@ namespace VisualPinball.Unity.Test
 			AssertFloat3(a.Mass * a.Velocity + b.Mass * b.Velocity, new float3(0.05f, 1f, 0f));
 		}
 
-		[TestCase(0.5f)] // the playfield reports a contact
-		[TestCase(PhysicsConstants.GravityConst)] // the playfield reports a low-speed impact
-		public void StackedBallsKeepTheirSupportThroughThePhysicsCycle(float gravityStrength)
+		[TestCase(0.5f, 0f)] // the playfield reports a contact
+		[TestCase(PhysicsConstants.GravityConst, 0f)] // an impact at the start of the step
+		[TestCase(1.5625f, 0.015625f)] // the impact consumes the whole step
+		public void StackedBallsKeepTheirSupportThroughThePhysicsCycle(float gravityStrength, float floorGap)
 		{
 			using var harness = new PhysicsStateHarness();
 			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
@@ -388,7 +389,7 @@ namespace VisualPinball.Unity.Test
 				harness.SetStaticColliders(ref colliders);
 				for (var i = 0; i < 3; i++) {
 					var ball = new BallState {
-						Id = i + 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f + i * 50f),
+						Id = i + 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f + floorGap + i * 50f),
 						Velocity = env.Gravity * PhysicsConstants.PhysFactor,
 					};
 					harness.Balls.Add(ball.Id, ball);
@@ -400,6 +401,47 @@ namespace VisualPinball.Unity.Test
 				Assert.That(harness.Balls[1].Position.z, Is.GreaterThanOrEqualTo(25f - PhysicsConstants.PhysTouch));
 				for (var i = 2; i <= 3; i++) {
 					Assert.That(harness.Balls[i].Velocity.z, Is.EqualTo(0f).Within(Tolerance), $"ball {i}");
+				}
+			} finally {
+				Object.DestroyImmediate(playfield);
+				colliders.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[TestCase(2)]
+		[TestCase(3)]
+		public void BallQueuesOnASlopeKeepTheirSupport(int count)
+		{
+			using var harness = new PhysicsStateHarness();
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var colliders = new ColliderReference(ref transforms, Allocator.Temp);
+			var playfield = new GameObject("playfield");
+			try {
+				var component = playfield.AddComponent<PlayfieldComponent>();
+				component.AngleTiltMin = component.AngleTiltMax = 6.5f;
+				var env = new PhysicsEnv(0, component, 0.5f);
+				colliders.Add(new PlaneCollider(new float3(0f, 0f, 1f), 0f, new ColliderInfo { ItemId = 1 }));
+				var stop = new LineCollider(new float2(100f, 0f), new float2(-100f, 0f),
+					0f, 50f, new ColliderInfo { ItemId = 2 });
+				colliders.Add(stop, float4x4.identity);
+				harness.SetStaticColliders(ref colliders);
+				for (var i = 0; i < count; i++) {
+					var ball = new BallState {
+						Id = i + 1, Mass = 1f, Radius = 25f, Position = new float3(0f, -25f - i * 50f, 25f),
+						Velocity = env.Gravity * PhysicsConstants.PhysFactor,
+					};
+					harness.Balls.Add(ball.Id, ball);
+				}
+				var state = harness.CreateState();
+				state.Env = env;
+				SimulateBallContacts(ref state, hasFloor: true);
+
+				Assert.That(harness.Balls[1].Velocity.y, Is.LessThanOrEqualTo(Tolerance), "the stop holds the first ball");
+				for (var i = 2; i <= count; i++) {
+					var ball = harness.Balls[i];
+					Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(Tolerance), $"ball {i} stops along the queue");
+					AssertFloat3(ball.AngularMomentum, float3.zero, $"ball {i} does not spin");
 				}
 			} finally {
 				Object.DestroyImmediate(playfield);

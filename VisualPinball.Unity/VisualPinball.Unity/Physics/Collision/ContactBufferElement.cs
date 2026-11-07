@@ -33,6 +33,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public float3 PriorContactVelocity;
 		public bool IsDuplicate;
+		public bool HasBackingImpact;
 		public bool HasBackingSupport;
 
 		public ContactBufferElement(int ballId, CollisionEventData collEvent)
@@ -44,6 +45,7 @@ namespace VisualPinball.Unity
 			FrictionAcceleration = float3.zero;
 			PriorContactVelocity = float3.zero;
 			IsDuplicate = false;
+			HasBackingImpact = false;
 			HasBackingSupport = false;
 		}
 	}
