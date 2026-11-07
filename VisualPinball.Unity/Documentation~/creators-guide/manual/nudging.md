@@ -66,8 +66,9 @@ wrong.
 
 ## Tilt
 
-Tilt-bob routing and simulated plumb-bob tuning live on the
-[`Tilt Bob`](xref:tilt_bobs) mechanism.
+Tilt-bob routing and the table's default plumb-bob tuning live on the [`Tilt Bob`](xref:tilt_bobs) mechanism.
+
+In the Player's Nudge settings, **Tilt Source** offers **Simulated + Physical** and **Physical Only**. A physical Tilt binding can trigger the table's Tilt Bob in either mode. With **Simulated + Physical**, choose **Custom** under **Plumb Tuning** to override damping and the trip angle for all tables. Higher damping helps the bob settle faster. A lower threshold makes it easier to trip.
 
 ## Hardware Sensors
 
@@ -85,28 +86,33 @@ Sensor types mean:
 | `CabinetIntent` | A real cabinet sensor where motion should be interpreted as a nudge attempt. |
 | `CabinetDirect` | A real cabinet sensor where measured motion should drive cabinet physics directly. |
 
-Most Xbox-style controllers do not provide accelerometer data for nudging. Map
-their sticks as `GamepadIntent`.
+Recognized gamepads offer a Left Stick preset for `GamepadIntent` nudging. The Player's Auto-map uses a single recognized gamepad when no cabinet sensor is available. For a generic joystick, assign the axes manually.
 
 KL25Z/Pinscape boards are cabinet sensors. Map their acceleration axes, then use mount rotation and mirror to match how the board is installed in the cabinet. The available rotations are 0, 90, 180, and 270 degrees. Mirror flips the board X axis before rotation.
 
 ### Pinscape Joystick Setup
 
-On Windows, recognized Pinscape joystick layouts offer acceleration and velocity presets in the Player's Nudge settings and the `SimulationThreadComponent` inspector. Acceleration uses X/Y with an initial full-scale value of 9.80665 m/s² (1 g). Set the scale to match the range configured in firmware. The Player offers 1, 2, 4, and 8 g presets and an editable custom scale. Negative scale reverses an axis.
+Recognized Pinscape joystick layouts offer acceleration and velocity presets on Windows, Linux, and macOS in the Player's Nudge settings and the `SimulationThreadComponent` inspector. Acceleration uses X/Y with an initial full-scale value of 9.80665 m/s² (1 g). Set the scale to match the range configured in firmware. The Player offers 1, 2, 4, and 8 g presets and an editable custom scale. Negative scale reverses an axis.
 
 Velocity setup uses RX/RY with the default Pinscape joystick full-scale value of 0.2048 m/s. Enable velocity reporting in firmware before selecting this preset. Pinscape Pico can assign arbitrary signals to joystick axes, so use the named axis selectors and custom scales when its layout differs from the standard Pinscape layout. Velocity mode uses the reported integrated velocity directly through VPE's cabinet sensor model.
 
 Auto-map recognizes cabinet layouts and explicitly typed accelerometer axes. Generic joystick X/Y axes require manual assignment. The Player adds a sensor slot when auto-mapping and preserves existing slots. The inspector's setup buttons configure its first sensor slot. Player settings are saved in the cabinet profile and applied to loaded tables.
 
+When several eligible devices are available, use **Nudge Device** in the Player's Nudge settings to choose which device supplies analog nudging. **Automatic** uses all mapped sensors.
+
 ### Pinscape Pico Open Pinball Device Setup
 
-Enable Open Pinball Device in the Pico firmware. With an OPD-capable Windows NativeInput library, VPE lists the Pico with an OPD suffix and named nudge axes. Auto-map prefers OPD when both interfaces are present. If you already mapped the Pico's joystick axes, select the OPD preset in that sensor slot to switch interfaces and then calibrate again.
+Enable Open Pinball Device in the Pico firmware. With an OPD-capable NativeInput library, VPE lists the Pico with an OPD suffix and named nudge axes on Windows, Linux, and macOS. Auto-map prefers OPD when both interfaces are present. If you already mapped the Pico's joystick axes, select the OPD preset in that sensor slot to switch interfaces and then calibrate again.
 
 Auto-map uses acceleration. Choose the velocity preset if the firmware reports integrated X/Y nudge velocity. The Pico velocity preset uses 0.32768 m/s at full scale, matching the default firmware `vscale` of 100 counts per mm/s. Set custom scales if you use a different `vscale` or accelerometer range. The report format allows firmware to send zero for unused fields, so confirm which signals your firmware exposes.
 
-Preassigned OPD buttons use the existing VPE cabinet actions, including digital nudge and physical tilt. Physical tilt follows the table's tilt-bob routing and the Player's Tilt Source setting. OPD also exposes plunger position and speed for diagnostics. Mechanical plunger gameplay and generic OPD button assignments need their own input routing.
+Preassigned OPD buttons use the existing VPE cabinet actions, including digital nudge and physical tilt. OPD also exposes plunger position and speed for diagnostics.
 
-For a local checkout, build the matching NativeInput branch and install its Windows DLL in `VisualPinball.Unity/Plugins/win-x64` before starting Unity. The default NuGet dependency supplies OPD after an OPD-capable NativeInput release is published and pinned. Linux and macOS use their existing keyboard backends.
+For a local Engine checkout, follow the [development setup](../../developer-guide/setup.md) to build the dependencies. The Engine build copies the NativeInput library from its pinned NuGet package to the platform's plugin directory. Linux needs an X11 display and USB device permissions. On Linux and macOS, reconnect the board to the same USB port to preserve its mapping. See the [NativeInput setup instructions](https://github.com/VisualPinball/VisualPinball.NativeInput#open-pinball-device) for platform details.
+
+### Nudge and Tilt Bindings
+
+In the Player's Nudge settings, the **Button Bindings** section accepts joystick and gamepad buttons, POV directions, axis thresholds, and generic OPD buttons for left, right, and forward nudge, Tilt, and Slam Tilt. Use **Press to Bind**, move or press one control, and release it. To require several controls together, use **Bind Combo**, hold the controls together, and release them all. Each binding is an alternative for its action. You can also pick a single control under **Add Alternative** and adjust its threshold if it is an axis. These bindings supplement keyboard and predefined OPD inputs and are saved in the cabinet profile.
 
 ### Rest Calibration
 
