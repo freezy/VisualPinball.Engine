@@ -34,6 +34,24 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(TableMediaPaths.FindFile(local, "rom.crz"), Is.EqualTo(file));
 		}
 
+		[Test]
+		public void RejectsCaseCollisionsEvenWithAnExactMatch()
+		{
+			Directory.CreateDirectory(Path.Combine(_root, "rom"));
+			Directory.CreateDirectory(Path.Combine(_root, "ROM"));
+			if (Directory.GetDirectories(_root).Length != 2) {
+				Assert.Ignore("Requires a case-sensitive filesystem.");
+			}
+			File.WriteAllText(Path.Combine(_root, "rom.crz"), "");
+			File.WriteAllText(Path.Combine(_root, "ROM.CRZ"), "");
+
+			Assert.Multiple(() => {
+				Assert.That(TableMediaPaths.FindDirectory(_root, "rom"), Is.Null);
+				Assert.That(TableMediaPaths.GameDirectories(_root, new GameIdentity("pinmame", "rom")), Is.Empty);
+				Assert.That(TableMediaPaths.FindFile(_root, "rom.crz"), Is.Null);
+			});
+		}
+
 		[TestCase("..")]
 		[TestCase("../outside")]
 		[TestCase("pinmame\\rom")]
