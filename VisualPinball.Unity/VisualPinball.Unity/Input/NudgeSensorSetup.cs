@@ -20,6 +20,7 @@ namespace VisualPinball.Unity
 		public const float PinscapePicoVelocityScale = 0.32768f;
 		private const int OpdUsagePage = 0x05;
 		private const int OpdUsage = 0x02;
+		private const int GamepadUsagePage = 0xff00; // VPE_GAMEPAD_AXIS_USAGE_PAGE
 
 		public static bool IsOpenPinballDevice(NativeInputDeviceInfo device)
 		{
@@ -37,7 +38,25 @@ namespace VisualPinball.Unity
 			var name = device?.Name ?? string.Empty;
 			return name.StartsWith("mjrnet Pinscape Controller", StringComparison.OrdinalIgnoreCase)
 				|| name.Equals("Pinscape Controller", StringComparison.OrdinalIgnoreCase)
-				|| name.Equals("PinscapePico", StringComparison.OrdinalIgnoreCase);
+				|| name.Equals("PinscapePico", StringComparison.OrdinalIgnoreCase)
+				|| name.Equals("Pinscape Pico", StringComparison.OrdinalIgnoreCase)
+				|| name.Equals("mjrnet PinscapePico", StringComparison.OrdinalIgnoreCase)
+				|| name.Equals("mjrgh PinscapePico", StringComparison.OrdinalIgnoreCase);
+		}
+
+		/// <summary>Maps a recognized gamepad's standardized left stick to intent nudging.</summary>
+		public static bool TryCreateGamepadSensor(NativeInputDeviceInfo device, out CabinetNudgeSensorSettings sensor)
+		{
+			sensor = null;
+			if (device == null || !device.IsConnected
+				|| !TryFindUsage(device, GamepadUsagePage, 0, out var x)
+				|| !TryFindUsage(device, GamepadUsagePage, 1, out var y)) return false;
+			sensor = new CabinetNudgeSensorSettings {
+				type = CabinetNudgeSensorSettings.TypeGamepad,
+				x = Mapping(device, x, SensorMappingKind.Position, 1f),
+				y = Mapping(device, y, SensorMappingKind.Position, 1f)
+			};
+			return true;
 		}
 
 		/// <summary>Checks the active mappings when offering another device or collection.</summary>
@@ -149,10 +168,13 @@ namespace VisualPinball.Unity
 		}
 
 		private static bool TryFindUsage(NativeInputDeviceInfo device, int usage, out NativeInputAxisInfo axis)
+			=> TryFindUsage(device, 1, usage, out axis);
+
+		private static bool TryFindUsage(NativeInputDeviceInfo device, int page, int usage, out NativeInputAxisInfo axis)
 		{
 			if (device.Axes != null) {
 				foreach (var candidate in device.Axes) {
-					if (candidate.UsagePage == 1 && candidate.Usage == usage) {
+					if (candidate.UsagePage == page && candidate.Usage == usage) {
 						axis = candidate;
 						return true;
 					}
