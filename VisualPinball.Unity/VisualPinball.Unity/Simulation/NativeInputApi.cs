@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using AOT;
 
 namespace VisualPinball.Unity.Simulation
@@ -36,6 +37,7 @@ namespace VisualPinball.Unity.Simulation
 
 		/// <summary>Maximum UTF-8 bytes in an axis display name.</summary>
 		public const int AxisNameSize = 32;
+		public const int ButtonNameSize = 32;
 
 		#region Enums
 
@@ -207,6 +209,41 @@ namespace VisualPinball.Unity.Simulation
 			private int _padding;
 		}
 
+		[StructLayout(LayoutKind.Sequential, Pack = 4)]
+		public struct InputButtonBinding
+		{
+			public int Action;
+			public int ButtonId;
+
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = DeviceIdSize)]
+			private byte[] _deviceId;
+
+			public string DeviceId => DecodeUtf8(_deviceId);
+
+			public static bool TryCreate(InputAction action, int buttonId, string deviceId, out InputButtonBinding binding)
+			{
+				binding = default;
+				if (buttonId < 0 || string.IsNullOrEmpty(deviceId) || deviceId.IndexOf('\0') >= 0
+					|| Encoding.UTF8.GetByteCount(deviceId) >= DeviceIdSize) return false;
+				var bytes = new byte[DeviceIdSize];
+				Encoding.UTF8.GetBytes(deviceId, 0, deviceId.Length, bytes, 0);
+				binding = new InputButtonBinding { Action = (int)action, ButtonId = buttonId, _deviceId = bytes };
+				return true;
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential, Pack = 4)]
+		public struct InputButtonInfo
+		{
+			public int ButtonId;
+			public int IsPressed;
+
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = ButtonNameSize)]
+			private byte[] _name;
+
+			public string Name => DecodeUtf8(_name);
+		}
+
 		/// <summary>
 		/// Native device metadata returned by enumeration.
 		/// </summary>
@@ -332,6 +369,12 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int VpeInputListDeviceAxes(int deviceIndex, [Out] InputAxisInfo[] axes, int maxAxes);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int VpeInputListDeviceButtons(int deviceIndex, [Out] InputButtonInfo[] buttons, int maxButtons);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern void VpeInputSetButtonBindings([In] InputButtonBinding[] bindings, int count);
 
 		/// <summary>
 		/// Returns the native high-resolution timestamp in microseconds.
