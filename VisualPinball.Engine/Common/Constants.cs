@@ -82,6 +82,11 @@ namespace VisualPinball.Engine.Common
 
 		public const float EmbedVelLimit = 5.0f;                               // C_EMBEDVELLIMIT
 
+		/// <summary>
+		/// Coulomb friction coefficient between two balls (steel on steel), for ball/ball contacts.
+		/// </summary>
+		public const float BallBallFriction = 0.1f;                            // C_BALL_BALL_FRICTION
+
 		public const float DefaultTableMinSlope = 6.0f;                        // DEFAULT_TABLE_MIN_SLOPE
 		public const float DefaultTableMaxSlope = 6.0f;                        // DEFAULT_TABLE_MAX_SLOPE
 		public const float DefaultTableGravity = 0.97f;                        // DEFAULT_TABLE_GRAVITY

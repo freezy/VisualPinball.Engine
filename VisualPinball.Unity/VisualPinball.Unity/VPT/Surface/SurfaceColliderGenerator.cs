@@ -57,6 +57,11 @@ namespace VisualPinball.Unity
 		{
 			var vVertex =  DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
+			// The line colliders are one sided, they collide on the outside of a counterclockwise
+			// outline. Tables with a reversed (clockwise) outline relied on them facing inward (a
+			// wall keeping the ball inside its outline), so like Visual Pinball, collide both ways.
+			var bothDirections = VisualPinball.Engine.VPT.Mesh.IsClockwise(vVertex);
+
 			var count = vVertex.Length;
 			var rgv3Dt = new float3[count];
 			var rgv3Db = _colliderComponent.IsBottomSolid ? new float3[count] : null;
@@ -74,24 +79,22 @@ namespace VisualPinball.Unity
 
 				var pv2 = vVertex[(i + 1) % count];
 				var pv3 = vVertex[(i + 2) % count];
-				GenerateLinePolys(pv2, pv3, ref colliders);
+				GenerateLinePolys(pv2, pv3, bothDirections, ref colliders);
 			}
 		}
 
 		/// <summary>
 		/// Returns the hit line polygons for the surface.
 		/// </summary>
-		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, ref ColliderReference colliders)
+		private void GenerateLinePolys(RenderVertex2D pv1, Vertex2D pv2, bool bothDirections, ref ColliderReference colliders)
 		{
+			GenerateLineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), pv1.IsSlingshot, ref colliders);
+			if (bothDirections) {
+				GenerateLineCollider(pv2.ToUnityFloat2(), pv1.ToUnityFloat2(), pv1.IsSlingshot, ref colliders);
+			}
+
 			var bottom = _component.HeightBottom;
 			var top = _component.HeightTop;
-
-			if (!pv1.IsSlingshot) {
-				colliders.Add(new LineCollider(pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()), _matrix);
-
-			} else {
-				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, pv1.ToUnityFloat2(), pv2.ToUnityFloat2(), bottom, top, _api.GetColliderInfo()), _matrix);
-			}
 
 			if (_component.HeightBottom != 0) {
 				// add lower edge as a line
@@ -110,6 +113,19 @@ namespace VisualPinball.Unity
 			}
 
 			colliders.Add(new PointCollider(new float3(pv1.X, pv1.Y, top), _api.GetColliderInfo()), _matrix);
+		}
+
+		private void GenerateLineCollider(float2 v1, float2 v2, bool isSlingshot, ref ColliderReference colliders)
+		{
+			var bottom = _component.HeightBottom;
+			var top = _component.HeightTop;
+
+			if (!isSlingshot) {
+				colliders.Add(new LineCollider(v1, v2, bottom, top, _api.GetColliderInfo()), _matrix);
+
+			} else {
+				colliders.Add(new LineSlingshotCollider(_colliderComponent.SlingshotForce, v1, v2, bottom, top, _api.GetColliderInfo()), _matrix);
+			}
 		}
 	}
 }

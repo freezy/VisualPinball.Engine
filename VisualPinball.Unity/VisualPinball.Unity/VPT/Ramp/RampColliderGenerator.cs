@@ -117,11 +117,6 @@ namespace VisualPinball.Unity
 				var rg1 = new float3(pv1.x, pv1.y, rgHeight1[i] + margin);
 				var rg2 = new float3(pv3.x, pv3.y, rgHeight1[i + 1] + margin);
 
-				// add joint for starting edge of ramp
-				if (i == 0) {
-					colliders.Add(new Line3DCollider(rg0, rg1, _api.GetColliderInfo()), _matrix);
-				}
-
 				// add joint for left edge
 				colliders.Add(new Line3DCollider(rg0, rg2, _api.GetColliderInfo()), _matrix);
 
@@ -130,9 +125,14 @@ namespace VisualPinball.Unity
 					var ph3dPoly = new TriangleCollider(rg0, rg1, rg2, _api.GetColliderInfo());
 					colliders.Add(ph3dPoly, _matrix);
 
+					// joint between this triangle and the previous one, or the starting edge of the
+					// ramp for the first triangle (and after a degenerate one)
 					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, ref colliders);
 					ph3dPolyOld = ph3dPoly;
 					isOldSet = true;
+
+				} else {
+					isOldSet = false;
 				}
 
 				// right ramp floor triangle, CCW order
@@ -150,6 +150,9 @@ namespace VisualPinball.Unity
 					CheckJoint(isOldSet, in ph3dPolyOld, in ph3dPoly, ref colliders);
 					ph3dPolyOld = ph3dPoly;
 					isOldSet = true;
+
+				} else {
+					isOldSet = false;
 				}
 			}
 

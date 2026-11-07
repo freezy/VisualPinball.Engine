@@ -20,6 +20,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -262,7 +263,8 @@ namespace VisualPinball.Unity
 
 				// handle contacts
 				PerfMarkerContacts.Begin();
-				PrepareContacts(ref state);
+				var ballContactCount = PrepareContacts(ref state);
+				MarkBackedBallContacts(ref state, ballContactCount, hitTime);
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
 					if (contact.IsDuplicate) {
@@ -274,10 +276,28 @@ namespace VisualPinball.Unity
 						// where the ball was before, its recovery would move it out of the kicker
 						continue;
 					}
+					if (i < ballContactCount) {
+						ResolveBallContact(i, ballContactCount, ref ball, ref state, hitTime);
+						continue;
+					}
+					var velocityBefore = ball.Velocity;
+					var angularMomentumBefore = ball.AngularMomentum;
+					ColliderType colliderType;
 					if (contact.CollEvent.IsKinematic) {
+						colliderType = state.GetColliderType(ref state.KinematicColliders, contact.CollEvent.ColliderId);
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
 					} else {
+						colliderType = contact.CollEvent.ColliderId >= 0
+							? state.GetColliderType(ref state.Colliders, contact.CollEvent.ColliderId)
+							: ColliderType.None;
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.Colliders, hitTime);
+					}
+					// A spring hinge solves its contact along a normal it recomputes after the
+					// displacement, so the hit normal can't split its response into normal and
+					// friction parts: passing it on would turn its normal impulse into slip.
+					if (colliderType != ColliderType.SpringHinge) {
+						PassOn(ref _contacts, i, ball.Velocity - velocityBefore,
+							ball.AngularMomentum - angularMomentumBefore, colliderType != ColliderType.Flipper);
 					}
 				}
 				PerfMarkerContacts.End();
@@ -320,14 +340,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void PrepareContacts(ref PhysicsState state)
+		private int PrepareContacts(ref PhysicsState state)
 		{
+			var ballContactCount = SortBallContactsFirst(ref _contacts);
 			for (var i = 0; i < _contacts.Length; i++) {
 				ref var contact = ref _contacts.GetElementAsRef(i);
 				ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
 				contact.FrictionVelocity = ball.Velocity;
 				contact.FrictionAngularMomentum = ball.AngularMomentum;
 				contact.FrictionAcceleration = state.Env.Gravity + ball.ExternalAcceleration;
+				contact.PriorContactVelocity = float3.zero;
 				contact.IsDuplicate = false;
 			}
 
@@ -370,6 +392,157 @@ namespace VisualPinball.Unity
 				}
 				contact.FrictionAcceleration = frictionAcceleration;
 			}
+			return ballContactCount;
+		}
+
+		private void ResolveBallContact(int index, int ballContactCount, ref BallState ball,
+			ref PhysicsState state, float hitTime)
+		{
+			var contact = _contacts[index];
+			ref var other = ref state.Balls.GetValueByRef(contact.CollEvent.BallId);
+			var reverseIndex = -1;
+			for (var i = index + 1; i < ballContactCount; i++) {
+				if (_contacts[i].BallId == other.Id && _contacts[i].CollEvent.BallId == ball.Id) {
+					reverseIndex = i;
+					break;
+				}
+			}
+
+			// Both balls report the same contact. Apply the free pair's impulse once, and
+			// pass each ball's change on to its later static contacts.
+			var velocityBefore = ball.Velocity;
+			var angularBefore = ball.AngularMomentum;
+			var otherVelocityBefore = other.Velocity;
+			var otherAngularBefore = other.AngularMomentum;
+			if (other.IsFrozen || contact.HasBackingSupport
+			                   || reverseIndex >= 0 && _contacts[reverseIndex].HasBackingSupport) {
+				BallCollider.HandleSupportedBallContact(ref ball, in other, in contact.CollEvent,
+					hitTime, in state.Env.Gravity, in contact.FrictionAcceleration);
+				if (!other.IsFrozen && reverseIndex >= 0) {
+					var reverse = _contacts[reverseIndex];
+					BallCollider.HandleSupportedBallContact(ref other, in ball, in reverse.CollEvent,
+						hitTime, in state.Env.Gravity, in reverse.FrictionAcceleration);
+				}
+			} else {
+				BallCollider.HandleFreeBallContact(ref ball, ref other, in contact.CollEvent);
+			}
+			PassOn(ref _contacts, index, ball.Velocity - velocityBefore, ball.AngularMomentum - angularBefore, true);
+			if (reverseIndex >= 0) {
+				_contacts.GetElementAsRef(reverseIndex).IsDuplicate = true;
+				PassOn(ref _contacts, reverseIndex, other.Velocity - otherVelocityBefore,
+					other.AngularMomentum - otherAngularBefore, true);
+			}
+		}
+
+		private void MarkBackedBallContacts(ref PhysicsState state, int ballContactCount, float hitTime)
+		{
+			// A contact that bears weight has a path through the lower ball to a solid
+			// support. Grow that path upwards so a freely falling pair shares its impulse.
+			for (var pass = 0; pass < ballContactCount; pass++) {
+				var changed = false;
+				for (var i = 0; i < ballContactCount; i++) {
+					ref var contact = ref _contacts.GetElementAsRef(i);
+					var normal = contact.CollEvent.HitNormal;
+					if (contact.HasBackingSupport || !BallCollider.IsSupportContact(in normal)) {
+						continue;
+					}
+					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
+					if (ball.IsFrozen || math.dot(state.Env.Gravity + ball.ExternalAcceleration, normal) >= 0f) {
+						continue;
+					}
+					ref var other = ref state.Balls.GetValueByRef(contact.CollEvent.BallId);
+					if (HasBackingSupport(in other, in normal, ref state, hitTime)) {
+						contact.HasBackingSupport = true;
+						changed = true;
+					}
+				}
+				if (!changed) {
+					break;
+				}
+			}
+		}
+
+		private bool HasBackingSupport(in BallState ball, in float3 normal, ref PhysicsState state, float hitTime)
+		{
+			if (ball.IsFrozen) {
+				return true;
+			}
+			// The floor can report an impact instead of a contact after the tick adds gravity.
+			var hit = ball.CollisionEvent;
+			if (hit.ColliderId >= 0 && hit.HitTime <= hitTime && hit.HitDistance <= PhysicsConstants.PhysTouch
+			    && math.dot(hit.HitNormal, normal) > 0.5f && math.dot(ball.Velocity, normal) <= PhysicsConstants.ContactVel) {
+				ref var colliders = ref (hit.IsKinematic ? ref state.KinematicColliders : ref state.Colliders);
+				if (colliders.GetHeader(hit.ColliderId).ItemType != ItemType.Trigger) {
+					return true;
+				}
+			}
+			for (var i = 0; i < _contacts.Length; i++) {
+				var support = _contacts[i];
+				if (support.BallId == ball.Id && !support.IsDuplicate
+				    && math.dot(support.CollEvent.HitNormal, normal) > 0.5f
+				    && (support.CollEvent.ColliderId >= 0 || support.HasBackingSupport)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Passes what a resolved contact did to its ball on to the later contacts of the same
+		/// ball. Friction removes the full slip at once, so they must see what the friction of
+		/// this one did, or two contacts sharing the slip (the wires of a wire ramp) would each
+		/// remove all of it; only the friction part counts, the normal solve of a contact is
+		/// not slip. Static contacts also cancel the velocity change of the contacts before
+		/// them along their normal: all of it for a ball/ball contact, the friction part for a
+		/// static one.
+		/// </summary>
+		/// <param name="passesTakeBack">Whether a negative normal change of a static contact is it
+		/// taking back the lift of the contacts before it (BallCollider.HandleStaticContact), which
+		/// the later contacts must not take back again. A flipper's isn't.</param>
+		internal static void PassOn(ref NativeList<ContactBufferElement> contacts, int contactIndex,
+			float3 deltaVelocity, float3 deltaAngularMomentum, bool passesTakeBack)
+		{
+			var contact = contacts[contactIndex];
+			var normal = math.normalizesafe(contact.CollEvent.HitNormal);
+			var normalVelocity = math.dot(deltaVelocity, normal);
+			var frictionVelocity = deltaVelocity - normalVelocity * normal;
+			var priorVelocity = IsBallContact(in contact)
+				? deltaVelocity
+				: frictionVelocity + (passesTakeBack ? math.min(normalVelocity, 0f) : 0f) * normal;
+			for (var j = contactIndex + 1; j < contacts.Length; j++) {
+				ref var later = ref contacts.GetElementAsRef(j);
+				if (later.IsDuplicate || later.BallId != contact.BallId) {
+					continue;
+				}
+				later.FrictionVelocity += frictionVelocity;
+				later.FrictionAngularMomentum += deltaAngularMomentum;
+				later.PriorContactVelocity += priorVelocity;
+			}
+		}
+
+		private static bool IsBallContact(in ContactBufferElement contact)
+			=> contact.CollEvent.ColliderId < 0 && contact.CollEvent.BallId != 0;
+
+		/// <summary>
+		/// Moves the ball/ball contacts in front of the others, keeping the order otherwise.
+		/// They are resolved first: their friction, stopping the spin of a ball pressed against
+		/// another ball, changes the ball's velocity on its other supports, which the static
+		/// contacts resolved after them cancel.
+		/// </summary>
+		internal static int SortBallContactsFirst(ref NativeList<ContactBufferElement> contacts)
+		{
+			var ballContacts = 0;
+			for (var i = 0; i < contacts.Length; i++) {
+				if (!IsBallContact(contacts[i])) {
+					continue;
+				}
+				var ballContact = contacts[i];
+				for (var j = i; j > ballContacts; j--) {
+					contacts[j] = contacts[j - 1];
+				}
+				contacts[ballContacts++] = ballContact;
+			}
+			return ballContacts;
 		}
 
 		private bool IsDuplicateContact(int contactIndex, ref PhysicsState state)
