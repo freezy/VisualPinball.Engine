@@ -45,11 +45,9 @@ namespace VisualPinball.Plugins.Test
 			File.WriteAllText(Path.Combine(_root, "rom.crz"), "");
 			File.WriteAllText(Path.Combine(_root, "ROM.CRZ"), "");
 
-			Assert.Multiple(() => {
-				Assert.That(TableMediaPaths.FindDirectory(_root, "rom"), Is.Null);
-				Assert.That(TableMediaPaths.GameDirectories(_root, new GameIdentity("pinmame", "rom")), Is.Empty);
-				Assert.That(TableMediaPaths.FindFile(_root, "rom.crz"), Is.Null);
-			});
+			Assert.That(TableMediaPaths.FindDirectory(_root, "rom"), Is.Null);
+			Assert.That(TableMediaPaths.GameDirectories(_root, new GameIdentity("pinmame", "rom")), Is.Empty);
+			Assert.That(TableMediaPaths.FindFile(_root, "rom.crz"), Is.Null);
 		}
 
 		[TestCase("..")]
