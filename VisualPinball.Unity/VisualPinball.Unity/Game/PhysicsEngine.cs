@@ -137,13 +137,13 @@ namespace VisualPinball.Unity
 
 		[HideInInspector]
 		[Tooltip("Mechanical plumb-bob damping scale.")]
-		[Range(0f, 2f)]
-		public float PlumbDamping = 1f;
+		[Range(PlumbState.MinDamping, PlumbState.MaxDamping)]
+		public float PlumbDamping = PlumbState.DefaultDamping;
 
 		[HideInInspector]
 		[Tooltip("Mechanical plumb-bob tilt threshold angle in degrees.")]
-		[Range(0.5f, 4f)]
-		public float PlumbThresholdAngle = 2f;
+		[Range(PlumbState.MinThresholdAngle, PlumbState.MaxThresholdAngle)]
+		public float PlumbThresholdAngle = PlumbState.DefaultThresholdAngle;
 
 		[Tooltip("Render-only visual nudge strength scale.")]
 		[Range(0f, 2f)]
@@ -449,8 +449,8 @@ namespace VisualPinball.Unity
 		public void ConfigurePlumb(bool simulatedPlumb, float damping, float thresholdAngle)
 		{
 			SimulatedPlumb = simulatedPlumb;
-			PlumbDamping = math.clamp(damping, 0f, 2f);
-			PlumbThresholdAngle = math.clamp(thresholdAngle, 0.5f, 4f);
+			PlumbDamping = PlumbState.ClampDamping(damping);
+			PlumbThresholdAngle = PlumbState.ClampThresholdAngle(thresholdAngle);
 
 			if (_ctx == null || !_ctx.IsInitialized) {
 				return;

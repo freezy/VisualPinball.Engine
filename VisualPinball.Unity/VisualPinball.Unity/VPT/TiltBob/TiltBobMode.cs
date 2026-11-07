@@ -17,19 +17,18 @@
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Selects where a table's tilt-bob switch signal comes from.
+	/// Selects whether to simulate a plumb bob alongside physical Tilt input.
 	/// </summary>
 	public enum TiltBobMode
 	{
 		/// <summary>
-		/// Use the physics engine's simulated plumb-bob edges generated from
-		/// cabinet acceleration.
+		/// Combine physical Tilt with simulated plumb-bob edges from cabinet
+		/// acceleration.
 		/// </summary>
 		Simulated = 0,
 
 		/// <summary>
-		/// Use the player's physical cabinet tilt input, typically a real plumb bob
-		/// wired into the cabinet controller.
+		/// Use physical cabinet Tilt without the simulated plumb bob.
 		/// </summary>
 		Physical = 1
 	}

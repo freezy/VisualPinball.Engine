@@ -103,6 +103,9 @@ namespace VisualPinball.Unity
 						}
 
 						case SwitchSource.InputSystem:
+							// One switch destination cannot independently receive a physical Tilt
+							// release and the merged physical/simulated Tilt Bob state.
+							if (TiltBobComponent.OwnsTiltInputDestination(switchMapping, config.Switches)) break;
 							var inputAction = InputManager.GetCanonicalActionName(switchMapping.InputAction);
 							if (!_keySwitchAssignments.ContainsKey(inputAction)) {
 								_keySwitchAssignments[inputAction] = new List<KeyboardSwitch>();

@@ -405,8 +405,10 @@ namespace VisualPinball.Unity.Simulation
 						: null);
 				if (player != null) {
 					_simulationThread.MainThreadInputObserver = player.NotifyCabinetInputAction;
-					_simulationThread.SetInputSwitchMappings(player.SwitchMapping
-						.Where(m => m.Source == SwitchSource.InputSystem && !string.IsNullOrEmpty(m.InputAction))
+					var mappings = player.SwitchMapping;
+					_simulationThread.SetInputSwitchMappings(mappings
+						.Where(m => m.Source == SwitchSource.InputSystem && !string.IsNullOrEmpty(m.InputAction)
+							&& !TiltBobComponent.OwnsTiltInputDestination(m, mappings))
 						.Select(m => new InputSwitchMapping(m.InputAction, m.Id, m.IsNormallyClosed))
 						.ToArray());
 				}
@@ -595,14 +597,13 @@ namespace VisualPinball.Unity.Simulation
 			}
 
 			tiltBob ??= FindTiltBobComponent();
-			if (tiltBob != null && (tiltBob.UsesSimulatedPlumb || tiltBob.UsesPhysicalTiltInput)) {
-				_simulationThread.MainThreadTiltDispatcher = tiltBob.QueueTiltStateFromSimulationThread;
-				_simulationThread.DispatchPhysicalTiltInputToMainThread = tiltBob.UsesPhysicalTiltInput;
+			if (tiltBob?.HasRegisteredSwitch != true) {
+				_simulationThread.SetTiltBobDispatchers(null, null);
 				return;
 			}
-
-			_simulationThread.MainThreadTiltDispatcher = null;
-			_simulationThread.DispatchPhysicalTiltInputToMainThread = false;
+			_simulationThread.SetTiltBobDispatchers(
+				tiltBob.UsesPhysicalTiltInput ? tiltBob.SetPhysicalTilt : null,
+				tiltBob.CreateSimulatedTiltDispatcher());
 		}
 
 		private TiltBobComponent FindTiltBobComponent()

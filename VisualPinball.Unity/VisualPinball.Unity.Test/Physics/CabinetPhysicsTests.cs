@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using Unity.Mathematics;
+using UnityEngine;
+using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Simulation;
 
 namespace VisualPinball.Unity.Test
 {
@@ -98,6 +103,104 @@ namespace VisualPinball.Unity.Test
 
 			plumb.ClearPendingTiltEvents();
 			Assert.That(plumb.PendingTiltStates.Length, Is.EqualTo(0));
+		}
+
+		[Test]
+		public void NativeTiltAndSimulatedPlumbKeepTheSwitchClosedUntilBothRelease()
+		{
+			const BindingFlags privateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
+			var table = new GameObject("Tilt routing test");
+			table.SetActive(false);
+			try {
+				var playfield = new GameObject("Playfield");
+				playfield.transform.SetParent(table.transform);
+				var physics = playfield.AddComponent<PhysicsEngine>();
+				var player = table.AddComponent<Player>();
+				var bob = table.AddComponent<TiltBobComponent>();
+				var direct = new SwitchMapping { Id = "tilt", Source = SwitchSource.InputSystem, InputAction = InputConstants.ActionTilt };
+				var device = new SwitchMapping { Id = "tilt", Source = SwitchSource.Playfield, Device = bob, DeviceItem = TiltBobComponent.SwitchItem };
+				Assert.That(TiltBobComponent.OwnsTiltInputDestination(direct, new[] { direct, device }), Is.False,
+					"An inactive, unregistered bob does not take over the direct Tilt binding.");
+				typeof(TiltBobComponent).GetMethod("Awake", privateInstance).Invoke(bob, null);
+				var api = (TiltBobApi)player.Switch(bob, TiltBobComponent.SwitchItem);
+				Assert.That(api, Is.Not.Null, "The table-root Tilt Bob registers with the child playfield engine.");
+				var edges = new List<bool>();
+				api.Switch += (_, evt) => edges.Add(evt.IsEnabled);
+
+				using var simulation = new SimulationThread(physics, null, null);
+				var simulated = bob.CreateSimulatedTiltDispatcher();
+				simulation.SetTiltBobDispatchers(bob.SetPhysicalTilt, simulated);
+				var processInput = typeof(SimulationThread).GetMethod("ProcessInputEvents", privateInstance);
+				var queueTilt = typeof(SimulationThread).GetMethod("QueueMainThreadTiltState", privateInstance);
+
+				void Physical(bool pressed)
+				{
+					simulation.EnqueueInputEvent(new NativeInputApi.InputEvent {
+						EventType = (int)NativeInputApi.InputEventType.Action,
+						Action = (int)NativeInputApi.InputAction.Tilt,
+						Value = pressed ? 1f : 0f
+					});
+					processInput.Invoke(simulation, null);
+				}
+				void Simulated(bool pressed) =>
+					queueTilt.Invoke(simulation, new object[] { simulated, pressed });
+
+				Physical(true);
+				Simulated(true);
+				Physical(false);
+				simulation.FlushMainThreadInputDispatch();
+				Assert.That(api.IsSwitchEnabled, Is.True);
+				Assert.That(edges, Is.EqualTo(new[] { true }));
+				Physical(true);
+				Simulated(false);
+				simulation.FlushMainThreadInputDispatch();
+				Assert.That(edges, Is.EqualTo(new[] { true }));
+
+				Simulated(true);
+				bob.ApplySettings(new CabinetPlumbSettings { mode = TiltBobMode.Physical });
+				bob.ApplySettings(new CabinetPlumbSettings());
+				Physical(false);
+				simulation.FlushMainThreadInputDispatch();
+				Assert.That(edges, Is.EqualTo(new[] { true, false }), "An old simulated edge cannot close the switch after a mode change.");
+
+				player.NotifyCabinetInputAction(InputConstants.ActionTilt, true);
+				player.NotifyCabinetInputAction(InputConstants.ActionTilt, false);
+				Assert.That(edges, Is.EqualTo(new[] { true, false, true, false }));
+
+				Assert.That(TiltBobComponent.OwnsTiltInputDestination(direct, new[] { direct, device }), Is.True);
+				direct.Id = "other";
+				Assert.That(TiltBobComponent.OwnsTiltInputDestination(direct, new[] { direct, device }), Is.False);
+			} finally {
+				Object.DestroyImmediate(table);
+			}
+		}
+
+		[Test]
+		public void PlumbPlayerTuningOverridesAndRestoresAuthoredValues()
+		{
+			var table = new GameObject("Tilt tuning test");
+			table.SetActive(false);
+			try {
+				var playfield = new GameObject("Playfield");
+				playfield.transform.SetParent(table.transform);
+				var physics = playfield.AddComponent<PhysicsEngine>();
+				var bob = table.AddComponent<TiltBobComponent>();
+				bob.PlumbDamping = .8f;
+				bob.PlumbThresholdAngle = 2f;
+
+				bob.ApplySettings(new CabinetPlumbSettings { damping = 1.5f, thresholdDeg = 10f });
+				Assert.That(physics.PlumbDamping, Is.EqualTo(.8f));
+				Assert.That(physics.PlumbThresholdAngle, Is.EqualTo(2f));
+				TiltBobComponent.ApplySettings(physics, new CabinetPlumbSettings { overrideTuning = true, damping = 1.5f, thresholdDeg = 20f });
+				Assert.That(physics.PlumbDamping, Is.EqualTo(1.5f));
+				Assert.That(physics.PlumbThresholdAngle, Is.EqualTo(15f));
+				Assert.That(physics.GetNudgeSettings().plumb.overrideTuning, Is.True);
+				TiltBobComponent.ApplySettings(physics, new CabinetPlumbSettings());
+				Assert.That(physics.PlumbDamping, Is.EqualTo(.8f));
+				Assert.That(physics.PlumbThresholdAngle, Is.EqualTo(2f));
+			} finally {
+				Object.DestroyImmediate(table);
+			}
 		}
 
 		/// <summary>

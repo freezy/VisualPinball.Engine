@@ -30,8 +30,8 @@ namespace VisualPinball.Unity
 	/// <remarks>
 	/// The component is the table author's routing point: map the game logic's
 	/// tilt switch to this device if the table should have a tilt bob. The
-	/// player's cabinet settings decide whether the signal comes from the physics
-	/// plumb-bob simulation or from a real physical cabinet switch.
+	/// physical cabinet switch always participates. The player can also enable
+	/// the physics plumb-bob simulation.
 	/// </remarks>
 	[DisallowMultipleComponent]
 	[PackAs("TiltBob")]
@@ -40,16 +40,14 @@ namespace VisualPinball.Unity
 	public sealed class TiltBobComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{
 		public const string SwitchItem = "tilt_bob_switch";
-		public const float DefaultDamping = 1f;
-		public const float MinDamping = 0f;
-		public const float MaxDamping = 2f;
-		public const float DefaultThresholdAngle = 2f;
-		public const float MinThresholdAngle = 0.5f;
-		public const float MaxThresholdAngle = 4f;
+		public const float DefaultDamping = PlumbState.DefaultDamping;
+		public const float MinDamping = PlumbState.MinDamping;
+		public const float MaxDamping = PlumbState.MaxDamping;
+		public const float DefaultThresholdAngle = PlumbState.DefaultThresholdAngle;
+		public const float MinThresholdAngle = PlumbState.MinThresholdAngle;
+		public const float MaxThresholdAngle = PlumbState.MaxThresholdAngle;
 
-		private readonly Queue<bool> _queuedTiltStates = new();
 		private readonly List<bool> _pendingSimulatedTiltStates = new(8);
-		private readonly object _queuedTiltLock = new();
 
 		[Tooltip("Mechanical plumb-bob damping scale. Higher values calm the bob faster after a nudge.")]
 		[Range(MinDamping, MaxDamping)]
@@ -67,6 +65,10 @@ namespace VisualPinball.Unity
 		[NonSerialized] private TiltBobMode _mode = TiltBobMode.Simulated;
 		[NonSerialized] private bool _enabled = true;
 		[NonSerialized] private bool _settingsApplied;
+		private (float Damping, float Threshold)? _playerTuning;
+		private bool _physicalTiltPressed;
+		private bool _simulatedTiltPressed;
+		private int _plumbDispatchGeneration;
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(SwitchItem) { Description = "Tilt Bob" }
@@ -78,7 +80,19 @@ namespace VisualPinball.Unity
 
 		public TiltBobMode Mode => _mode;
 		public bool UsesSimulatedPlumb => _enabled && _mode == TiltBobMode.Simulated;
-		public bool UsesPhysicalTiltInput => _enabled && _mode == TiltBobMode.Physical;
+		public bool UsesPhysicalTiltInput => _enabled;
+		internal bool HasRegisteredSwitch => _api != null;
+
+		internal static bool OwnsTiltInputDestination(SwitchMapping mapping, IReadOnlyList<SwitchMapping> mappings)
+		{
+			if (InputManager.GetCanonicalActionName(mapping.InputAction) != InputConstants.ActionTilt) return false;
+			foreach (var candidate in mappings) {
+				if (candidate.Id == mapping.Id && candidate.Source == SwitchSource.Playfield
+					&& candidate.Device is TiltBobComponent bob && bob && bob.HasRegisteredSwitch
+					&& candidate.DeviceItem == SwitchItem) return true;
+			}
+			return false;
+		}
 
 		public static TiltBobComponent FindFor(PhysicsEngine physicsEngine)
 		{
@@ -86,7 +100,7 @@ namespace VisualPinball.Unity
 				return null;
 			}
 
-			var table = physicsEngine.GetComponentInParent<TableComponent>();
+			var table = physicsEngine.GetComponentInParent<TableComponent>(true);
 			if (table) {
 				return table.GetComponentInChildren<TiltBobComponent>(true);
 			}
@@ -102,6 +116,7 @@ namespace VisualPinball.Unity
 
 			var tiltBob = FindFor(physicsEngine);
 			if (tiltBob != null) {
+				tiltBob._physicsEngine = physicsEngine;
 				tiltBob.ApplySettings(settings);
 				return;
 			}
@@ -119,30 +134,47 @@ namespace VisualPinball.Unity
 
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
+		internal CabinetPlumbSettings CaptureSettings() => new() {
+			mode = _mode,
+			overrideTuning = _playerTuning.HasValue,
+			damping = _playerTuning?.Damping ?? PlumbDamping,
+			thresholdDeg = _playerTuning?.Threshold ?? PlumbThresholdAngle
+		};
+
 		public void ApplySettings(CabinetPlumbSettings settings)
 		{
 			settings ??= new CabinetPlumbSettings();
 			settings.Normalize();
 
+			var wasSimulated = UsesSimulatedPlumb;
 			_enabled = settings.enabled;
 			_mode = settings.mode;
+			_playerTuning = settings.overrideTuning ? (settings.damping, settings.thresholdDeg) : null;
 			_settingsApplied = true;
-
+			if (wasSimulated != UsesSimulatedPlumb) {
+				_plumbDispatchGeneration++;
+				_simulatedTiltPressed = false;
+			}
 			ConfigurePhysicsPlumb();
 			ConfigureSimulationThreadRouting();
+			UpdateSwitch();
 		}
 
-		internal void QueueTiltStateFromSimulationThread(bool enabled)
+		internal Action<bool> CreateSimulatedTiltDispatcher()
 		{
-			lock (_queuedTiltLock) {
-				_queuedTiltStates.Enqueue(enabled);
-			}
+			if (!UsesSimulatedPlumb) return null;
+			// An edge already queued by the simulation thread belongs to the
+			// mode in effect when it was drained, even after re-enabling.
+			var generation = _plumbDispatchGeneration;
+			return tilted => {
+				if (generation == _plumbDispatchGeneration) SetSimulatedTilt(tilted);
+			};
 		}
 
 		private void Awake()
 		{
-			_player = GetComponentInParent<Player>();
-			_physicsEngine = GetComponentInParent<PhysicsEngine>();
+			_player = GetComponentInParent<Player>(true);
+			_physicsEngine ??= FindPhysicsEngine();
 			if (_player != null && _physicsEngine != null) {
 				_api = new TiltBobApi(gameObject, _player, _physicsEngine);
 				_player.Register(_api, this);
@@ -159,8 +191,6 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
-			FlushQueuedTiltStates();
-
 			if (!UsesSimulatedPlumb || !_physicsEngine || _physicsEngine.UsesExternalTiming) {
 				return;
 			}
@@ -168,17 +198,18 @@ namespace VisualPinball.Unity
 			_pendingSimulatedTiltStates.Clear();
 			_physicsEngine.DrainPlumbTiltEvents(_pendingSimulatedTiltStates);
 			foreach (var tilted in _pendingSimulatedTiltStates) {
-				SetSwitch(tilted);
+				SetSimulatedTilt(tilted);
 			}
 		}
 
 		private void OnDestroy()
 		{
 			_enabled = false;
+			_plumbDispatchGeneration++;
 			if (_player != null) {
 				_player.CabinetInputActionChanged -= OnCabinetInputActionChanged;
 			}
-			_physicsEngine?.ConfigurePlumb(false, DefaultDamping, DefaultThresholdAngle);
+			if (_physicsEngine) _physicsEngine.ConfigurePlumb(false, DefaultDamping, DefaultThresholdAngle);
 			ConfigureSimulationThreadRouting();
 		}
 
@@ -192,45 +223,49 @@ namespace VisualPinball.Unity
 
 		internal void NormalizeSettings()
 		{
-			PlumbDamping = Mathf.Clamp(PlumbDamping, MinDamping, MaxDamping);
-			PlumbThresholdAngle = Mathf.Clamp(PlumbThresholdAngle, MinThresholdAngle, MaxThresholdAngle);
+			PlumbDamping = PlumbState.ClampDamping(PlumbDamping);
+			PlumbThresholdAngle = PlumbState.ClampThresholdAngle(PlumbThresholdAngle);
 		}
 
 		private void OnCabinetInputActionChanged(string actionName, bool isPressed)
 		{
-			if (UsesPhysicalTiltInput && actionName == InputConstants.ActionTilt) {
-				SetSwitch(isPressed);
+			if (actionName == InputConstants.ActionTilt) {
+				SetPhysicalTilt(isPressed);
 			}
 		}
 
-		private void FlushQueuedTiltStates()
+		internal void SetPhysicalTilt(bool tilted)
 		{
-			while (true) {
-				bool tilted;
-				lock (_queuedTiltLock) {
-					if (_queuedTiltStates.Count == 0) {
-						return;
-					}
-					tilted = _queuedTiltStates.Dequeue();
-				}
-				SetSwitch(tilted);
-			}
+			if (!UsesPhysicalTiltInput) return;
+			_physicalTiltPressed = tilted;
+			UpdateSwitch();
 		}
 
-		private void SetSwitch(bool enabled)
+		private void SetSimulatedTilt(bool tilted)
 		{
-			if (!_enabled) {
-				return;
-			}
-			_api?.SetSwitch(enabled);
+			if (!UsesSimulatedPlumb) return;
+			_simulatedTiltPressed = tilted;
+			UpdateSwitch();
+		}
+
+		private void UpdateSwitch()
+		{
+			var tilted = _physicalTiltPressed || _simulatedTiltPressed;
+			if (_api != null && _api.IsSwitchEnabled != tilted) _api.SetSwitch(tilted);
 		}
 
 		private void ConfigurePhysicsPlumb()
 		{
 			NormalizeSettings();
-			_physicsEngine ??= GetComponentInParent<PhysicsEngine>();
-			_physicsEngine?.ConfigurePlumb(UsesSimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
+			_physicsEngine ??= FindPhysicsEngine();
+			_physicsEngine?.ConfigurePlumb(UsesSimulatedPlumb,
+				_playerTuning?.Damping ?? PlumbDamping, _playerTuning?.Threshold ?? PlumbThresholdAngle);
 		}
+
+		private PhysicsEngine FindPhysicsEngine() =>
+			GetComponentInParent<PhysicsEngine>(true)
+			?? GetComponentInParent<TableComponent>(true)?.GetComponentInChildren<PhysicsEngine>(true)
+			?? GetComponentInChildren<PhysicsEngine>(true);
 
 		private void ConfigureSimulationThreadRouting()
 		{
