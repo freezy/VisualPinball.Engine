@@ -61,6 +61,55 @@ namespace VisualPinball.Unity.Test
 			Assert.That(NudgeSensorSetup.TryCreateCabinetSensor(Device("Pinscape Controller", connected: false), out _), Is.False);
 		}
 
+		[Test]
+		public void OpdDefaultsToAccelerationAndUsesThePicoVelocityScaleWhenSelected()
+		{
+			var device = new NativeInputDeviceInfo(1, "pico-opd", "Pinscape Pico (OPD)", true, new[] {
+				new NativeInputAxisInfo(5, "Plunger Velocity", 5, 2, NativeInputApi.AxisKind.Velocity, 0f, 0),
+				new NativeInputAxisInfo(3, "Nudge Y Velocity", 5, 2, NativeInputApi.AxisKind.Velocity, 0f, 0),
+				new NativeInputAxisInfo(0, "Nudge X Acceleration", 5, 2, NativeInputApi.AxisKind.Acceleration, 0f, 0),
+				new NativeInputAxisInfo(2, "Nudge X Velocity", 5, 2, NativeInputApi.AxisKind.Velocity, 0f, 0),
+				new NativeInputAxisInfo(1, "Nudge Y Acceleration", 5, 2, NativeInputApi.AxisKind.Acceleration, 0f, 0)
+			});
+			Assert.That(NudgeSensorSetup.TryCreateCabinetSensor(device, out var acceleration), Is.True);
+			var acc = acceleration.ToEngineConfig();
+			Assert.That(acc.AccelerationX.AxisId, Is.Zero);
+			Assert.That(acc.AccelerationY.AxisId, Is.EqualTo(1));
+			Assert.That(acc.VelocityX.IsMapped, Is.False);
+			Assert.That(NudgeSensorSetup.TryCreateCabinetPreset(device, true, out var velocity), Is.True);
+			var vel = velocity.ToEngineConfig();
+			Assert.That(vel.VelocityX.DeviceId, Is.EqualTo("pico-opd"));
+			Assert.That(vel.VelocityX.AxisId, Is.EqualTo(2));
+			Assert.That(vel.VelocityY.AxisId, Is.EqualTo(3));
+			Assert.That(vel.VelocityX.Scale, Is.EqualTo(0.32768f));
+			Assert.That(vel.AccelerationX.IsMapped, Is.False);
+		}
+
+		[Test]
+		public void OpdVelocityPresetRequiresBothNudgeVelocityChannels()
+		{
+			var device = new NativeInputDeviceInfo(1, "pico-opd", "Pinscape Pico (OPD)", true, new[] {
+				new NativeInputAxisInfo(2, "Nudge X Velocity", 5, 2, NativeInputApi.AxisKind.Velocity, 0f, 0),
+				new NativeInputAxisInfo(5, "Plunger Velocity", 5, 2, NativeInputApi.AxisKind.Velocity, 0f, 0)
+			});
+			Assert.That(NudgeSensorSetup.TryCreateCabinetPreset(device, true, out _), Is.False);
+		}
+
+		[Test]
+		public void ExistingDeviceCheckUsesOnlyTheActiveSensorChannels()
+		{
+			var sensor = new NudgeSensorConfig {
+				Type = NudgeSensorType.GamepadIntent,
+				Y = new SensorMapping { DeviceId = "stick", AxisId = 1 },
+				VelocityY = new SensorMapping { DeviceId = "pico-hid", AxisId = 4 }
+			};
+			Assert.That(NudgeSensorSetup.IsMappedToDevice(sensor, "stick"), Is.True);
+			Assert.That(NudgeSensorSetup.IsMappedToDevice(sensor, "pico-hid"), Is.False);
+			sensor.Type = NudgeSensorType.CabinetDirect;
+			Assert.That(NudgeSensorSetup.IsMappedToDevice(sensor, "pico-hid"), Is.True);
+			Assert.That(NudgeSensorSetup.IsMappedToDevice(sensor, "stick"), Is.False);
+		}
+
 		private static NudgeSensorConfig Sensor()
 		{
 			NudgeSensorSetup.TryCreateCabinetSensor(Device("Pinscape Controller"), out var settings);

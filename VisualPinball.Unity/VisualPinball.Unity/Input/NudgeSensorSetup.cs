@@ -16,13 +16,37 @@ namespace VisualPinball.Unity
 		public const float Gravity = 9.80665f;
 		// Pinscape's default joystick velocity range is +/-4096 / 20 mm/s.
 		public const float PinscapeVelocityScale = 0.2048f;
+		// Pico defaults to 100 signed report counts per mm/s.
+		public const float PinscapePicoVelocityScale = 0.32768f;
+		private const int OpdUsagePage = 0x05;
+		private const int OpdUsage = 0x02;
+
+		public static bool IsOpenPinballDevice(NativeInputDeviceInfo device)
+		{
+			if (device?.Axes != null) {
+				foreach (var axis in device.Axes) {
+					if (axis.UsagePage == OpdUsagePage && axis.Usage == OpdUsage) return true;
+				}
+			}
+			return false;
+		}
 
 		public static bool IsPinscape(NativeInputDeviceInfo device)
 		{
+			if (IsOpenPinballDevice(device)) return false;
 			var name = device?.Name ?? string.Empty;
 			return name.StartsWith("mjrnet Pinscape Controller", StringComparison.OrdinalIgnoreCase)
 				|| name.Equals("Pinscape Controller", StringComparison.OrdinalIgnoreCase)
 				|| name.Equals("PinscapePico", StringComparison.OrdinalIgnoreCase);
+		}
+
+		/// <summary>Checks the active mappings when offering another device or collection.</summary>
+		public static bool IsMappedToDevice(NudgeSensorConfig sensor, string deviceId)
+		{
+			bool Matches(SensorMapping mapping) => mapping != null && mapping.IsMapped && mapping.DeviceId == deviceId;
+			return sensor.Type == NudgeSensorType.GamepadIntent
+				? Matches(sensor.X) || Matches(sensor.Y)
+				: Matches(sensor.AccelerationX) || Matches(sensor.AccelerationY) || Matches(sensor.VelocityX) || Matches(sensor.VelocityY);
 		}
 
 		/// <summary>
@@ -38,9 +62,43 @@ namespace VisualPinball.Unity
 				|| !TryFindUsage(device, velocity ? 0x34 : 0x31, out var y)) {
 				return false;
 			}
+			sensor = CreateSensor(device, x, y, velocity, PinscapeVelocityScale);
+			return true;
+		}
+
+		public static bool TryCreateCabinetPreset(NativeInputDeviceInfo device, bool velocity,
+			out CabinetNudgeSensorSettings sensor)
+		{
+			return IsOpenPinballDevice(device)
+				? TryCreateOpenPinballSensor(device, velocity, out sensor)
+				: TryCreatePinscapeSensor(device, velocity, out sensor);
+		}
+
+		private static bool TryCreateOpenPinballSensor(NativeInputDeviceInfo device, bool velocity,
+			out CabinetNudgeSensorSettings sensor)
+		{
+			sensor = null;
+			if (!device.IsConnected) return false;
+			var kind = velocity ? NativeInputApi.AxisKind.Velocity : NativeInputApi.AxisKind.Acceleration;
+			var firstId = velocity ? 2 : 0;
+			NativeInputAxisInfo x = default;
+			NativeInputAxisInfo y = default;
+			foreach (var axis in device.Axes) {
+				if (axis.UsagePage != OpdUsagePage || axis.Usage != OpdUsage || axis.Kind != kind) continue;
+				if (axis.AxisId == firstId) x = axis;
+				if (axis.AxisId == firstId + 1) y = axis;
+			}
+			if (x.UsagePage != OpdUsagePage || y.UsagePage != OpdUsagePage) return false;
+			sensor = CreateSensor(device, x, y, velocity, PinscapePicoVelocityScale);
+			return true;
+		}
+
+		private static CabinetNudgeSensorSettings CreateSensor(NativeInputDeviceInfo device, NativeInputAxisInfo x,
+			NativeInputAxisInfo y, bool velocity, float velocityScale)
+		{
 			var kind = velocity ? SensorMappingKind.Velocity : SensorMappingKind.Acceleration;
-			var scale = velocity ? PinscapeVelocityScale : Gravity;
-			sensor = new CabinetNudgeSensorSettings { type = CabinetNudgeSensorSettings.TypeCabinetDirect };
+			var scale = velocity ? velocityScale : Gravity;
+			var sensor = new CabinetNudgeSensorSettings { type = CabinetNudgeSensorSettings.TypeCabinetDirect };
 			if (velocity) {
 				sensor.velX = Mapping(device, x, kind, scale);
 				sensor.velY = Mapping(device, y, kind, scale);
@@ -48,13 +106,13 @@ namespace VisualPinball.Unity
 				sensor.accX = Mapping(device, x, kind, scale);
 				sensor.accY = Mapping(device, y, kind, scale);
 			}
-			return true;
+			return sensor;
 		}
 
-		/// <summary>Auto-maps recognized Pinscape layouts or explicitly typed X/Y accelerometer axes.</summary>
+		/// <summary>Auto-maps OPD, recognized Pinscape layouts or explicitly typed X/Y accelerometer axes.</summary>
 		public static bool TryCreateCabinetSensor(NativeInputDeviceInfo device, out CabinetNudgeSensorSettings sensor)
 		{
-			if (TryCreatePinscapeSensor(device, false, out sensor)) {
+			if (TryCreateCabinetPreset(device, false, out sensor)) {
 				return true;
 			}
 			if (device == null || !device.IsConnected

@@ -734,16 +734,26 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public bool TryAutoConfigureFirstCabinetSensor(out string message)
 		{
-			foreach (var device in ListNudgeInputDevices()) {
+			var devices = ListNudgeInputDevices();
+			foreach (var device in devices.OrderByDescending(NudgeSensorSetup.IsOpenPinballDevice)) {
 				if (!NudgeSensorSetup.TryCreateCabinetSensor(device, out var sensor)) {
 					continue;
 				}
 				NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
 				if (NudgeSensors.Count > 0) {
-					sensor.mountRotation = (int)(NudgeSensors[0]?.MountRotation ?? NudgeSensorMountRotation.Rotation0);
-					sensor.mountMirror = NudgeSensors[0]?.MountMirror ?? false;
-					sensor.strength = NudgeSensors[0]?.Strength ?? 1f;
-					sensor.cabinetMassKg = NudgeSensors[0]?.CabinetMassKg ?? 113f;
+					var existing = NudgeSensors[0];
+					if (NudgeSensorSetup.IsOpenPinballDevice(device) && existing != null) {
+						var mappings = existing.ToEngineConfig();
+						if (devices.Any(joystick => NudgeSensorSetup.IsPinscape(joystick)
+							&& NudgeSensorSetup.IsMappedToDevice(mappings, joystick.Id))) {
+							message = "A Pinscape joystick is already mapped. Select the OPD preset to switch interfaces.";
+							return false;
+						}
+					}
+					sensor.mountRotation = (int)(existing?.MountRotation ?? NudgeSensorMountRotation.Rotation0);
+					sensor.mountMirror = existing?.MountMirror ?? false;
+					sensor.strength = existing?.Strength ?? 1f;
+					sensor.cabinetMassKg = existing?.CabinetMassKg ?? 113f;
 					NudgeSensors[0] = sensor.ToSimulationThreadConfig();
 				} else {
 					NudgeSensors.Add(sensor.ToSimulationThreadConfig());

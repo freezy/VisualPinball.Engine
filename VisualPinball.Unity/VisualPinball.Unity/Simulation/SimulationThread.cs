@@ -257,8 +257,8 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Main thread only (sets volatile flag).</remarks>
 		public void Pause()
 		{
-			_paused = true;
 			NativeInputManager.GamePaused = true; // input stops at the source while paused
+			_paused = true;
 		}
 
 		/// <summary>
