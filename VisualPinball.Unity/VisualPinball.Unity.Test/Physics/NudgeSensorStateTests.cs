@@ -198,6 +198,40 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void FirstUhidMotionReportMovesBallWithoutNeutralReport()
+		{
+			var nudge = new NudgeState(KeyboardNudgeMode.CabModel, 1f, 5f);
+			nudge.ConfigureSensor(0, new NudgeSensorRuntimeConfig {
+				Type = NudgeSensorType.CabinetDirect,
+				Strength = 2f,
+				CabinetMassKg = 113f,
+				AccelerationXMapped = 1
+			});
+			for (var i = 0; i < 500; i++) {
+				nudge.StepOneMillisecond();
+			}
+			Assert.That(nudge.ActiveSourceIndex, Is.EqualTo(-2));
+
+			var mapping = new SensorMapping {
+				Kind = SensorMappingKind.Acceleration, Scale = 34.32328f, DeadZone = .005f
+			};
+			const long firstReportUsec = 10_500_000;
+			var value = mapping.ProcessRawValue(.030f, firstReportUsec);
+			nudge.ApplySensorSample(0, NudgeSensorChannel.AccelerationX, value, firstReportUsec);
+
+			var ball = new BallState();
+			// One report interval at the measured U-HID cadence. No release or
+			// neutral report has been delivered when we check the ball's velocity.
+			for (var i = 0; i < 23; i++) {
+				nudge.StepOneMillisecond();
+				BallVelocityPhysics.UpdateVelocities(ref ball, float3.zero, nudge.CabinetAcceleration);
+			}
+			Assert.That(nudge.ActiveSourceIndex, Is.EqualTo(0));
+			Assert.That(ball.Velocity.x, Is.LessThan(-.001f));
+			Assert.That(ball.Velocity.y, Is.Zero);
+		}
+
+		[Test]
 		public void DirectCabinetSensorAppliesMountTransform()
 		{
 			var nudge = new NudgeState(KeyboardNudgeMode.CabModel, 1f, 5f);

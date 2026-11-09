@@ -219,6 +219,8 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Cabinet accelerometers that only report changes now move the ball on their first nudge, even before a neutral report arrives.
+
 - Preserve custom playfield collider meshes without an enabled renderer when exporting tables, and load hidden collision meshes without UVs, so authored openings remain functional in the Player.
 
 - The flipper collider gizmo follows the bat's rotation in edit mode so its shape can be compared with the visible mesh.
