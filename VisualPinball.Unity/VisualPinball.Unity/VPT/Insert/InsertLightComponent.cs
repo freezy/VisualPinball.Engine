@@ -251,7 +251,15 @@ namespace VisualPinball.Unity
 		/// The table's insert brightness, a factor on the output: the author's
 		/// default, or what the player's user set it to. One without a table.
 		/// </summary>
-		public float InsertBrightness => _table != null ? math.max(0f, _table.InsertBrightness) : 1f;
+		public float InsertBrightness => BrightnessOverride.HasValue
+			? math.max(0f, BrightnessOverride.Value)
+			: _table != null ? math.max(0f, _table.InsertBrightness) : 1f;
+
+		/// <summary>
+		/// A brightness of its own for this insert, instead of the table's: set at runtime by a host that
+		/// dims or boosts a group of lamps the insert belongs to (the flashers, say). Not saved.
+		/// </summary>
+		[NonSerialized] public float? BrightnessOverride;
 
 		/// <summary>
 		/// How many bulbs the material has switched on: the first and those
