@@ -170,6 +170,7 @@ namespace VisualPinball.Unity
 		private float _oldValueAt;
 
 		private Color _color;
+		private float _brightness = 1f;
 		private bool _hasLights;
 		private readonly List<(Light, float)> _lights = new();
 		private readonly List<(Renderer, float)> _materials = new();
@@ -193,6 +194,26 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// A factor on the lamp's light sources and emissive surfaces, on top of its level: set at runtime
+		/// by a host that dims or boosts a group of lamps (general illumination, flashers). Not saved.
+		/// Inserts take the table's insert brightness instead, see <see cref="InsertLightComponent.InsertBrightness"/>.
+		/// </summary>
+		public float Brightness {
+			get => _brightness;
+			set {
+				value = math.max(0f, value);
+				if (_brightness == value) {
+					return;
+				}
+				_brightness = value;
+				if (Application.isPlaying && _hasLights) {
+					SetLightIntensity(_value);
+					SetMaterialIntensity(_value);
+				}
+			}
+		}
+
 		public Color Color {
 			get => _color;
 			set {
@@ -211,7 +232,7 @@ namespace VisualPinball.Unity
 						// stay dark, and subsequent fades must retain the latest colour.
 						_propBlock.SetVector(InsertLampColor, (Vector4)value.linear);
 					} else {
-						RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * intensity);
+						RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * (intensity * _brightness));
 					}
 					SetLampPropertyBlock(mr, _propBlock);
 				}
@@ -398,7 +419,7 @@ namespace VisualPinball.Unity
 		{
 			foreach (var (unityLight, intensity) in _lights) {
 				if (value > 0) {
-					unityLight.intensity = intensity * value;
+					unityLight.intensity = intensity * value * _brightness;
 					unityLight.enabled = true;
 
 				} else {
@@ -426,7 +447,7 @@ namespace VisualPinball.Unity
 					}
 					_propBlock.SetFloat(InsertLampLevel, value);
 				} else {
-					RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
+					RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity * _brightness);
 				}
 				SetLampPropertyBlock(mr, _propBlock);
 			}
