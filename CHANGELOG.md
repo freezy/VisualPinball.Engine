@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- The Player's Nudge settings list connected analog devices, with independent switches, live axis plots, U-HID-G axis mapping, and shared cabinet weight.
+
 - Plugin helpers resolve table-local media directories by controller namespace and game ID, with case-insensitive matching for VPX folder layouts.
 
 - Windows Open Pinball Device support for Pinscape Pico with named nudge axes, firmware scale presets and preassigned cabinet buttons. The updated NativeInput library is required for OPD discovery.

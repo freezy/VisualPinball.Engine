@@ -139,7 +139,7 @@ namespace VisualPinball.Unity
 		public float visualStrength = 1f;
 		public CabinetPlumbSettings plumb = new();
 		public List<CabinetNudgeSensorSettings> sensors = new();
-		public string preferredDeviceId;
+		public float cabinetMassKg;
 
 		/// <summary>
 		/// Clamps values and guarantees nested objects/lists are non-null.
@@ -155,15 +155,10 @@ namespace VisualPinball.Unity
 				CabinetPhysicsState.MaxKeyboardDampingRatio);
 			visualStrength = Mathf.Clamp(visualStrength, 0f, 2f);
 			plumb.Normalize();
-			if (sensors.Count > NudgeState.MaxSensors) {
-				sensors.RemoveRange(NudgeState.MaxSensors, sensors.Count - NudgeState.MaxSensors);
-			}
+			cabinetMassKg = float.IsNaN(cabinetMassKg) ? 0f : Mathf.Clamp(cabinetMassKg, 0f, 200f);
 			for (var i = 0; i < sensors.Count; i++) {
 				sensors[i] ??= new CabinetNudgeSensorSettings();
 				sensors[i].Normalize();
-			}
-			if (!string.IsNullOrEmpty(preferredDeviceId) && !sensors.Exists(sensor => sensor.SingleDeviceId() == preferredDeviceId)) {
-				preferredDeviceId = null;
 			}
 		}
 
@@ -189,7 +184,11 @@ namespace VisualPinball.Unity
 			Normalize();
 			var sensorConfigs = new List<NudgeSensorConfig>(sensors.Count);
 			foreach (var sensor in sensors) {
-				if (UsesSensor(sensor)) sensorConfigs.Add(sensor.ToEngineConfig());
+				if (sensor.disabled) continue;
+				var config = sensor.ToEngineConfig();
+				if (cabinetMassKg > 0f) config.CabinetMassKg = cabinetMassKg;
+				sensorConfigs.Add(config);
+				if (sensorConfigs.Count == NudgeState.MaxSensors) break;
 			}
 			return sensorConfigs;
 		}
@@ -203,13 +202,14 @@ namespace VisualPinball.Unity
 			Normalize();
 			var sensorConfigs = new List<SimulationThreadNudgeSensorConfig>(sensors.Count);
 			foreach (var sensor in sensors) {
-				if (UsesSensor(sensor)) sensorConfigs.Add(sensor.ToSimulationThreadConfig());
+				if (sensor.disabled) continue;
+				var config = sensor.ToSimulationThreadConfig();
+				if (cabinetMassKg > 0f) config.CabinetMassKg = cabinetMassKg;
+				sensorConfigs.Add(config);
+				if (sensorConfigs.Count == NudgeState.MaxSensors) break;
 			}
 			return sensorConfigs;
 		}
-
-		private bool UsesSensor(CabinetNudgeSensorSettings sensor) =>
-			string.IsNullOrEmpty(preferredDeviceId) || sensor.SingleDeviceId() == preferredDeviceId;
 
 		/// <summary>
 		/// Captures the nudge fields currently stored on a physics engine.
@@ -286,6 +286,9 @@ namespace VisualPinball.Unity
 		public const string TypeCabinetDirect = "cabinetDirect";
 
 		public string type = TypeGamepad;
+		public bool disabled;
+		public string deviceId;
+		public string deviceName;
 		public float strength = 1f;
 		public float cabinetMassKg = 113f;
 		public string x = string.Empty;
@@ -296,22 +299,6 @@ namespace VisualPinball.Unity
 		public string velY = string.Empty;
 		public int mountRotation;
 		public bool mountMirror;
-
-		/// <summary>Returns the device ID when all mapped channels belong to one device.</summary>
-		public string SingleDeviceId()
-		{
-			string deviceId = null;
-			bool SameDevice(string value)
-			{
-				if (!SensorMapping.TryParse(value, out var mapping) || !mapping.IsMapped) return true;
-				deviceId ??= mapping.DeviceId;
-				return mapping.DeviceId == deviceId;
-			}
-			var singleDevice = type == TypeGamepad
-				? SameDevice(x) && SameDevice(y)
-				: SameDevice(accX) && SameDevice(accY) && SameDevice(velX) && SameDevice(velY);
-			return singleDevice ? deviceId : null;
-		}
 
 		/// <summary>
 		/// Clamps values, normalizes type names, and guarantees mapping strings are
