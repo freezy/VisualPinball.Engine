@@ -421,6 +421,12 @@ namespace VisualPinball.Unity
 				alignedTimestampUsec = 0;
 			}
 
+			// Match VPX's initialization for sensors that only report changes.
+			// Start with zero bias when the first measurement already indicates motion.
+			if (!axis.IsInitialized && math.abs(sensor.Sensor.Value) >= restThreshold) {
+				axis.Reset((ulong)alignedTimestampUsec);
+			}
+
 			if (sensor.Sensor.Kind == SensorMappingKind.Velocity) {
 				axis.UpdateVelocity((ulong)alignedTimestampUsec, axisGain * sensor.Sensor.Value);
 			} else if (sensor.Sensor.Kind == SensorMappingKind.Acceleration) {
