@@ -129,6 +129,26 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void FiringTheAutoPlungerDoesNotExtendLaunchBall()
+		{
+			var staticState = Static(mech: true, auto: true);
+			var movement = AtPosition(RestPosition);
+			var velocity = Velocity();
+			var input = External(0f, -20f);
+			PlungerVelocityPhysics.UpdateVelocities(ref movement, ref velocity, in staticState, in input);
+
+			// The table answers Launch Ball by firing the plunger.
+			movement.FireTimer = 200;
+			movement.FireSpeed = -10f;
+			input = External(0f, 0f);
+			for (var i = 0; i < 101; i++) {
+				PlungerVelocityPhysics.UpdateVelocities(ref movement, ref velocity, in staticState, in input);
+			}
+			Assert.That(velocity.AutoFireTimer, Is.EqualTo(0));
+			Assert.That(movement.FireTimer, Is.GreaterThan(0));
+		}
+
+		[Test]
 		public void SlowAutoPlungerMotionDoesNotLaunch()
 		{
 			var staticState = Static(mech: true, auto: true);

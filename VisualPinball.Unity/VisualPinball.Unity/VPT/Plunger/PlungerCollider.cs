@@ -257,10 +257,6 @@ namespace VisualPinball.Unity
 			newTime = LineZCollider.HitTest(ref newCollEvent, in JointEnd1, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
 
-			if (isHit) {
-				movement.BallContactCount++;
-			}
-
 			// check only if the plunger is not in a controlled retract motion
 			// and check for a hit
 			if (isHit && !movement.RetractMotion) {
@@ -355,6 +351,7 @@ namespace VisualPinball.Unity
 				}
 			}
 			//g_pplayer->m_pactiveballBC = pball; // todo Ball control most recently collided with plunger
+			movement.BallContactCount++;
 
 			// correct displacements, mostly from low velocity blidness, an alternative to true acceleration processing
 			var hDist = -PhysicsConstants.DispGain * collEvent.HitDistance; // distance found in hit detection
