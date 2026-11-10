@@ -207,7 +207,7 @@ namespace VisualPinball.Unity
 					return;
 				}
 				_brightness = value;
-				if (Application.isPlaying && _hasLights) {
+				if (_hasLights) { // only once Awake has collected them
 					SetLightIntensity(_value);
 					SetMaterialIntensity(_value);
 				}
