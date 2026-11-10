@@ -232,7 +232,20 @@ namespace VisualPinball.Unity
 			// physics.)
 			var ballMass = ball.Mass > 0.05f ? ball.Mass : 0.05f;
 			var xferRatio = staticState.MomentumXfer / ballMass;
-			var deltaY = movement.Speed * xferRatio;
+
+			// An analog plunger sensor knows the speed of the physical plunger
+			// when it hits the ball better than the rod's own speed does, which
+			// only follows the sampled positions.  Use it for the impulse, unless
+			// a fire event (keyboard or script) has taken over the plunger.  The
+			// rod speed still drives the collision timing above.
+			var impulseSpeed = movement.Speed;
+			if (movement.FireTimer == 0 && staticState.IsMechPlunger && movement.HasSensor && movement.SensorHitVelocity != 0f) {
+				impulseSpeed = movement.SensorHitVelocity // t.u./s
+					* staticState.FrameLen // to VPU/s, one t.u. is the plunger travel
+					* (staticState.SpeedFire / 100f) // table plunger strength
+					/ Plunger.PlungerMass; // to impulse
+			}
+			var deltaY = impulseSpeed * xferRatio;
 
 			// check the moving bits
 			newTime = LineCollider.HitTest(ref newCollEvent, ref insideOfs, in LineSegEnd, in ballTmp, hitTime);
@@ -243,6 +256,10 @@ namespace VisualPinball.Unity
 
 			newTime = LineZCollider.HitTest(ref newCollEvent, in JointEnd1, in ballTmp, hitTime);
 			UpdateCollision(ref collEvent, ref newCollEvent, ref isHit, ref hitTime, in newTime, deltaY);
+
+			if (isHit) {
+				movement.BallContactCount++;
+			}
 
 			// check only if the plunger is not in a controlled retract motion
 			// and check for a hit

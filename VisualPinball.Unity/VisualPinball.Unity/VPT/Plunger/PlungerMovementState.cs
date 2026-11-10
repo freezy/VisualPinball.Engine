@@ -152,10 +152,20 @@ namespace VisualPinball.Unity
 		public bool StrokeEventsArmed;
 
 		/// <summary>
-		/// The analog position read from the gamepad or plunger.
-		///
-		/// Between 0 (rest position) and 1f (fully retracted).
+		/// Hit velocity reported by the analog plunger input for this step, in
+		/// t.u./s (negative towards the ball), or 0. Only set for mech plungers.
 		/// </summary>
-		public float AnalogPosition;
+		public float SensorHitVelocity;
+
+		/// <summary>
+		/// True while an analog plunger sensor (or an external override) drives
+		/// this mech plunger.
+		/// </summary>
+		public bool HasSensor;
+
+		/// <summary>
+		/// Incremented every time the plunger tip hits a ball. Telemetry only.
+		/// </summary>
+		public int BallContactCount;
 	}
 }

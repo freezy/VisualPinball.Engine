@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using VisualPinball.Engine.Common;
 using NLog;
 using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
@@ -28,6 +29,11 @@ namespace VisualPinball.Unity
 		/// Maps the switch component to the API class.
 		/// </summary>
 		private readonly Dictionary<ISwitchDeviceComponent, IApiSwitchDevice> _switchDevices = new();
+
+		/// <summary>
+		/// Combines the physical Launch Ball button with the auto plunger's synthetic press.
+		/// </summary>
+		private readonly InputActionHoldAggregator _holds = new();
 
 		/// <summary>
 		/// Maps the switch configuration ID to a switch status.
@@ -144,10 +150,24 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
 					var actionName = InputManager.GetCanonicalActionName(action.name);
-					if (!DispatchInputAction(actionName, change == InputActionChange.ActionStarted)) {
+					var isPressed = change == InputActionChange.ActionStarted;
+					if (actionName == InputConstants.ActionPlunger && !_holds.SetPhysical(actionName, isPressed, out isPressed)) {
+						break;
+					}
+					if (!DispatchInputAction(actionName, isPressed)) {
 						//Logger.Info($"Unmapped input command \"{action.name}\".");
 					}
 					break;
+			}
+		}
+
+		/// <summary>
+		/// Holds or releases a synthetic press of an input action, combined with the physical one.
+		/// </summary>
+		internal void SetSyntheticHold(string actionName, bool held)
+		{
+			if (_holds.SetSynthetic(actionName, held, out var isPressed)) {
+				DispatchInputAction(actionName, isPressed);
 			}
 		}
 

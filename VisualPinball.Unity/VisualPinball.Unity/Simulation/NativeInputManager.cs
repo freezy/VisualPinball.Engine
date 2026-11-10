@@ -301,8 +301,17 @@ namespace VisualPinball.Unity.Simulation
 				if (!value) _instance?.SetNativeGameplayInput(false);
 				_appFocused = value;
 				if (value) _instance?.SetNativeGameplayInput(!_gamePaused);
+				GameplayInputGateChanged?.Invoke(_appFocused && !_gamePaused);
 			}
 		}
+
+		/// <summary>
+		/// Raised when gameplay input starts or stops reaching the game because of
+		/// <see cref="AppFocused"/> or <see cref="GamePaused"/>. The argument is
+		/// true when input flows again. Consumers that integrate input over time
+		/// use it to restart their clocks.
+		/// </summary>
+		public static event Action<bool> GameplayInputGateChanged;
 
 		/// <summary>
 		/// Whether the game is paused. The simulation sets it when it pauses and resumes; native input events
@@ -316,6 +325,7 @@ namespace VisualPinball.Unity.Simulation
 				if (value) _instance?.SetNativeGameplayInput(false);
 				_gamePaused = value;
 				if (!value) _instance?.SetNativeGameplayInput(_appFocused);
+				GameplayInputGateChanged?.Invoke(_appFocused && !_gamePaused);
 			}
 		}
 

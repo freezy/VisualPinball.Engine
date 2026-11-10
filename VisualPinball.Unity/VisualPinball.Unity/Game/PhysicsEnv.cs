@@ -42,6 +42,7 @@ namespace VisualPinball.Unity
 		public Random Random;
 		public NudgeState Nudge;
 		public PlumbState Plumb;
+		public PlungerInputState Plunger;
 
 		/// <summary>
 		/// Creates the physics environment for a table, including gravity, cabinet
@@ -60,6 +61,7 @@ namespace VisualPinball.Unity
 			Gravity = playfield.PlayfieldGravity(gravityStrength);
 			Nudge = new NudgeState(keyboardNudgeMode, keyboardNudgeStrength, nudgeTime, keyboardCabinetDamping);
 			Plumb = new PlumbState(simulatedPlumb, plumbDamping, plumbThresholdAngle);
+			Plunger = default;
 		}
 	}
 }

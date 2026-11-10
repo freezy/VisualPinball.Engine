@@ -118,6 +118,7 @@ namespace VisualPinball.Unity
 		// input related
 		[NonSerialized] private InputManager _inputManager;
 		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new();
+		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _canceledActions = new();
 		[NonSerialized] private readonly System.Random _nudgeRandom = new System.Random();
 
 		// Default-keyboard-nudge suppression (Unity input path only): the nudge counter is
@@ -135,6 +136,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly CoilPlayer _coilPlayer = new();
 		[NonSerialized] private readonly SwitchPlayer _switchPlayer = new();
 		[NonSerialized] private readonly WirePlayer _wirePlayer = new();
+		[NonSerialized] private AutoPlungerLaunchTracker _autoPlungerLaunchTracker;
+		[NonSerialized] private bool _switchLaunchBallHeld;
 		[NonSerialized] private readonly DisplayPlayer _displayPlayer = new();
 
 		private const float SlowMotionMax = 0.1f;
@@ -413,12 +416,67 @@ namespace VisualPinball.Unity
 				_pendingDefaultNudges.Clear();
 			}
 
+			UpdateAutoPlungerLaunch();
+
 			VpeProfiler.Begin(ProfileSection.PlayerOnUpdate);
 			try {
 				OnUpdate?.Invoke(this, EventArgs.Empty);
 			} finally {
 				VpeProfiler.End(ProfileSection.PlayerOnUpdate);
 			}
+		}
+
+		/// <summary>
+		/// Turns an auto plunger's synthetic Launch Ball press (pull and release of
+		/// the analog plunger) into input action edges on the main thread.
+		/// </summary>
+		/// <remarks>
+		/// Wires of the managed Input System path always live here. Switches only
+		/// do when native input isn't polling; otherwise the simulation thread owns
+		/// the press, next to the physical button it receives.
+		/// </remarks>
+		private void UpdateAutoPlungerLaunch()
+		{
+			var physicsEngine = PhysicsEngine;
+			if (physicsEngine == null) {
+				return;
+			}
+			const string actionName = InputConstants.ActionPlunger;
+			physicsEngine.GetAutoPlungerLaunchState(out var count, out var held);
+			var change = _autoPlungerLaunchTracker.Update(count, held);
+			var ownsSwitches = NativeInputManager.TryGetExistingInstance()?.IsPolling != true;
+			switch (change) {
+				case AutoPlungerLaunchTracker.Change.Press:
+					_wirePlayer.SetSyntheticHold(actionName, true);
+					break;
+				case AutoPlungerLaunchTracker.Change.Release:
+					_wirePlayer.SetSyntheticHold(actionName, false);
+					break;
+				case AutoPlungerLaunchTracker.Change.Pulse:
+					_wirePlayer.SetSyntheticHold(actionName, true);
+					_wirePlayer.SetSyntheticHold(actionName, false);
+					if (ownsSwitches && !_switchLaunchBallHeld) {
+						SetSwitchLaunchBall(true);
+						SetSwitchLaunchBall(false);
+					}
+					break;
+			}
+
+			// Reconcile instead of forwarding edges: when the owner changes in the
+			// middle of a press, the old owner releases its own hold and the new one
+			// picks up the current state.
+			var switchHeld = ownsSwitches && _autoPlungerLaunchTracker.IsHeld;
+			if (switchHeld != _switchLaunchBallHeld) {
+				SetSwitchLaunchBall(switchHeld);
+			}
+		}
+
+		private void SetSwitchLaunchBall(bool held)
+		{
+			const string actionName = InputConstants.ActionPlunger;
+			_switchLaunchBallHeld = held;
+			_switchPlayer.SetSyntheticHold(actionName, held);
+			CabinetInputActionChanged?.Invoke(actionName, held);
 		}
 
 		private void OnDestroy()
@@ -442,6 +500,9 @@ namespace VisualPinball.Unity
 			foreach (var (action, callback) in _actions) {
 				action.performed -= callback;
 			}
+			foreach (var (action, callback) in _canceledActions) {
+				action.canceled -= callback;
+			}
 		}
 
 		#endregion
@@ -454,6 +515,8 @@ namespace VisualPinball.Unity
 			if (actionRef != null) {
 				actionRef.action.performed += plungerApi.OnAnalogPlunge;
 				_actions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
+				actionRef.action.canceled += plungerApi.OnAnalogPlunge;
+				_canceledActions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
 			}
 		}
 
