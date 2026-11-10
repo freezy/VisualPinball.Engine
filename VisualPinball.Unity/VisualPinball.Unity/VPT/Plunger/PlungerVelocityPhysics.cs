@@ -46,6 +46,13 @@ namespace VisualPinball.Unity
 			movement.HasSensor = isMech && input.HasSensor;
 			movement.SensorHitVelocity = movement.HasSensor ? input.GetHitVelocity(staticState.RestPosition) : 0f;
 
+			// The synthetic Launch Ball press counts down on its own, so the
+			// table firing the plunger in response doesn't make it longer.
+			var autoFireRunning = velocity.AutoFireTimer > 0;
+			if (autoFireRunning) {
+				--velocity.AutoFireTimer;
+			}
+
 			// check which forces are acting on us
 			if (movement.FireTimer > 0) {
 				// Fire mode.  In this mode, we're moving freely under the spring
@@ -61,13 +68,12 @@ namespace VisualPinball.Unity
 				movement.Speed = movement.FireSpeed;
 				--movement.FireTimer;
 
-			} else if (velocity.AutoFireTimer > 0) {
+			} else if (autoFireRunning) {
 				// The Auto Fire timer is running.  We start this timer when the
 				// player pulls back and releases the mechanical plunger while
 				// we're operating as an auto plunger, which holds a synthetic
 				// Launch Ball press.  The input side releases that press once
 				// the timer reaches zero.
-				--velocity.AutoFireTimer;
 
 			} else if (isMech && autoPlunger && input.RawVelocity * PlungerSensorState.KalmanUnitScale < AutoPlungerReleaseSpeed) {
 				// Release motion detected in Auto Plunger mode.
