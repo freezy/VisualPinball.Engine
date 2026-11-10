@@ -4,9 +4,7 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -56,66 +54,6 @@ namespace VisualPinball.Unity.Test
 				if (imported) { Object.DestroyImmediate(imported); }
 				File.Delete(path);
 			}
-		}
-
-		[TestCase(TiltBobComponent.SwitchItem, false, typeof(TiltBobComponent))]
-		[TestCase(ScoreMotorComponent.MotorRunningSwitchItem, false, typeof(ScoreMotorComponent))]
-		[TestCase(ScoreMotorComponent.MotorRunningSwitchItem, true, null)]
-		[TestCase("unknown_switch", false, null)]
-		public void LegacyMappingUsesTheOnlyDeviceWithTheRequestedSwitch(string item, bool addSecondMotor, Type expectedDevice)
-		{
-			var source = new GameObject("Table");
-			try {
-				source.AddComponent<ScoreMotorComponent>();
-				source.AddComponent<TiltBobComponent>();
-				if (addSecondMotor) {
-					source.AddComponent<ScoreMotorComponent>();
-				}
-				var mapping = RestoreLegacyMapping(source, item);
-				Assert.That(mapping.Device, Is.SameAs(expectedDevice == null ? null : source.GetComponent(expectedDevice)));
-			} finally {
-				Object.DestroyImmediate(source);
-			}
-		}
-
-		[Test]
-		public void LegacyMappingKeepsItsOnlyDeviceWhenTheItemIsUnavailable()
-		{
-			var source = new GameObject("Table");
-			try {
-				var motor = source.AddComponent<ScoreMotorComponent>();
-				var mapping = RestoreLegacyMapping(source, "unavailable_switch");
-
-				Assert.That(mapping.Device, Is.SameAs(motor));
-				Assert.That(mapping.DeviceItem, Is.EqualTo("unavailable_switch"));
-			} finally {
-				Object.DestroyImmediate(source);
-			}
-		}
-
-		[Test]
-		public void LegacyMappingCanResolveWhenAnotherDeviceCannotListItsSwitches()
-		{
-			var source = new GameObject("Table");
-			try {
-				source.AddComponent<TroughComponent>().Type = -1;
-				var tiltBob = source.AddComponent<TiltBobComponent>();
-				var mapping = RestoreLegacyMapping(source, TiltBobComponent.SwitchItem);
-
-				Assert.That(mapping.Device, Is.SameAs(tiltBob));
-			} finally {
-				Object.DestroyImmediate(source);
-			}
-		}
-
-		private static SwitchMapping RestoreLegacyMapping(GameObject source, string item)
-		{
-			var refs = new PackagedRefs(source.transform);
-			refs.SetNodeIdsForRead(new Dictionary<string, Transform> { ["table-node"] = source.transform });
-			var json = $"{{\"Id\":\"s_test\",\"DeviceItem\":\"{item}\",\"_deviceId\":\"table-node\"}}";
-			var mapping = PackageApi.Packer.Unpack<SwitchMapping>(Encoding.UTF8.GetBytes(json));
-			mapping.RestoreReference(refs);
-			return mapping;
 		}
 	}
 }

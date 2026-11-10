@@ -221,7 +221,7 @@ Built with Unity 6.5
 
 ### Fixed
 
-- Packaged switch mappings retain the selected device when several devices share one object. Older packages can recover a mapping on a shared object when only one device provides the requested switch.
+- Packaged switch mappings retain the selected device when several devices share one object.
 
 - Cabinet accelerometers that only report changes now move the ball on their first nudge, even before a neutral report arrives.
 

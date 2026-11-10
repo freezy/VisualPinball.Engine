@@ -87,49 +87,17 @@ namespace VisualPinball.Unity
 		{
 			_device = null;
 			var node = refs.GetNode(_deviceId);
-			if (!node) {
+			if (!node || string.IsNullOrEmpty(_deviceType)) {
 				return;
 			}
 
-			if (!string.IsNullOrEmpty(_deviceType)) {
-				if (_deviceIndex >= 0 && refs.TryGetType(_deviceType, out var type)
-					&& typeof(ISwitchDeviceComponent).IsAssignableFrom(type)) {
-					_device = ComponentsOfType(node, type).ElementAtOrDefault(_deviceIndex) as MonoBehaviour;
-				}
-				if (!_device) {
-					Logger.Warn("Cannot restore switch mapping {SwitchId} on {Node}: missing {DeviceType} component at index {DeviceIndex}.",
-						Id, node.name, _deviceType, _deviceIndex);
-				}
-				return;
+			if (_deviceIndex >= 0 && refs.TryGetType(_deviceType, out var type)
+				&& typeof(ISwitchDeviceComponent).IsAssignableFrom(type)) {
+				_device = ComponentsOfType(node, type).ElementAtOrDefault(_deviceIndex) as MonoBehaviour;
 			}
-
-			// Older packages only name the node. Preserve a sole device even if its item needs repair.
-			var devices = node.GetComponents<ISwitchDeviceComponent>();
-			if (devices.Length == 1) {
-				_device = devices[0] as MonoBehaviour;
-				return;
-			}
-
-			var matches = devices.Where(OffersSwitch).Take(2).ToArray();
-			if (matches.Length == 1) {
-				_device = matches[0] as MonoBehaviour;
-			} else {
-				Logger.Warn("Cannot restore switch mapping {SwitchId} to {DeviceItem} on {Node}: {Reason}. Reassign the device and re-export the table.",
-					Id, DeviceItem, node.name, matches.Length == 0 ? "no matching switch device" : "multiple matching switch devices");
-			}
-		}
-
-		private bool OffersSwitch(ISwitchDeviceComponent device)
-		{
-			if (device is not MonoBehaviour component || !component) {
-				return false;
-			}
-			try {
-				return string.IsNullOrEmpty(DeviceItem) || device.AvailableSwitches.Any(item => item.Id == DeviceItem);
-			} catch (Exception exception) {
-				Logger.Warn(exception, "Cannot read available switches from {DeviceType} while restoring mapping {SwitchId}.",
-					component.GetType().Name, Id);
-				return false;
+			if (!_device) {
+				Logger.Warn("Cannot restore switch mapping {SwitchId} on {Node}: missing {DeviceType} component at index {DeviceIndex}.",
+					Id, node.name, _deviceType, _deviceIndex);
 			}
 		}
 
