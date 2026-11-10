@@ -16,6 +16,7 @@
 
 #if VPE_PROFILE
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -60,6 +61,12 @@ namespace VisualPinball.Unity.Profiling
 		public int GcCount;
 		/// <summary>"GC Used Memory" at the end of the frame, or -1.</summary>
 		public long GcUsedBytes;
+		/// <summary>Managed bytes allocated on the main thread between the frame stamps.</summary>
+		public long MainThreadAllocatedBytes;
+		/// <summary>Unity's main thread GC marker times in nanoseconds, or 0 when no sample was recorded.</summary>
+		public long GcCollectNs, GcIncrementalNs;
+		/// <summary>Stopwatch timestamps bracketing Unity's presentation update, or 0 if absent.</summary>
+		public long PresentUpdateStart, PresentUpdateEnd;
 
 		public TimingState Timing;
 		public float CpuFrameMs, CpuMainMs, CpuRenderMs, GpuMs, PresentWaitMs;
@@ -144,6 +151,8 @@ namespace VisualPinball.Unity.Profiling
 		private static readonly int[] PendingCounters = new int[FrameSample.MaxCounters];
 		private static readonly bool[] FirstUseSeen = new bool[32];
 		private static ProfilerRecorder _gcUsed;
+		private static ProfilerRecorder _gcCollect, _gcIncremental;
+		private static long _mainThreadAllocatedAtStart;
 		private static double _timerToStopwatch = 1;
 		private static bool _timerIsStopwatch = true;
 		private static ulong _timerFrequency;
@@ -219,7 +228,14 @@ namespace VisualPinball.Unity.Profiling
 			if (!_gcUsed.Valid) {
 				_gcUsed = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Used Memory");
 			}
-
+			const ProfilerRecorderOptions markerOptions = ProfilerRecorderOptions.Default
+				| ProfilerRecorderOptions.CollectOnlyOnCurrentThread | ProfilerRecorderOptions.StartImmediately;
+			if (!_gcCollect.Valid) {
+				_gcCollect = new ProfilerRecorder("GC.Collect", 1, markerOptions);
+			}
+			if (!_gcIncremental.Valid) {
+				_gcIncremental = new ProfilerRecorder("GarbageCollector.CollectIncremental", 1, markerOptions);
+			}
 			if (!_installed) {
 				_installed = true;
 				Application.focusChanged += focused => Mark(ProfileEvent.Focus, focused ? 1 : 0);
@@ -257,6 +273,12 @@ namespace VisualPinball.Unity.Profiling
 			if (_gcUsed.Valid) {
 				_gcUsed.Dispose();
 			}
+			if (_gcCollect.Valid) {
+				_gcCollect.Dispose();
+			}
+			if (_gcIncremental.Valid) {
+				_gcIncremental.Dispose();
+			}
 			TraceCapture.Free();
 			SectionRecorder.Free();
 			if (_frames != null) {
@@ -274,12 +296,18 @@ namespace VisualPinball.Unity.Profiling
 		{
 			var loop = PlayerLoop.GetCurrentPlayerLoop();
 			var count = System.Math.Min(loop.subSystemList.Length, FrameSample.Phases - 1);
+			PresentWaitPhase = -1;
 			for (var i = 0; i < count; i++) {
 				var phase = i;
-				var systems = loop.subSystemList[i].subSystemList?.ToList() ?? new System.Collections.Generic.List<PlayerLoopSystem>();
+				var systems = loop.subSystemList[i].subSystemList?.ToList() ?? new List<PlayerLoopSystem>();
+				var presentSystem = systems.FindIndex(s => s.type?.Name.StartsWith("WaitForLastPresentation", StringComparison.Ordinal) == true);
+				if (presentSystem >= 0) {
+					PresentWaitPhase = i;
+				}
 				if (systems.Any(s => s.type == typeof(FrameRecorder))) {
 					continue;
 				}
+				BracketSystem(systems, presentSystem, StampPresentStart, StampPresentEnd);
 				systems.Insert(0, new PlayerLoopSystem {
 					type = typeof(FrameRecorder),
 					updateDelegate = phase == 0 ? (PlayerLoopSystem.UpdateFunction)OnFrameStart : () => StampPhase(phase),
@@ -289,14 +317,18 @@ namespace VisualPinball.Unity.Profiling
 			PlayerLoop.SetPlayerLoop(loop);
 			PhaseNames = loop.subSystemList.Take(count).Select(s => s.type?.Name ?? "?").Concat(new[] { "End" }).ToArray();
 			_updatePhase = Array.IndexOf(PhaseNames, "Update");
-			// the phase that holds Unity's WaitForLastPresentation system
-			PresentWaitPhase = -1;
-			for (var i = 0; i < count; i++) {
-				if (loop.subSystemList[i].subSystemList?.Any(s => s.type != null && s.type.Name.StartsWith("WaitForLastPresentation", StringComparison.Ordinal)) == true) {
-					PresentWaitPhase = i;
-				}
+		}
+
+		private static void BracketSystem(List<PlayerLoopSystem> systems, int index, PlayerLoopSystem.UpdateFunction before, PlayerLoopSystem.UpdateFunction after)
+		{
+			if (index >= 0) {
+				systems.Insert(index + 1, new PlayerLoopSystem { type = typeof(FrameRecorder), updateDelegate = after });
+				systems.Insert(index, new PlayerLoopSystem { type = typeof(FrameRecorder), updateDelegate = before });
 			}
 		}
+
+		private static void StampPresentStart() { if (_open) _current.PresentUpdateStart = Stopwatch.GetTimestamp(); }
+		private static void StampPresentEnd() { if (_open) _current.PresentUpdateEnd = Stopwatch.GetTimestamp(); }
 
 		/// <summary>The top-level PlayerLoop systems, in the order of <see cref="FrameSample.Phase"/>.</summary>
 		public static string[] PhaseNames { get; private set; } = Array.Empty<string>();
@@ -309,6 +341,8 @@ namespace VisualPinball.Unity.Profiling
 			_current = default;
 			_current.Frame = Time.frameCount;
 			_current.Phase[0] = Stopwatch.GetTimestamp();
+			// Use this frame's boundaries: Unity's allocation counter can arrive a frame late.
+			_mainThreadAllocatedAtStart = GC.GetAllocatedBytesForCurrentThread();
 			_current.Events = _pendingEvents;
 			_pendingEvents = 0;
 			// a trace written during the frame may stall it even if it's done by the frame's end
@@ -412,6 +446,7 @@ namespace VisualPinball.Unity.Profiling
 			_open = false;
 			var end = Stopwatch.GetTimestamp();
 			ref var f = ref _current;
+			f.MainThreadAllocatedBytes = GC.GetAllocatedBytesForCurrentThread() - _mainThreadAllocatedAtStart;
 			f.Phase[FrameSample.Phases - 1] = end;
 			// a phase whose stamp didn't run this frame starts where the previous one did
 			for (var i = 1; i < FrameSample.Phases - 1; i++) {
@@ -424,6 +459,9 @@ namespace VisualPinball.Unity.Profiling
 			f.Paused = (byte)(Time.timeScale == 0f ? 1 : 0);
 			f.GcCount = GC.CollectionCount(0);
 			f.GcUsedBytes = _gcUsed.Valid ? _gcUsed.LastValue : -1;
+			// LastValue may belong to a different PlayerLoop frame.
+			f.GcCollectNs = _gcCollect.Valid ? _gcCollect.CurrentValue : 0;
+			f.GcIncrementalNs = _gcIncremental.Valid ? _gcIncremental.CurrentValue : 0;
 			// also while a trace is written: its allocations may trigger a collection
 			f.SelfInduced = (byte)(_selfInduced || _selfInducedFrames > 0 || _writingAtStart || TraceCapture.IsWriting ? 1 : 0);
 			if (_selfInducedFrames > 0) {

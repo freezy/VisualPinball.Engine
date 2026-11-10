@@ -395,8 +395,10 @@ namespace VisualPinball.Unity.Profiling
 		private static void Serialize(JsonWriter w, double copyMs)
 		{
 			var origin = _fromTicks;
+			using var process = Process.GetCurrentProcess();
 			w.Raw("{\"displayTimeUnit\":\"ms\",\"metadata\":{");
 			w.Raw("\"producer\":\"VPE profile build\",\"version\":").Str(_reqVersion);
+			w.Raw(",\"os_pid\":").Int(process.Id);
 			w.Raw(",\"session\":").Str(_reqSession).Raw(",\"table\":").Str(_reqTable).Raw(",\"fingerprint\":").Str(_reqFingerprint);
 			w.Raw(",\"gpu\":").Str(_reqGpu).Raw(",\"cpu\":").Str(_reqCpu).Raw(",\"os\":").Str(_reqOs).Raw(",\"api\":").Str(_reqApi).Raw(",\"display\":").Str(_reqSettings);
 			w.Raw(",\"incident\":{\"type\":").Str(Incident.Name(_incident.Type)).Raw(",\"cause\":").Str(Incident.Name(_incident.Cause));
@@ -436,7 +438,15 @@ namespace VisualPinball.Unity.Profiling
 				var interval = i + 1 < _frameCount ? Ticks.ToMs(_frames[i + 1].StartTicks - f.StartTicks) : f.UnscaledDeltaMs;
 				w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":1,\"name\":\"Frame\",\"ts\":").Ts(f.StartTicks, origin).Raw(",\"dur\":").Dur(f.EndTicks - f.StartTicks)
 					.Raw(",\"args\":{\"frame\":").Int(f.Frame).Raw(",\"interval_ms\":").Float((float)interval).Raw(",\"balls\":").Int(f.Balls)
-					.Raw(",\"snapshot_age_us\":").Int(f.SnapshotAgeUsec).Raw(",\"gc_used_mb\":").Float(f.GcUsedBytes / 1048576f).Raw("}}");
+					.Raw(",\"snapshot_age_us\":").Int(f.SnapshotAgeUsec).Raw(",\"gc_used_mb\":").Float(f.GcUsedBytes / 1048576f);
+				w.Raw(",\"main_thread_allocated_bytes\":").Int(f.MainThreadAllocatedBytes);
+				if (f.GcCollectNs > 0) {
+					w.Raw(",\"main_thread_gc_collect_ns\":").Int(f.GcCollectNs);
+				}
+				if (f.GcIncrementalNs > 0) {
+					w.Raw(",\"main_thread_gc_incremental_ns\":").Int(f.GcIncrementalNs);
+				}
+				w.Raw(",\"paused\":").Int(f.Paused).Raw("}}");
 				for (var p = 0; p < FrameSample.Phases - 1; p++) {
 					var duration = f.Phase[p + 1] - f.Phase[p];
 					if (duration <= 0) {
@@ -444,10 +454,11 @@ namespace VisualPinball.Unity.Profiling
 					}
 					w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":1,\"name\":").Str(p < _reqPhaseNames.Length ? _reqPhaseNames[p] : "Phase").Raw(",\"ts\":").Ts(f.Phase[p], origin).Raw(",\"dur\":").Dur(duration).Raw("}");
 				}
+				LoopSystem(w, "Unity presentation update", f.PresentUpdateStart, f.PresentUpdateEnd, origin);
 				if (f.Timing == TimingState.Matched) {
 					w.Raw(",{\"ph\":\"C\",\"pid\":1,\"name\":\"Unity frame timing (ms)\",\"ts\":").Ts(f.StartTicks, origin)
 						.Raw(",\"args\":{\"cpu_main\":").Float(f.CpuMainMs).Raw(",\"cpu_render\":").Float(f.CpuRenderMs).Raw(",\"gpu\":").Float(f.GpuMs)
-						.Raw(",\"present_wait\":").Float(f.PresentWaitMs).Raw("}}");
+						.Raw(",\"present_wait\":").Float(f.PresentWaitMs).Raw(",\"sync_interval\":").Int(f.SyncInterval).Raw("}}");
 					if (f.GpuMs > 0 && f.FirstSubmitTicks > 0) {
 						w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":3,\"name\":\"GPU\",\"ts\":").Ts(f.FirstSubmitTicks, origin).Raw(",\"dur\":").Dur(Ticks.FromSeconds(f.GpuMs / 1000.0)).Raw("}");
 					}
@@ -518,6 +529,14 @@ namespace VisualPinball.Unity.Profiling
 			}
 			w.Raw(",{\"ph\":\"i\",\"s\":\"g\",\"pid\":1,\"tid\":1,\"name\":").Raw("\"Incident: ").Raw(Incident.Name(_incident.Type)).Raw("\"").Raw(",\"ts\":").Ts(_incident.StartTicks, origin).Raw("}");
 			w.Raw("]}");
+		}
+
+		private static void LoopSystem(JsonWriter w, string name, long start, long end, long origin)
+		{
+			if (start > 0 && end > start) {
+				w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":1,\"name\":").Str(name)
+					.Raw(",\"ts\":").Ts(start, origin).Raw(",\"dur\":").Dur(end - start).Raw("}");
+			}
 		}
 
 		private static void Thread(JsonWriter w, int tid, string name)
