@@ -17,14 +17,20 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
 	public class SwitchMapping
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public string Id = string.Empty;
 
 		public bool IsNormallyClosed;
@@ -48,6 +54,12 @@ namespace VisualPinball.Unity
 		[JsonProperty]
 		private string _deviceId { get; set; }
 
+		[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+		private string _deviceType { get; set; }
+
+		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+		private int _deviceIndex { get; set; }
+
 		public string DeviceItem = string.Empty;
 
 		public int PulseDelay = 250;
@@ -55,12 +67,73 @@ namespace VisualPinball.Unity
 		public void SaveReference(PackagedRefs refs)
 		{
 			_deviceId = refs.GetNodeId(_device ? _device.transform : null);
+			_deviceType = null;
+			_deviceIndex = 0;
+			if (_deviceId == null) {
+				return;
+			}
+
+			var type = _device.GetType();
+			_deviceType = refs.GetName(type);
+			if (_deviceType == null) {
+				_deviceId = null;
+				return;
+			}
+			// The package stores components in scene order within each concrete type.
+			_deviceIndex = ComponentsOfType(_device, type).TakeWhile(component => component != _device).Count();
 		}
 
 		public void RestoreReference(PackagedRefs refs)
 		{
+			_device = null;
 			var node = refs.GetNode(_deviceId);
-			_device = node ? node.GetComponent<ISwitchDeviceComponent>() as MonoBehaviour : null;
+			if (!node) {
+				return;
+			}
+
+			if (!string.IsNullOrEmpty(_deviceType)) {
+				if (_deviceIndex >= 0 && refs.TryGetType(_deviceType, out var type)
+					&& typeof(ISwitchDeviceComponent).IsAssignableFrom(type)) {
+					_device = ComponentsOfType(node, type).ElementAtOrDefault(_deviceIndex) as MonoBehaviour;
+				}
+				if (!_device) {
+					Logger.Warn("Cannot restore switch mapping {SwitchId} on {Node}: missing {DeviceType} component at index {DeviceIndex}.",
+						Id, node.name, _deviceType, _deviceIndex);
+				}
+				return;
+			}
+
+			// Older packages only name the node. Preserve a sole device even if its item needs repair.
+			var devices = node.GetComponents<ISwitchDeviceComponent>();
+			if (devices.Length == 1) {
+				_device = devices[0] as MonoBehaviour;
+				return;
+			}
+
+			var matches = devices.Where(OffersSwitch).Take(2).ToArray();
+			if (matches.Length == 1) {
+				_device = matches[0] as MonoBehaviour;
+			} else {
+				Logger.Warn("Cannot restore switch mapping {SwitchId} to {DeviceItem} on {Node}: {Reason}. Reassign the device and re-export the table.",
+					Id, DeviceItem, node.name, matches.Length == 0 ? "no matching switch device" : "multiple matching switch devices");
+			}
 		}
+
+		private bool OffersSwitch(ISwitchDeviceComponent device)
+		{
+			if (device is not MonoBehaviour component || !component) {
+				return false;
+			}
+			try {
+				return string.IsNullOrEmpty(DeviceItem) || device.AvailableSwitches.Any(item => item.Id == DeviceItem);
+			} catch (Exception exception) {
+				Logger.Warn(exception, "Cannot read available switches from {DeviceType} while restoring mapping {SwitchId}.",
+					component.GetType().Name, Id);
+				return false;
+			}
+		}
+
+		private static IEnumerable<Component> ComponentsOfType(Component node, Type type)
+			=> node.GetComponents(type).Where(component => component.GetType() == type);
 	}
 }

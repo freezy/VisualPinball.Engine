@@ -59,6 +59,8 @@ The exact file and folder names are centralized in `PackageApi`, and every JSON 
 | `table/meta/lights.json` | Optional per-light profile data that glTF/`KHR_lights_punctual` does not carry. |
 | `screenshots/` | Captured table screenshots (lights on/off, HDRI) plus a `table-bounds.json` crop sidecar. |
 
+Switch mappings identify a device by its node ID, package component type, and zero-based position among components of that type on the node. For older packages that stored only the node ID, the loader keeps the assignment if there is only one switch device on the node. On a shared node, it binds the mapping when exactly one device offers the switch ID. Otherwise, it warns and leaves the mapping unbound.
+
 ## Materials
 
 If glTF covered everything VPE needed, there would be no `materials.json` and no separate `table/textures/` layer. In practice, glTF gets us a long way, but not all the way. Some authored material features are either renderer-specific, packed in ways glTF does not understand, or too fragile to trust to the fallback export/import path.
