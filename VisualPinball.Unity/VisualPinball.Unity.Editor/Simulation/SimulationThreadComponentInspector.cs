@@ -71,8 +71,10 @@ namespace VisualPinball.Unity.Editor
 				if (changed) _calibration = null;
 				if (changed && Application.isPlaying) {
 					component.ApplyNudgeSensorSettings();
+					component.ApplyPlungerSensorSettings();
 				}
 				DrawNudgeCalibration(component);
+				DrawPlungerSetup(component);
 			}
 		}
 
@@ -167,6 +169,77 @@ namespace VisualPinball.Unity.Editor
 			if (!string.IsNullOrEmpty(_statusMessage)) {
 				EditorGUILayout.HelpBox(_statusMessage, _statusType);
 			}
+		}
+
+		/// <summary>
+		/// Draws Play Mode presets for analog plunger devices and the filtered plunger reading.
+		/// </summary>
+		private void DrawPlungerSetup(SimulationThreadComponent component)
+		{
+			if (!Application.isPlaying) {
+				return;
+			}
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Analog Plunger", EditorStyles.boldLabel);
+
+			var devices = component.ListNudgeInputDevices();
+			var any = false;
+			foreach (var device in devices) {
+				if (!device.IsConnected || !PlungerSensorSetup.TryFindPositionAxis(device, out _)) {
+					continue;
+				}
+				any = true;
+				var kind = PlungerSensorSetup.GetDeviceKind(device);
+				var hasVelocity = PlungerSensorSetup.TryFindVelocityAxis(device, out _);
+				EditorGUILayout.LabelField($"{DeviceName(device)} ({kind})", EditorStyles.miniBoldLabel);
+				EditorGUILayout.BeginHorizontal();
+				if (GUILayout.Button("Map Position")) ApplyPlungerPreset(component, device, false);
+				EditorGUI.BeginDisabledGroup(!hasVelocity);
+				if (GUILayout.Button("Map Position + Velocity")) ApplyPlungerPreset(component, device, true);
+				EditorGUI.EndDisabledGroup();
+				EditorGUILayout.EndHorizontal();
+			}
+			if (!any) {
+				EditorGUILayout.HelpBox("No device with a known plunger axis is connected. Map the axis manually in Plunger Sensors.", MessageType.Info);
+			}
+
+			var physicsEngine = component.GetComponent<PhysicsEngine>();
+			if (physicsEngine == null) {
+				return;
+			}
+			var telemetry = physicsEngine.GetPlungerTelemetry();
+			// Disabled sensors aren't sent to physics, and the Unity Input System
+			// fallback sits right after the configured ones.
+			var configured = new CabinetPlungerSettings { sensors = component.PlungerSensors }.ToEngineSensorConfigs().Count;
+			var source = telemetry.ActiveSourceIndex switch {
+				PlungerInputState.NoSource => "none",
+				PlungerInputState.ExternalSource => "external",
+				var i when i == configured => "Unity Input System",
+				var i => $"sensor {i + 1}"
+			};
+			EditorGUILayout.LabelField("Active Source", source);
+			EditorGUILayout.LabelField("Position", $"{telemetry.Position:+0.000;-0.000;0.000}");
+			EditorGUILayout.LabelField("Velocity", $"{telemetry.Velocity:+0.00;-0.00;0.00} /s");
+			var rect = GUILayoutUtility.GetRect(1f, 14f, GUILayout.ExpandWidth(true));
+			EditorGUI.ProgressBar(rect, Mathf.Clamp01(telemetry.Position), "Pull");
+		}
+
+		private void ApplyPlungerPreset(SimulationThreadComponent component, NativeInputDeviceInfo device, bool velocity)
+		{
+			if (!PlungerSensorSetup.TryCreatePreset(device, velocity, out var sensor)) {
+				SetStatus("The plunger axes are unavailable.", MessageType.Warning);
+				return;
+			}
+			Undo.RecordObject(component, "Map plunger sensor");
+			component.PlungerSensors ??= new List<CabinetPlungerSensorSettings>();
+			if (component.PlungerSensors.Count > 0) {
+				component.PlungerSensors[0] = sensor;
+			} else {
+				component.PlungerSensors.Add(sensor);
+			}
+			component.ApplyPlungerSensorSettings();
+			EditorUtility.SetDirty(component);
+			SetStatus("Mapped the first plunger sensor slot. Calibrate it in the player's Plunger tab if the range is off.", MessageType.Info);
 		}
 
 		private void UpdateCalibration(SimulationThreadComponent component, IReadOnlyList<NativeInputDeviceInfo> devices)
