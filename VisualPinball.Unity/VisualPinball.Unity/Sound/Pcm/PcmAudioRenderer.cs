@@ -16,6 +16,7 @@ namespace VisualPinball.Unity
 		private static readonly float[] GlobalLevels = { 1, 1, 1, 1, 1, 1, 1 };
 		private static AudioProcessingSettings GlobalProcessing = AudioProcessingSettings.Preset("reference");
 		private static float GlobalTransitionGain = 1;
+		private static float GlobalMasterGain = 1;
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 		private readonly Dictionary<AudioClip, int> _clips = new(), _monoClips = new();
 		private readonly HashSet<string> _diagnostics = new();
@@ -89,8 +90,22 @@ namespace VisualPinball.Unity
 			if (float.IsNaN(gain) || float.IsInfinity(gain) || gain < 0 || gain > 1) throw new ArgumentOutOfRangeException(nameof(gain));
 			if (milliseconds < 0 || milliseconds > 1000) throw new ArgumentOutOfRangeException(nameof(milliseconds));
 			GlobalTransitionGain = gain;
-			foreach (var renderer in Active)
-				if (!renderer._session.SetTransitionGain(gain, milliseconds)) renderer.Diagnose("Update the native audio plugin to enable smooth master transitions.");
+			foreach (var renderer in Active) renderer.ApplyOutputGain(milliseconds);
+		}
+		/// <summary>
+		/// The user's master volume, 0..1 (0 mutes). It scales the mixer's own device output; while the mixer plays
+		/// through Unity, the listener's volume is the master and this one stays out of the way.
+		/// </summary>
+		public static void SetGlobalMasterGain(float gain)
+		{
+			if (float.IsNaN(gain) || float.IsInfinity(gain) || gain < 0 || gain > 1) throw new ArgumentOutOfRangeException(nameof(gain));
+			GlobalMasterGain = gain;
+			foreach (var renderer in Active) renderer.ApplyOutputGain(30);
+		}
+		private void ApplyOutputGain(int milliseconds)
+		{
+			if (_session == null || _session.Context == IntPtr.Zero) return;
+			if (!_session.SetTransitionGain(GlobalTransitionGain * (DeviceOutput ? GlobalMasterGain : 1), milliseconds)) Diagnose("Update the native audio plugin to enable smooth master transitions.");
 		}
 		public static void SetGlobalProcessing(AudioProcessingSettings settings)
 		{
@@ -127,7 +142,6 @@ namespace VisualPinball.Unity
 			try {
 				if (AudioSettings.GetConfiguration().speakerMode != AudioSpeakerMode.Stereo) throw new InvalidOperationException("Central playback currently requires Stereo; discrete output is not yet enabled.");
 				_session = new NativePcmSession(); _rate = AudioSettings.outputSampleRate;
-				_session.SetTransitionGain(GlobalTransitionGain, 0);
 				_prepareProcessing = _session.ProcessingSupported && !_session.PrepareProcessing(_rate);
 				_pendingProcessing = GlobalProcessing.ToNative();
 				if (!_prepareProcessing && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
@@ -135,6 +149,7 @@ namespace VisualPinball.Unity
 				_playfield = GetComponentInChildren<PlayfieldComponent>(true);
 				for (int i = 0; i < _busLevels.Length; ++i) NativePcmSession.VpePcmSetBusGain(_session.Context, i, _busLevels[i]);
 				if (!StartDeviceOutput(AudioListener.pause || _applicationPaused)) CreateCarrier();
+				ApplyOutputGain(0);
 				AudioSettings.OnAudioConfigurationChanged += ConfigurationChanged;
 				UpdateStatus();
 			} catch (Exception error) {
@@ -210,6 +225,7 @@ namespace VisualPinball.Unity
 			_session.StopDeviceOutput();
 			DestroyCarrier();
 			if (!StartDeviceOutput(Paused)) CreateCarrier();
+			ApplyOutputGain(0);
 			UpdateStatus();
 		}
 
@@ -338,6 +354,7 @@ namespace VisualPinball.Unity
 			// The device stream follows device changes itself; it only reopens to render at Unity's new rate.
 			if (_session?.HasDeviceOutput == true && _rate != previousRate) {
 				if (!StartDeviceOutput(Paused)) CreateCarrier();
+				ApplyOutputGain(0);
 				UpdateStatus();
 			}
 			if (_session?.ProcessingSupported == true) _prepareProcessing = true;
