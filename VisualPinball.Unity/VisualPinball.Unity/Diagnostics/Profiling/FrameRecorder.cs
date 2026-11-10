@@ -61,8 +61,8 @@ namespace VisualPinball.Unity.Profiling
 		public int GcCount;
 		/// <summary>"GC Used Memory" at the end of the frame, or -1.</summary>
 		public long GcUsedBytes;
-		/// <summary>Managed bytes allocated on the main thread between the frame stamps.</summary>
-		public long MainThreadAllocatedBytes;
+		/// <summary>Managed bytes allocated during the frame, when Unity publishes the counter.</summary>
+		public long GcAllocatedBytes;
 		/// <summary>Unity's main thread GC marker times in nanoseconds, or 0 when no sample was recorded.</summary>
 		public long GcCollectNs, GcIncrementalNs;
 		/// <summary>Stopwatch timestamps bracketing Unity's presentation update, or 0 if absent.</summary>
@@ -151,8 +151,7 @@ namespace VisualPinball.Unity.Profiling
 		private static readonly int[] PendingCounters = new int[FrameSample.MaxCounters];
 		private static readonly bool[] FirstUseSeen = new bool[32];
 		private static ProfilerRecorder _gcUsed;
-		private static ProfilerRecorder _gcCollect, _gcIncremental;
-		private static long _mainThreadAllocatedAtStart;
+		private static ProfilerRecorder _gcAllocated, _gcCollect, _gcIncremental;
 		private static double _timerToStopwatch = 1;
 		private static bool _timerIsStopwatch = true;
 		private static ulong _timerFrequency;
@@ -228,6 +227,9 @@ namespace VisualPinball.Unity.Profiling
 			if (!_gcUsed.Valid) {
 				_gcUsed = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Used Memory");
 			}
+			if (!_gcAllocated.Valid) {
+				_gcAllocated = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Allocated In Frame");
+			}
 			const ProfilerRecorderOptions markerOptions = ProfilerRecorderOptions.Default
 				| ProfilerRecorderOptions.CollectOnlyOnCurrentThread | ProfilerRecorderOptions.StartImmediately;
 			if (!_gcCollect.Valid) {
@@ -272,6 +274,9 @@ namespace VisualPinball.Unity.Profiling
 			SystemLockProbe.Stop();
 			if (_gcUsed.Valid) {
 				_gcUsed.Dispose();
+			}
+			if (_gcAllocated.Valid) {
+				_gcAllocated.Dispose();
 			}
 			if (_gcCollect.Valid) {
 				_gcCollect.Dispose();
@@ -338,11 +343,19 @@ namespace VisualPinball.Unity.Profiling
 			if (!Application.isPlaying || _frames == null) {
 				return;
 			}
+			var frame = Time.frameCount;
+			// This counter is published one frame late. At the start of N, LastValue is from N-2.
+			// Require both recorded frames so a missing callback cannot shift the sample.
+			if (_gcAllocated.Valid && _count >= 2) {
+				ref var previous = ref _frames[(_count - 1) % Capacity];
+				ref var allocationFrame = ref _frames[(_count - 2) % Capacity];
+				if (previous.Frame == frame - 1 && allocationFrame.Frame == frame - 2) {
+					allocationFrame.GcAllocatedBytes = _gcAllocated.LastValue;
+				}
+			}
 			_current = default;
-			_current.Frame = Time.frameCount;
+			_current.Frame = frame;
 			_current.Phase[0] = Stopwatch.GetTimestamp();
-			// Use this frame's boundaries: Unity's allocation counter can arrive a frame late.
-			_mainThreadAllocatedAtStart = GC.GetAllocatedBytesForCurrentThread();
 			_current.Events = _pendingEvents;
 			_pendingEvents = 0;
 			// a trace written during the frame may stall it even if it's done by the frame's end
@@ -446,7 +459,6 @@ namespace VisualPinball.Unity.Profiling
 			_open = false;
 			var end = Stopwatch.GetTimestamp();
 			ref var f = ref _current;
-			f.MainThreadAllocatedBytes = GC.GetAllocatedBytesForCurrentThread() - _mainThreadAllocatedAtStart;
 			f.Phase[FrameSample.Phases - 1] = end;
 			// a phase whose stamp didn't run this frame starts where the previous one did
 			for (var i = 1; i < FrameSample.Phases - 1; i++) {

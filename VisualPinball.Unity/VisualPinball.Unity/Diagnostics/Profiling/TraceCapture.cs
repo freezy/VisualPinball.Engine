@@ -439,7 +439,9 @@ namespace VisualPinball.Unity.Profiling
 				w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":1,\"name\":\"Frame\",\"ts\":").Ts(f.StartTicks, origin).Raw(",\"dur\":").Dur(f.EndTicks - f.StartTicks)
 					.Raw(",\"args\":{\"frame\":").Int(f.Frame).Raw(",\"interval_ms\":").Float((float)interval).Raw(",\"balls\":").Int(f.Balls)
 					.Raw(",\"snapshot_age_us\":").Int(f.SnapshotAgeUsec).Raw(",\"gc_used_mb\":").Float(f.GcUsedBytes / 1048576f);
-				w.Raw(",\"main_thread_allocated_bytes\":").Int(f.MainThreadAllocatedBytes);
+				if (f.GcAllocatedBytes > 0) {
+					w.Raw(",\"gc_allocated_bytes\":").Int(f.GcAllocatedBytes);
+				}
 				if (f.GcCollectNs > 0) {
 					w.Raw(",\"main_thread_gc_collect_ns\":").Int(f.GcCollectNs);
 				}
