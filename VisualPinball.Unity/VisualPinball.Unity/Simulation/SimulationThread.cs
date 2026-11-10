@@ -95,8 +95,13 @@ namespace VisualPinball.Unity.Simulation
 		private long _latestMainThreadClockUsec;
 		private volatile bool _hasMainThreadClockSync;
 
-		// Input state tracking (allocation-free indexed arrays)
+		// Input state tracking (allocation-free indexed arrays). _actionStates is the state the
+		// game sees: the physical state combined with synthetic presses (the auto plunger's
+		// Launch Ball). _physicalActionStates is what the native poller reported.
 		private readonly bool[] _actionStates;
+		private readonly bool[] _physicalActionStates;
+		private AutoPlungerLaunchTracker _autoPlungerLaunchTracker;
+		private bool _autoPlungerLaunchHeld;
 		// Switches driven by each input action. An action can drive several switches (e.g. a lower
 		// and an upper flipper switch on the same button), each with its own polarity and state.
 		private readonly InputSwitchBinding[][] _actionBindings;
@@ -169,6 +174,7 @@ namespace VisualPinball.Unity.Simulation
 			// Initialize input state + mapping arrays
 			var actionCount = Enum.GetValues(typeof(NativeInputApi.InputAction)).Length;
 			_actionStates = new bool[actionCount];
+			_physicalActionStates = new bool[actionCount];
 			_actionBindings = new InputSwitchBinding[actionCount][];
 			_needsInitialSwitchSync = true;
 
@@ -750,66 +756,136 @@ namespace VisualPinball.Unity.Simulation
 				}
 
 				bool isPressed = evt.Value > 0.5f;
-				bool previousState = _actionStates[actionIndex];
-				_actionStates[actionIndex] = isPressed;
-
-				if (previousState == isPressed) {
+				if (_physicalActionStates[actionIndex] == isPressed) {
 					continue;
 				}
+				_physicalActionStates[actionIndex] = isPressed;
 
-				// Notify observers on Unity's thread without redispatching switches, wires or tilt.
-				// Initial GLE switch synchronization runs separately below; these are real
-				// input edges and remain audible even when there is no gamelogic engine.
-				if (_publishInputNotifications && actionIndex != (int)NativeInputApi.InputAction.Tilt) {
-					_inputNotifications.Enqueue((actionIndex, isPressed, Volatile.Read(ref _inputNotificationGeneration)));
+				var effective = isPressed || IsSyntheticallyHeld(actionIndex);
+				if (_actionStates[actionIndex] == effective) {
+					continue;
 				}
-
-				// Fire any hardware-rule wire coils bound to this action on the simulation thread, so a
-				// P-ROC flipper energizes within the same tick as the key press. This is the wire path the
-				// managed Input System would otherwise own, which native polling bypasses.
-				DispatchInputActionWires(actionIndex, isPressed);
-
-				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
-
-				if (actionIndex == (int)NativeInputApi.InputAction.Tilt) {
-					var dispatcher = _tiltDispatchers?.Physical;
-					if (dispatcher != null) {
-						QueueMainThreadTiltState(dispatcher, isPressed);
-					} else if (DispatchPhysicalTiltInputToMainThread && MainThreadTiltDispatcher is { } legacyDispatcher) {
-						QueueMainThreadTiltState(legacyDispatcher, isPressed);
-						_inputEventsProcessed++;
-						continue;
-					}
-				}
-
-				// Only forward to GLE once it's ready (or at least has started)
-				if (_gamelogicEngine != null && _gamelogicStarted) {
-					if (isPressed && IsNudgeAction(actionIndex)) {
-						// The default nudge is suppressed when the gamelogic reacted to the
-						// key by nudging itself. For main-thread-dispatched GLEs the switch
-						// is only queued here, so the decision must run after the main
-						// thread actually delivered it; hence the after-dispatch callback.
-						var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
-						var nudgeActionIndex = actionIndex;
-						SendMappedSwitch(actionIndex, isPressed, () => {
-							if (nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
-								ApplyDefaultKeyboardNudge(nudgeActionIndex);
-							}
-						});
-					} else {
-						SendMappedSwitch(actionIndex, isPressed);
-					}
-				} else if (isPressed && IsNudgeAction(actionIndex)) {
-					ApplyDefaultKeyboardNudge(actionIndex);
-				}
-				_inputEventsProcessed++;
+				_actionStates[actionIndex] = effective;
+				DispatchInputActionEdge(actionIndex, effective, evt.TimestampUsec);
 			}
+
+			ProcessAutoPlungerLaunch();
 
 			// If the GLE just started, ensure it sees the current input state.
 			if (_gamelogicEngine != null && _gamelogicStarted && _needsInitialSwitchSync) {
 				SyncAllMappedSwitches();
 				_needsInitialSwitchSync = false;
 			}
+		}
+
+		private bool IsSyntheticallyHeld(int actionIndex)
+		{
+			return actionIndex == (int)NativeInputApi.InputAction.Plunge && _autoPlungerLaunchHeld;
+		}
+
+		/// <summary>
+		/// Turns the auto plungers' synthetic Launch Ball state into edges of the
+		/// Plunge action, combined with the physical button.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Simulation thread only.<br/>
+		/// The thread that receives the physical button owns the synthetic press:
+		/// this one while native input polls, the main thread's
+		/// <see cref="Player"/> otherwise.
+		/// </remarks>
+		private void ProcessAutoPlungerLaunch()
+		{
+			if (NativeInputManager.TryGetExistingInstance()?.IsPolling != true) {
+				if (_autoPlungerLaunchTracker.Reset() == AutoPlungerLaunchTracker.Change.Release) {
+					SetSyntheticPlunge(false);
+				}
+				return;
+			}
+			_physicsEngine.GetAutoPlungerLaunchState(out var count, out var held);
+			switch (_autoPlungerLaunchTracker.Update(count, held)) {
+				case AutoPlungerLaunchTracker.Change.Press:
+					SetSyntheticPlunge(true);
+					break;
+				case AutoPlungerLaunchTracker.Change.Release:
+					SetSyntheticPlunge(false);
+					break;
+				case AutoPlungerLaunchTracker.Change.Pulse:
+					SetSyntheticPlunge(true);
+					SetSyntheticPlunge(false);
+					break;
+			}
+		}
+
+		private void SetSyntheticPlunge(bool held)
+		{
+			_autoPlungerLaunchHeld = held;
+			var actionIndex = (int)NativeInputApi.InputAction.Plunge;
+			if ((uint)actionIndex >= (uint)_actionStates.Length) {
+				return;
+			}
+			var effective = _physicalActionStates[actionIndex] || held;
+			if (_actionStates[actionIndex] == effective) {
+				return;
+			}
+			_actionStates[actionIndex] = effective;
+			DispatchInputActionEdge(actionIndex, effective, null);
+		}
+
+		/// <summary>
+		/// Dispatches one edge of the state the game sees to observers, wires,
+		/// tilt and the gamelogic engine.
+		/// </summary>
+		/// <param name="timestampUsec">Native timestamp of a physical edge, null for synthetic ones.</param>
+		private void DispatchInputActionEdge(int actionIndex, bool isPressed, long? timestampUsec)
+		{
+			// Notify observers on Unity's thread without redispatching switches, wires or tilt.
+			// Initial GLE switch synchronization runs separately below; these are real
+			// input edges and remain audible even when there is no gamelogic engine.
+			if (_publishInputNotifications && actionIndex != (int)NativeInputApi.InputAction.Tilt) {
+				_inputNotifications.Enqueue((actionIndex, isPressed, Volatile.Read(ref _inputNotificationGeneration)));
+			}
+
+			// Fire any hardware-rule wire coils bound to this action on the simulation thread, so a
+			// P-ROC flipper energizes within the same tick as the key press. This is the wire path the
+			// managed Input System would otherwise own, which native polling bypasses.
+			DispatchInputActionWires(actionIndex, isPressed);
+
+			if (timestampUsec.HasValue) {
+				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, timestampUsec.Value);
+			}
+
+			if (actionIndex == (int)NativeInputApi.InputAction.Tilt) {
+				var dispatcher = _tiltDispatchers?.Physical;
+				if (dispatcher != null) {
+					QueueMainThreadTiltState(dispatcher, isPressed);
+				} else if (DispatchPhysicalTiltInputToMainThread && MainThreadTiltDispatcher is { } legacyDispatcher) {
+					QueueMainThreadTiltState(legacyDispatcher, isPressed);
+					_inputEventsProcessed++;
+					return;
+				}
+			}
+
+			// Only forward to GLE once it's ready (or at least has started)
+			if (_gamelogicEngine != null && _gamelogicStarted) {
+				if (isPressed && IsNudgeAction(actionIndex)) {
+					// The default nudge is suppressed when the gamelogic reacted to the
+					// key by nudging itself. For main-thread-dispatched GLEs the switch
+					// is only queued here, so the decision must run after the main
+					// thread actually delivered it; hence the after-dispatch callback.
+					var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
+					var nudgeActionIndex = actionIndex;
+					SendMappedSwitch(actionIndex, isPressed, () => {
+						if (nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
+							ApplyDefaultKeyboardNudge(nudgeActionIndex);
+						}
+					});
+				} else {
+					SendMappedSwitch(actionIndex, isPressed);
+				}
+			} else if (isPressed && IsNudgeAction(actionIndex)) {
+				ApplyDefaultKeyboardNudge(actionIndex);
+			}
+			_inputEventsProcessed++;
 		}
 
 		private void ProcessGamelogicOutputs()

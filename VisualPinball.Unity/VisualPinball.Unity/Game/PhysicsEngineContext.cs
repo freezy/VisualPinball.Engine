@@ -235,6 +235,31 @@ namespace VisualPinball.Unity
 		public readonly object PendingNudgeSensorSamplesLock = new();
 
 		/// <summary>
+		/// Analog plunger sensor samples and resets waiting to be staged into
+		/// <see cref="PhysicsEnv.Plunger"/>. Drained inside <c>PhysicsLock</c>
+		/// before the physics loop.
+		/// </summary>
+		public readonly Queue<PlungerSensorCommand> PendingPlungerSensorSamples = new();
+		public readonly object PendingPlungerSensorSamplesLock = new();
+
+		/// <summary>
+		/// Sum of <see cref="PlungerVelocityState.AutoFireCount"/> over all
+		/// plungers, published after each physics batch.
+		/// </summary>
+		public int AutoPlungerLaunchCount;
+
+		/// <summary>
+		/// 1 while any auto plunger holds its synthetic Launch Ball press,
+		/// published after each physics batch.
+		/// </summary>
+		public int AutoPlungerLaunchHeld;
+
+		/// <summary>
+		/// Sum of plunger ball contacts, published after each physics batch.
+		/// </summary>
+		public int PlungerBallContactCount;
+
+		/// <summary>
 		/// Scheduled managed callbacks stored in a min-heap by due time.
 		/// Protected by locking on <see cref="ScheduledActionsLock"/>.
 		/// </summary>

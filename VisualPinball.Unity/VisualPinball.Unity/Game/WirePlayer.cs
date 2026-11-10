@@ -20,6 +20,7 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 
@@ -32,6 +33,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private readonly Dictionary<IWireableComponent, IApiWireDeviceDest> _wireDevices = new Dictionary<IWireableComponent, IApiWireDeviceDest>();
 		private readonly Dictionary<string, List<WireDestConfig>> _keyWireAssignments = new Dictionary<string, List<WireDestConfig>>();
+
+		/// <summary>
+		/// Combines the physical Launch Ball button with the auto plunger's synthetic press.
+		/// </summary>
+		private readonly InputActionHoldAggregator _holds = new();
 		private readonly Dictionary<string, List<WireDestConfig>> _gleDestAssignments = new Dictionary<string, List<WireDestConfig>>();
 		private readonly Dictionary<string, List<WireDestConfig>> _gleSrcAssignments = new Dictionary<string, List<WireDestConfig>>();
 		private readonly Dictionary<WireDestConfig, Dictionary<bool, Queue<float>>> _gleSignals = new Dictionary<WireDestConfig, Dictionary<bool, Queue<float>>>();
@@ -333,8 +339,22 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
 					var actionName = InputManager.GetCanonicalActionName(action.name);
-					DispatchInputAction(actionName, change == InputActionChange.ActionStarted);
+					var isEnabled = change == InputActionChange.ActionStarted;
+					if (actionName == InputConstants.ActionPlunger && !_holds.SetPhysical(actionName, isEnabled, out isEnabled)) {
+						break;
+					}
+					DispatchInputAction(actionName, isEnabled);
 					break;
+			}
+		}
+
+		/// <summary>
+		/// Holds or releases a synthetic press of an input action, combined with the physical one.
+		/// </summary>
+		internal void SetSyntheticHold(string actionName, bool held)
+		{
+			if (_holds.SetSynthetic(actionName, held, out var isEnabled)) {
+				DispatchInputAction(actionName, isEnabled);
 			}
 		}
 

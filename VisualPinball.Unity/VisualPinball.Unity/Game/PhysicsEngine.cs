@@ -186,6 +186,7 @@ namespace VisualPinball.Unity
 		// to _threading constructor).
 		[NonSerialized] private Player _player;
 		[NonSerialized] private NudgeSystem _nudgeSystem;
+		[NonSerialized] private PlungerSensorSystem _plungerSensorSystem;
 		[NonSerialized] private VisualNudgeComponent _visualNudge;
 		[NonSerialized] private ICollidableComponent[] _colliderComponents;
 		[NonSerialized] private IKinematicTransformComponent[] _kinematicTransformComponents;
@@ -198,10 +199,12 @@ namespace VisualPinball.Unity
 		[NonSerialized] private bool _scheduledActionsQueueWarningIssued;
 		[NonSerialized] private bool _pendingNudgeQueueWarningIssued;
 		[NonSerialized] private bool _pendingSensorSampleQueueWarningIssued;
+		[NonSerialized] private bool _pendingPlungerSampleQueueWarningIssued;
 
 		private const int InputActionsQueueWarningThreshold = 256;
 		private const int PendingNudgeQueueCap = 64;
 		private const int PendingSensorSampleQueueCap = 8192; // ~5s of a 4-channel sensor at full USB rate
+		private const int PendingPlungerSampleQueueCap = 4096; // ~2s of two channels at 1 kHz
 		private const int ScheduledActionsWarningThreshold = 256;
 
 		#endregion
@@ -217,6 +220,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool IsInitialized => _ctx != null && _ctx.IsInitialized;
 		public NudgeSystem NudgeSystem => _nudgeSystem;
+		public PlungerSensorSystem PlungerSensorSystem => _plungerSensorSystem;
 
 		#region Ref-Return Properties
 
@@ -564,6 +568,7 @@ namespace VisualPinball.Unity
 		internal void AttachNativeInputManager(NativeInputManager inputManager)
 		{
 			_nudgeSystem?.AttachNativeInputManager(inputManager);
+			_plungerSensorSystem?.AttachNativeInputManager(inputManager);
 		}
 
 		/// <summary>
@@ -572,7 +577,153 @@ namespace VisualPinball.Unity
 		internal void DetachNativeInputManager(NativeInputManager inputManager)
 		{
 			_nudgeSystem?.DetachNativeInputManager(inputManager);
+			_plungerSensorSystem?.DetachNativeInputManager(inputManager);
 		}
+
+		#region Plunger Input
+
+		/// <summary>
+		/// Whether a keyboard or button pull-back retracts the plunger by itself
+		/// after being held fully back for a second, so it can be pulled again.
+		/// Cabinet preference; plungers whose <see cref="PlungerApi.DoRetract"/>
+		/// was set explicitly keep their own value.
+		/// </summary>
+		public bool PlungerRetract { get; set; }
+
+		/// <summary>
+		/// Replaces the analog plunger sensor configuration.
+		/// </summary>
+		public void ConfigurePlungerSensors(IReadOnlyList<PlungerSensorConfig> sensors)
+		{
+			_plungerSensorSystem?.ConfigureSensors(sensors);
+		}
+
+		/// <summary>Replaces sensor state atomically and discards samples from the old mappings.</summary>
+		internal void ApplyPlungerSensorConfigurations(bool[] positionMapped, bool[] velocityMapped, bool[] enabled, bool[] available)
+		{
+			if (_ctx == null) {
+				return;
+			}
+			lock (_ctx.PhysicsLock) {
+				lock (_ctx.PendingPlungerSensorSamplesLock) {
+					_ctx.PendingPlungerSensorSamples.Clear();
+				}
+				var plunger = _ctx.PhysicsEnv.Plunger;
+				plunger.ConfigureSensors(positionMapped.Length);
+				for (var i = 0; i < positionMapped.Length; i++) {
+					plunger.ConfigureSensor(i, positionMapped[i], velocityMapped[i], enabled[i] && available[i]);
+				}
+				_ctx.PhysicsEnv.Plunger = plunger;
+			}
+		}
+
+		/// <summary>
+		/// Queues one mapped plunger reading for the physics owner.
+		/// </summary>
+		/// <param name="timestampUsec">Native input timestamp of the reading, in µs.</param>
+		internal void EnqueuePlungerSensorSample(int sensorIndex, PlungerSensorChannel channel, float value, long timestampUsec)
+		{
+			EnqueuePlungerSensorCommand(PlungerSensorCommand.Sample(sensorIndex, channel, value, timestampUsec));
+		}
+
+		/// <summary>
+		/// Queues a reset of all plunger sensor clocks, e.g. after input was
+		/// suspended. Samples queued before it are dropped with it.
+		/// </summary>
+		internal void EnqueuePlungerClockReset()
+		{
+			EnqueuePlungerSensorCommand(PlungerSensorCommand.ResetClocks());
+		}
+
+		/// <summary>
+		/// Queues the (un)availability of one sensor's device.
+		/// </summary>
+		internal void EnqueuePlungerSensorAvailability(int sensorIndex, bool available)
+		{
+			EnqueuePlungerSensorCommand(PlungerSensorCommand.SetAvailable(sensorIndex, available));
+		}
+
+		private void EnqueuePlungerSensorCommand(PlungerSensorCommand command)
+		{
+			if (_ctx == null) {
+				return;
+			}
+			lock (_ctx.PendingPlungerSensorSamplesLock) {
+				if (_ctx.PendingPlungerSensorSamples.Count >= PendingPlungerSampleQueueCap) {
+					// The drain stalled. Old motion is useless, but availability changes must survive.
+					var availability = new PlungerSensorCommand?[PlungerInputState.MaxSensors];
+					while (_ctx.PendingPlungerSensorSamples.Count > 0) {
+						var pending = _ctx.PendingPlungerSensorSamples.Dequeue();
+						if (pending.Type == PlungerSensorCommandType.SetAvailable && (uint)pending.SensorIndex < PlungerInputState.MaxSensors) {
+							availability[pending.SensorIndex] = pending;
+						}
+					}
+					_ctx.PendingPlungerSensorSamples.Enqueue(PlungerSensorCommand.ResetClocks());
+					foreach (var pending in availability) {
+						if (pending.HasValue) _ctx.PendingPlungerSensorSamples.Enqueue(pending.Value);
+					}
+					if (!_pendingPlungerSampleQueueWarningIssued) {
+						_pendingPlungerSampleQueueWarningIssued = true;
+						LogQueueWarning($"[PhysicsEngine] PendingPlungerSensorSamples backlog reached {PendingPlungerSampleQueueCap} items, discarding stale motion. Is the drain stalled?");
+					}
+				}
+				_ctx.PendingPlungerSensorSamples.Enqueue(command);
+			}
+		}
+
+		/// <summary>
+		/// Overrides the analog plunger with an externally provided state, e.g.
+		/// from a plugin or remote control.
+		/// </summary>
+		/// <param name="enableOverride">False hands the plunger back to the sensors.</param>
+		/// <param name="velocity">Velocity in p.u./s (negative towards the ball).</param>
+		/// <param name="position">Position in p.u. (0 at rest, 1 fully retracted).</param>
+		public void SetExternalPlunger(bool enableOverride, float velocity, float position)
+		{
+			if (_ctx == null) {
+				return;
+			}
+			lock (_ctx.PhysicsLock) {
+				var plunger = _ctx.PhysicsEnv.Plunger;
+				plunger.SetExternalPlunger(enableOverride, velocity, position);
+				_ctx.PhysicsEnv.Plunger = plunger;
+			}
+		}
+
+		/// <summary>
+		/// Snapshot of the plunger input for UI and diagnostics. Takes the physics lock.
+		/// </summary>
+		public PlungerInputTelemetry GetPlungerTelemetry()
+		{
+			if (_ctx == null) {
+				return default;
+			}
+			PlungerInputTelemetry telemetry;
+			lock (_ctx.PhysicsLock) {
+				telemetry = PlungerInputTelemetry.From(in _ctx.PhysicsEnv.Plunger);
+			}
+			telemetry.BallContactCount = Volatile.Read(ref _ctx.PlungerBallContactCount);
+			telemetry.AutoFireCount = Volatile.Read(ref _ctx.AutoPlungerLaunchCount);
+			return telemetry;
+		}
+
+		/// <summary>
+		/// State of the synthetic Launch Ball press of auto plungers.
+		/// </summary>
+		/// <param name="count">Number of presses so far. A changed count with <paramref name="held"/> false is a press that already ended.</param>
+		/// <param name="held">True while a press is being held.</param>
+		internal void GetAutoPlungerLaunchState(out int count, out bool held)
+		{
+			if (_ctx == null) {
+				count = 0;
+				held = false;
+				return;
+			}
+			count = Volatile.Read(ref _ctx.AutoPlungerLaunchCount);
+			held = Volatile.Read(ref _ctx.AutoPlungerLaunchHeld) != 0;
+		}
+
+		#endregion
 
 		/// <summary>
 		/// VP-script-compatible nudge status readout.
@@ -1192,6 +1343,8 @@ namespace VisualPinball.Unity
 				KeyboardNudgeMode, KeyboardNudgeStrength, table != null ? table.NudgeTime : 5f,
 				SimulatedPlumb, PlumbDamping, PlumbThresholdAngle, KeyboardCabinetDamping);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
+			// After the environment exists, it receives the sensor layout.
+			_plungerSensorSystem = new PlungerSensorSystem(this);
 			_ctx.ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 
@@ -1401,6 +1554,8 @@ namespace VisualPinball.Unity
 			_ctx.UseExternalTiming = false;
 			_nudgeSystem?.Dispose();
 			_nudgeSystem = null;
+			_plungerSensorSystem?.Dispose();
+			_plungerSensorSystem = null;
 
 			lock (_ctx.PhysicsLock) {
 				_ctx.Dispose();

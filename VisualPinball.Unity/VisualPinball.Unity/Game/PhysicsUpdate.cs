@@ -95,6 +95,9 @@ namespace VisualPinball.Unity
 				if (subSteps >= PhysicsConstants.MaxSubSteps) {
 					env.CurPhysicsFrameTime = initialTimeUsec;
 					env.NextPhysicsFrameTime = initialTimeUsec + PhysicsConstants.PhysicsStepTime;
+					// The skipped time never reaches the plunger filters, so their
+					// samples no longer line up with simulation time.
+					env.Plunger.ResetClocks();
 					break;
 				}
 				subSteps++;
@@ -115,6 +118,10 @@ namespace VisualPinball.Unity
 				env.Nudge.StepOneMillisecond();
 				var cabinetAcceleration = env.Nudge.CabinetAcceleration;
 				env.Plumb.StepOneMillisecond(cabinetAcceleration);
+
+				// Analog plunger input is filtered at the same cadence, before the
+				// plunger velocities that read it.
+				env.Plunger.StepOneMillisecond(env.NextPhysicsFrameTime);
 
 				// balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
@@ -139,7 +146,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.PlungerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var plungerState = ref enumerator.Current.Value;
-						PlungerVelocityPhysics.UpdateVelocities(ref plungerState.Movement, ref plungerState.Velocity, in plungerState.Static);
+						PlungerVelocityPhysics.UpdateVelocities(ref plungerState.Movement, ref plungerState.Velocity, in plungerState.Static, in env.Plunger);
 					}
 				}
 				// spinners

@@ -64,7 +64,18 @@ namespace VisualPinball.Unity
 		// todo
 		public event EventHandler Timer;
 
-		public bool DoRetract { get; set; } = true;
+		/// <summary>
+		/// Whether pulling back retracts the plunger again after it was held fully
+		/// back for a second. Unless set, the cabinet preference
+		/// (<see cref="PhysicsEngine.PlungerRetract"/>) applies.
+		/// </summary>
+		public bool DoRetract
+		{
+			get => _doRetract ?? (PhysicsEngine != null && PhysicsEngine.PlungerRetract);
+			set => _doRetract = value;
+		}
+
+		private bool? _doRetract;
 
 		internal PlungerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
@@ -73,13 +84,15 @@ namespace VisualPinball.Unity
 			FireAndPullBackCoil = new DeviceCoil(Player, FireFromFullRetract, PullBack);
 		}
 
+		/// <summary>
+		/// Unity Input System analog plunger, 0 at rest and 1 pulled back. It
+		/// feeds the cabinet's plunger input like a sensor and is ignored while
+		/// native input polls.
+		/// </summary>
 		internal void OnAnalogPlunge(InputAction.CallbackContext ctx)
 		{
-			var pos = ctx.ReadValue<float>(); // 0 = resting pos, 1 = pulled back
-			PhysicsEngine.MutateState((ref PhysicsState state) => {
-				ref var plungerState = ref state.PlungerStates.GetValueByRef(ItemId);
-				plungerState.Movement.AnalogPosition = pos;
-			});
+			var pos = ctx.phase == InputActionPhase.Canceled ? 0f : ctx.ReadValue<float>();
+			PhysicsEngine?.PlungerSensorSystem?.SubmitUnityAnalogValue(pos, ctx.time);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -101,10 +114,11 @@ namespace VisualPinball.Unity
 
 			var doRetract = DoRetract;
 			var speedPull = collComponent.SpeedPull;
+			var isAutoPlunger = collComponent.IsAutoPlunger;
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
 				ref var plungerState = ref state.PlungerStates.GetValueByRef(ItemId);
 				if (doRetract) {
-					PlungerCommands.PullBackAndRetract(speedPull, ref plungerState.Velocity, ref plungerState.Movement);
+					PlungerCommands.PullBackAndRetract(speedPull, isAutoPlunger, ref plungerState.Velocity, ref plungerState.Movement);
 				} else {
 					PlungerCommands.PullBack(speedPull, ref plungerState.Velocity, ref plungerState.Movement);
 				}

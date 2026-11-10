@@ -60,6 +60,7 @@ namespace VisualPinball.Unity
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 		private readonly List<KeyboardNudgeCommand> _pendingKeyboardNudges = new();
 		private readonly List<NudgeSensorSampleCommand> _pendingNudgeSensorSamples = new();
+		private readonly List<PlungerSensorCommand> _pendingPlungerSensorSamples = new();
 		private readonly List<KeyValuePair<int, KinematicTransformSample>> _pendingKinematicUpdates = new();
 		private readonly List<KinematicStopSample> _pendingKinematicStopUpdates = new();
 
@@ -263,6 +264,7 @@ namespace VisualPinball.Unity
 			ProcessInputActions(ref state);
 			ProcessPendingKeyboardNudges();
 			ProcessPendingNudgeSensorSamples();
+			ProcessPendingPlungerSensorSamples(currentTimeUsec);
 
 			// run physics loop (Burst-compiled, thread-safe)
 			var physicsTimeBefore = _ctx.PhysicsEnv.CurPhysicsFrameTime;
@@ -289,6 +291,7 @@ namespace VisualPinball.Unity
 				observedMax = previousMax;
 			}
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
+			PublishPlungerState(ref state);
 
 			if (tracing) {
 				ref var trace = ref SimulationTrace.Tick;
@@ -350,6 +353,66 @@ namespace VisualPinball.Unity
 				nudgeState.ApplyKeyboardImpulse(nudge.AngleDeg, nudge.Force);
 				_ctx.PhysicsEnv.Nudge = nudgeState;
 			}
+		}
+
+		/// <summary>
+		/// Stages queued analog plunger samples for the physics batch that ends at
+		/// <paramref name="batchEndUsec"/>.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> physics owner (inside <c>PhysicsLock</c>).<br/>
+		/// Unlike nudge, every sample is kept: the batch may run many one
+		/// millisecond steps, and each step consumes the samples up to its own
+		/// time, so a release inside one frame keeps its shape.
+		/// </remarks>
+		private void ProcessPendingPlungerSensorSamples(ulong batchEndUsec)
+		{
+			_pendingPlungerSensorSamples.Clear();
+			lock (_ctx.PendingPlungerSensorSamplesLock) {
+				while (_ctx.PendingPlungerSensorSamples.Count > 0) {
+					_pendingPlungerSensorSamples.Add(_ctx.PendingPlungerSensorSamples.Dequeue());
+				}
+			}
+
+			var plunger = _ctx.PhysicsEnv.Plunger;
+			foreach (var command in _pendingPlungerSensorSamples) {
+				switch (command.Type) {
+					case PlungerSensorCommandType.Sample:
+						plunger.Stage(command.SensorIndex, command.Channel, command.Value, command.TimestampUsec, batchEndUsec);
+						break;
+					case PlungerSensorCommandType.ResetClocks:
+						plunger.ResetClocks();
+						break;
+					case PlungerSensorCommandType.SetAvailable:
+						plunger.SetSensorEnabled(command.SensorIndex, command.Available);
+						break;
+				}
+			}
+			plunger.EndStaging(batchEndUsec);
+			_ctx.PhysicsEnv.Plunger = plunger;
+		}
+
+		/// <summary>
+		/// Publishes the auto plunger Launch Ball state and plunger contacts for
+		/// the input side, after a physics batch.
+		/// </summary>
+		/// <remarks><b>Thread:</b> physics owner (inside <c>PhysicsLock</c>).</remarks>
+		private void PublishPlungerState(ref PhysicsState state)
+		{
+			var count = 0;
+			var held = false;
+			var contacts = 0;
+			using (var enumerator = state.PlungerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var plungerState = ref enumerator.Current.Value;
+					count += plungerState.Velocity.AutoFireCount;
+					held |= plungerState.Velocity.AutoFireTimer > 0;
+					contacts += plungerState.Movement.BallContactCount;
+				}
+			}
+			Volatile.Write(ref _ctx.AutoPlungerLaunchCount, count);
+			Volatile.Write(ref _ctx.AutoPlungerLaunchHeld, held ? 1 : 0);
+			Volatile.Write(ref _ctx.PlungerBallContactCount, contacts);
 		}
 
 		/// <summary>
@@ -1098,6 +1161,7 @@ namespace VisualPinball.Unity
 			ProcessInputActions(ref state);
 			ProcessPendingKeyboardNudges();
 			ProcessPendingNudgeSensorSamples();
+			ProcessPendingPlungerSensorSamples(currentTimeUsec);
 
 			// run physics loop
 			PhysicsUpdate.Execute(
@@ -1110,6 +1174,7 @@ namespace VisualPinball.Unity
 				currentTimeUsec
 			);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
+			PublishPlungerState(ref state);
 
 			if (_ctx.RollingRenderer) _ctx.RollingRenderer.Capture();
 

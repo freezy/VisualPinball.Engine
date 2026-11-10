@@ -220,6 +220,10 @@ namespace VisualPinball.Unity.Simulation
 		[Tooltip("Default analog nudge sensor mappings used by editor/direct play mode. The player app can still override these from its user config.")]
 		public List<SimulationThreadNudgeSensorConfig> NudgeSensors = new();
 
+		[Header("Plunger Sensors")]
+		[Tooltip("Default analog plunger sensor mappings used by editor/direct play mode. The player app can still override these from its user config.")]
+		public List<CabinetPlungerSensorSettings> PlungerSensors = new();
+
 		[Header("Debug")]
 		[Tooltip("Show simulation statistics in console")]
 		public bool ShowStatistics = false;
@@ -397,6 +401,7 @@ namespace VisualPinball.Unity.Simulation
 				// This disables Unity's Update() loop and gives control to the simulation thread
 				_physicsEngine.SetExternalTiming(true);
 				ApplyNudgeSensorSettings();
+				ApplyPlungerSensorSettings();
 
 				// Create simulation thread
 				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine,
@@ -547,6 +552,10 @@ namespace VisualPinball.Unity.Simulation
 				nudge = _physicsEngine != null ? _physicsEngine.GetNudgeSettings() : new CabinetNudgeSettings()
 			};
 			settings.nudge.sensors = CabinetNudgeSensorSettings.FromSimulationThreadSensors(NudgeSensors);
+			settings.plunger = new CabinetPlungerSettings {
+				retract = _physicsEngine != null && _physicsEngine.PlungerRetract,
+				sensors = CabinetPlungerSensorSettings.CloneAll(PlungerSensors)
+			};
 			settings.Normalize();
 			return settings;
 		}
@@ -563,7 +572,40 @@ namespace VisualPinball.Unity.Simulation
 			EnableNativeInput = settings.enableNativeInput;
 			InputPollingIntervalUs = settings.inputPollingIntervalUs;
 			ApplyNudgeSettings(settings.nudge, applyNudgeToPhysics);
+			ApplyPlungerSettings(settings.plunger, applyNudgeToPhysics);
 			ApplyNativeInputSettingsIfRunning();
+		}
+
+		/// <summary>
+		/// Applies only the shared plunger settings, keeping native input polling
+		/// options unchanged.
+		/// </summary>
+		/// <param name="applyToPhysics">Also push the retract preference to the sibling physics engine.</param>
+		public void ApplyPlungerSettings(CabinetPlungerSettings settings, bool applyToPhysics = true)
+		{
+			settings ??= new CabinetPlungerSettings();
+			settings.Normalize();
+
+			PlungerSensors = CabinetPlungerSensorSettings.CloneAll(settings.sensors);
+			ApplyPlungerSensorSettings();
+
+			if (applyToPhysics) {
+				_physicsEngine ??= GetComponent<PhysicsEngine>();
+				settings.ApplyTo(_physicsEngine);
+			}
+		}
+
+		/// <summary>
+		/// Pushes the serialized plunger sensor settings into the physics engine.
+		/// </summary>
+		public void ApplyPlungerSensorSettings()
+		{
+			_physicsEngine ??= GetComponent<PhysicsEngine>();
+			if (_physicsEngine == null) {
+				return;
+			}
+			var settings = new CabinetPlungerSettings { sensors = PlungerSensors ?? new List<CabinetPlungerSensorSettings>() };
+			_physicsEngine.ConfigurePlungerSensors(settings.ToEngineSensorConfigs());
 		}
 
 		/// <summary>

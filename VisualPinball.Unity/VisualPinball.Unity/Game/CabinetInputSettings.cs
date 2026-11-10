@@ -44,6 +44,8 @@ namespace VisualPinball.Unity
 
 		public CabinetNudgeSettings nudge = new();
 
+		public CabinetPlungerSettings plunger = new();
+
 		/// <summary>
 		/// Clamps values and guarantees nested objects/lists are non-null.
 		/// </summary>
@@ -52,6 +54,8 @@ namespace VisualPinball.Unity
 			inputPollingIntervalUs = Mathf.Clamp(inputPollingIntervalUs, 100, 2000);
 			nudge ??= new CabinetNudgeSettings();
 			nudge.Normalize();
+			plunger ??= new CabinetPlungerSettings();
+			plunger.Normalize();
 		}
 
 		/// <summary>
@@ -75,12 +79,13 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Applies nudge behavior to a physics engine.
+		/// Applies nudge and plunger behavior to a physics engine.
 		/// </summary>
 		public void ApplyTo(PhysicsEngine physicsEngine)
 		{
 			Normalize();
 			nudge.ApplyTo(physicsEngine);
+			plunger.ApplyTo(physicsEngine);
 		}
 
 		/// <summary>
@@ -109,12 +114,14 @@ namespace VisualPinball.Unity
 			var settings = new CabinetInputSettings();
 			if (physicsEngine != null) {
 				settings.nudge = CabinetNudgeSettings.From(physicsEngine);
+				settings.plunger.retract = physicsEngine.PlungerRetract;
 			}
 			if (simulationThread != null) {
 				settings.enableNativeInput = simulationThread.EnableNativeInput;
 				settings.inputPollingIntervalUs = simulationThread.InputPollingIntervalUs;
 				settings.nudge ??= new CabinetNudgeSettings();
 				settings.nudge.sensors = CabinetNudgeSensorSettings.FromSimulationThreadSensors(simulationThread.NudgeSensors);
+				settings.plunger.sensors = CabinetPlungerSensorSettings.CloneAll(simulationThread.PlungerSensors);
 			}
 			settings.Normalize();
 			return settings;
@@ -449,6 +456,140 @@ namespace VisualPinball.Unity
 		private static SensorMapping ParseMapping(string value)
 		{
 			return SensorMapping.TryParse(value, out var mapping) ? mapping : new SensorMapping();
+		}
+	}
+
+	/// <summary>
+	/// Cabinet plunger settings: analog sensors and the button plunger behavior.
+	/// </summary>
+	/// <remarks>
+	/// Like nudge, these are player/cabinet choices and never stored in a table.
+	/// </remarks>
+	[Serializable]
+	public sealed class CabinetPlungerSettings
+	{
+		/// <summary>
+		/// Whether a keyboard or button pull-back retracts the plunger again after
+		/// being held fully back for a second. Off by default, like Visual Pinball.
+		/// </summary>
+		public bool retract;
+
+		public List<CabinetPlungerSensorSettings> sensors = new();
+
+		/// <summary>
+		/// Guarantees non-null lists and entries.
+		/// </summary>
+		public void Normalize()
+		{
+			sensors ??= new List<CabinetPlungerSensorSettings>();
+			for (var i = 0; i < sensors.Count; i++) {
+				sensors[i] ??= new CabinetPlungerSensorSettings();
+				sensors[i].Normalize();
+			}
+		}
+
+		/// <summary>
+		/// Applies the retract preference to a physics engine. Sensors are pushed
+		/// through <see cref="SimulationThreadComponent"/>, which owns native input.
+		/// </summary>
+		public void ApplyTo(PhysicsEngine physicsEngine)
+		{
+			if (physicsEngine == null) {
+				return;
+			}
+			physicsEngine.PlungerRetract = retract;
+		}
+
+		/// <summary>
+		/// Converts the enabled sensors to physics-engine configs, at most
+		/// <see cref="PlungerInputState.MaxSensors"/>.
+		/// </summary>
+		public List<PlungerSensorConfig> ToEngineSensorConfigs()
+		{
+			Normalize();
+			var configs = new List<PlungerSensorConfig>(sensors.Count);
+			foreach (var sensor in sensors) {
+				if (sensor.disabled) {
+					continue;
+				}
+				configs.Add(sensor.ToEngineConfig());
+				if (configs.Count == PlungerInputState.MaxSensors) {
+					break;
+				}
+			}
+			return configs;
+		}
+
+		public CabinetPlungerSettings Clone()
+		{
+			return new CabinetPlungerSettings {
+				retract = retract,
+				sensors = CabinetPlungerSensorSettings.CloneAll(sensors)
+			};
+		}
+	}
+
+	/// <summary>
+	/// Serializable settings for one analog plunger sensor.
+	/// </summary>
+	/// <remarks>
+	/// Mappings are stored in the compact <see cref="SensorMapping"/> string
+	/// format, like the nudge sensors. The position mapping yields 0 at rest and
+	/// +1 fully retracted; the velocity mapping yields position units per second.
+	/// </remarks>
+	[Serializable]
+	public sealed class CabinetPlungerSensorSettings
+	{
+		public bool disabled;
+		public string deviceId;
+		public string deviceName;
+		public string position = string.Empty;
+		public string velocity = string.Empty;
+
+		public void Normalize()
+		{
+			position ??= string.Empty;
+			velocity ??= string.Empty;
+		}
+
+		public PlungerSensorConfig ToEngineConfig()
+		{
+			Normalize();
+			var config = new PlungerSensorConfig {
+				Enabled = !disabled,
+				Position = ParseMapping(position, SensorMappingKind.Position),
+				Velocity = ParseMapping(velocity, SensorMappingKind.Velocity)
+			};
+			config.Normalize();
+			return config;
+		}
+
+		public CabinetPlungerSensorSettings Clone()
+		{
+			return new CabinetPlungerSensorSettings {
+				disabled = disabled,
+				deviceId = deviceId,
+				deviceName = deviceName,
+				position = position ?? string.Empty,
+				velocity = velocity ?? string.Empty
+			};
+		}
+
+		public static List<CabinetPlungerSensorSettings> CloneAll(IReadOnlyList<CabinetPlungerSensorSettings> sensors)
+		{
+			var result = new List<CabinetPlungerSensorSettings>();
+			if (sensors == null) {
+				return result;
+			}
+			foreach (var sensor in sensors) {
+				result.Add(sensor?.Clone() ?? new CabinetPlungerSensorSettings());
+			}
+			return result;
+		}
+
+		private static SensorMapping ParseMapping(string value, SensorMappingKind kind)
+		{
+			return SensorMapping.TryParse(value, out var mapping) ? mapping : new SensorMapping { Kind = kind };
 		}
 	}
 }

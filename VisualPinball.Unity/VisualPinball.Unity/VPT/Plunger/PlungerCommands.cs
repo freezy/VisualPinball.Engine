@@ -28,13 +28,13 @@ namespace VisualPinball.Unity
 			velocity.AddRetractMotion = false;
 		}
 
-		public static void PullBackAndRetract(float speedPull, ref PlungerVelocityState velocity, ref PlungerMovementState movement)
+		public static void PullBackAndRetract(float speedPull, bool isAutoPlunger, ref PlungerVelocityState velocity, ref PlungerMovementState movement)
 		{
 			movement.Speed = 0.0f;
 			velocity.PullForce = speedPull;
 
-			// deactivate the retract code
-			velocity.AddRetractMotion = false;
+			// (de)activate the retract code, an auto plunger doesn't retract
+			velocity.AddRetractMotion = !isAutoPlunger;
 			movement.RetractMotion = false;
 			velocity.InitialSpeed = speedPull;
 		}
