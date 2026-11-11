@@ -44,6 +44,15 @@ namespace VisualPinball.Unity
 		UltraPerformance = 3,
 	}
 
+	/// <summary>How much what moves fast streaks, the balls above all. High is still a short streak.</summary>
+	public enum VpeMotionBlur
+	{
+		Off = 0,
+		Low = 1,
+		Medium = 2,
+		High = 3,
+	}
+
 	/// <summary>
 	/// Plain-data render-quality settings that are tunable at runtime via the active render pipeline's
 	/// <see cref="IVpeGraphicsApplier"/>. Carries only the SRP-specific knobs (camera AA + Volume effects);
@@ -65,6 +74,7 @@ namespace VisualPinball.Unity
 		public int UpscalerQuality; // VpeUpscalerQuality
 		// The balls reflect the playfield and what stands on it where SSR finds nothing, instead of the sky.
 		public bool BallReflections;
+		public int MotionBlur; // VpeMotionBlur
 	}
 
 	/// <summary>Implemented by the active render pipeline (e.g. HDRP) to apply <see cref="VpeGraphicsSettings"/>.</summary>
@@ -99,6 +109,9 @@ namespace VisualPinball.Unity
 
 		/// <summary>Whether the active pipeline applies <see cref="VpeGraphicsSettings.BallReflections"/> (it sets this next to its applier).</summary>
 		public static bool BallReflectionsSupported;
+
+		/// <summary>Whether the active pipeline applies <see cref="VpeGraphicsSettings.MotionBlur"/> (it sets this next to its applier).</summary>
+		public static bool MotionBlurSupported;
 
 		/// <summary>Whether the active pipeline can blur what's out of focus (it registers <see cref="DepthOfFieldHandler"/> next to its applier).</summary>
 		public static bool DepthOfFieldSupported => DepthOfFieldHandler != null;
