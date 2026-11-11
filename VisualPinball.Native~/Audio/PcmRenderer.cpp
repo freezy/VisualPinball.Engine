@@ -84,11 +84,11 @@ struct Context {
 	float transitionTarget = 1;
 	double transitionGain = 1, transitionStep = 0;
 	int transitionRemaining = 0, transitionRate = 0;
-	// The user's output level: the control writer publishes the target, the render thread ramps to it.
-	std::atomic<float> masterRequest{1};
-	// The first level a session is given is where it starts, not a change to fade to: a saved mute stays silent.
-	std::atomic<bool> masterSnap{false};
-	bool masterGiven = false; // control thread only
+	// The user's output level: the control writer publishes the target, the render thread ramps to it. The upper half
+	// counts the levels to apply at once, so a renderer always sees a level together with whether to jump to it.
+	std::atomic<std::uint64_t> masterRequest{0x3f800000u};
+	std::uint32_t masterJumps = 0; // control thread only
+	std::uint32_t masterJumpsSeen = 0; // render thread only
 	float masterGain = 1;
 	void Collect() {
 		auto r = retiredRead.load(); const auto w = retiredWrite.load(std::memory_order_acquire);
@@ -285,11 +285,13 @@ int VpePcmSetTransitionGain(void* context, float gain, int milliseconds) {
 	C(context)->transitionRequest.store((static_cast<std::uint64_t>(milliseconds) << 32) | bits, std::memory_order_release);
 	return 1;
 }
-int VpePcmSetMasterGain(void* context, float gain) {
+int VpePcmSetMasterGain(void* context, float gain, int immediate) {
 	if (!context || !std::isfinite(gain) || gain < 0 || gain > 1) return 0;
 	auto& c = *C(context);
-	c.masterRequest.store(gain, std::memory_order_release);
-	if (!c.masterGiven) { c.masterGiven = true; c.masterSnap.store(true, std::memory_order_release); }
+	// the first level a session is given is where it starts, not a change to fade to: a saved mute stays silent
+	if (immediate || c.masterJumps == 0) ++c.masterJumps;
+	std::uint32_t bits; std::memcpy(&bits, &gain, sizeof(bits));
+	c.masterRequest.store((static_cast<std::uint64_t>(c.masterJumps) << 32) | bits, std::memory_order_release);
 	return 1;
 }
 int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused) {
@@ -447,10 +449,10 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 	c.transitionRate = rate;
 	c.transitionStep = c.transitionRemaining ? (c.transitionTarget - c.transitionGain) / c.transitionRemaining : 0;
 	if (!c.transitionRemaining) c.transitionGain = c.transitionTarget;
-	// The snap flag is published after its level, so reading it first never pairs it with the level before.
-	const bool masterSnap = c.masterSnap.exchange(false, std::memory_order_acquire);
-	const float masterTarget = c.masterRequest.load(std::memory_order_acquire);
-	if (masterSnap) c.masterGain = masterTarget;
+	const auto master = c.masterRequest.load(std::memory_order_acquire);
+	const auto masterBits = static_cast<std::uint32_t>(master);
+	float masterTarget; std::memcpy(&masterTarget, &masterBits, sizeof(masterTarget));
+	if (static_cast<std::uint32_t>(master >> 32) != c.masterJumpsSeen) { c.masterJumpsSeen = static_cast<std::uint32_t>(master >> 32); c.masterGain = masterTarget; }
 	const float masterStep = frames ? (masterTarget - c.masterGain) / frames : 0;
 	for (int f = 0; f < frames; ++f) {
 		if (c.transitionRemaining && !--c.transitionRemaining) c.transitionGain = c.transitionTarget;
