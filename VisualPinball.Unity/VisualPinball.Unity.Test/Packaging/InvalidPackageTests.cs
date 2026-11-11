@@ -100,6 +100,9 @@ namespace VisualPinball.Unity.Test
 			}
 			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.MinItemsVersion - 1)), Is.Not.Null);
 			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion + 1)), Is.Not.Null);
+			// what this build writes, it loads
+			Assert.That(VpePackageSchemas.ItemsReaderVersion, Is.InRange(VpePackageSchemas.MinItemsVersion, VpePackageSchemas.ItemsVersion));
+			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion, reader: VpePackageSchemas.ItemsReaderVersion)), Is.Null);
 			// a package older than the oldest version still loaded is told everything that changed up to it
 			foreach (var change in VpePackageSchemas.ItemsChanges.Take(VpePackageSchemas.MinItemsVersion - 1)) {
 				Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(1)), Does.Contain(change));
@@ -108,10 +111,29 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
-		private static VpePackageManifest Manifest(int itemsVersion, string writtenBy = "test") => new VpePackageManifest {
-			WrittenBy = writtenBy,
-			Schemas = new System.Collections.Generic.Dictionary<string, int> { [VpePackageSchemas.Items] = itemsVersion },
-		};
+		[Test]
+		public void NewerPackageLoadsWhenItNeedsNoNewerReader()
+		{
+			// a later build added what this one can ignore, and says so
+			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion + 3, reader: VpePackageSchemas.ItemsVersion)), Is.Null);
+			// a later build changed tables in a way this one would load wrongly
+			var reason = VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion + 3, "VPE 9.9", VpePackageSchemas.ItemsVersion + 2));
+			Assert.That(reason, Does.Contain("VPE 9.9").And.Contain("Update VPE").And.Contain($"items schema {VpePackageSchemas.ItemsVersion + 2}"));
+			// the reader version doesn't make up for a package older than this build loads
+			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.MinItemsVersion - 1, reader: 1)), Does.Contain("Export the table again"));
+		}
+
+		private static VpePackageManifest Manifest(int itemsVersion, string writtenBy = "test", int? reader = null)
+		{
+			var manifest = new VpePackageManifest {
+				WrittenBy = writtenBy,
+				Schemas = new System.Collections.Generic.Dictionary<string, int> { [VpePackageSchemas.Items] = itemsVersion },
+			};
+			if (reader.HasValue) {
+				manifest.Schemas[VpePackageSchemas.ItemsReader] = reader.Value;
+			}
+			return manifest;
+		}
 
 		private static IEnumerator AssertInvalid(string path, params string[] reasons)
 		{
