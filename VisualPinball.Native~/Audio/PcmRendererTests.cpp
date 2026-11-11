@@ -287,11 +287,11 @@ int main(int argc, char** argv) {
 		Session s; std::array<float, 2> recording{{.2f, .1f}};
 		int clip = VpePcmRegisterClip(s.c, recording.data(), 1, 2, 48000);
 		VpePcmSetTransitionGain(s.c, 0, 0); VpePcmPreviewClip(s.c, clip, 0);
-		Check(VpePcmSetMasterGain(s.c, level) == 1, "the master level accepts a gain");
+		Check(VpePcmSetMasterGain(s.c, level, 0) == 1, "the master level accepts a gain");
 		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 1);
 		Check(Near(sample[0], .106f * level) && Near(sample[1], sample[0] / 2), "a settings preview follows the master level while the game is paused");
-		Check(!VpePcmSetMasterGain(s.c, std::numeric_limits<float>::quiet_NaN()) && !VpePcmSetMasterGain(s.c, 1.5f) && !VpePcmSetMasterGain(s.c, -.1f)
-			&& !VpePcmSetMasterGain(nullptr, 1), "invalid master levels are rejected");
+		Check(!VpePcmSetMasterGain(s.c, std::numeric_limits<float>::quiet_NaN(), 0) && !VpePcmSetMasterGain(s.c, 1.5f, 0) && !VpePcmSetMasterGain(s.c, -.1f, 0)
+			&& !VpePcmSetMasterGain(nullptr, 1, 0), "invalid master levels are rejected");
 	}
 	{
 		Session s; const std::array<float, 2> constant{{.4f, .2f}};
@@ -299,8 +299,8 @@ int main(int argc, char** argv) {
 		VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1);
 		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 0);
 		Check(Near(sample[0], .4f), "the master level starts at unity");
-		VpePcmSetMasterGain(s.c, 1); VpePcmRender(s.c, sample.data(), 1, 2, 48000, 0);
-		VpePcmSetMasterGain(s.c, .5f);
+		VpePcmSetMasterGain(s.c, 1, 0); VpePcmRender(s.c, sample.data(), 1, 2, 48000, 0);
+		VpePcmSetMasterGain(s.c, .5f, 0);
 		std::vector<float> block(480*2); VpePcmRender(s.c, block.data(), 480, 2, 48000, 0);
 		bool smooth = true; float previous = .4f;
 		for (int f = 0; f < 480; ++f) { smooth = smooth && block[f*2] <= previous && previous - block[f*2] < .001f; previous = block[f*2]; }
@@ -314,10 +314,24 @@ int main(int argc, char** argv) {
 		VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1);
 		// The output may have rendered before the saved level arrives: that first level still applies at once.
 		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 0);
-		VpePcmSetMasterGain(s.c, 0);
+		VpePcmSetMasterGain(s.c, 0, 0);
 		std::vector<float> block(480*2, 1.f); VpePcmRender(s.c, block.data(), 480, 2, 48000, 0);
 		bool silent = true; for (float value : block) silent = silent && value == 0;
 		Check(silent, "a session's first master level applies without a fade, so a saved mute never leaks");
+	}
+	{
+		Session s; const std::array<float, 2> constant{{.4f, .2f}};
+		int clip = VpePcmRegisterClip(s.c, constant.data(), 1, 2, 48000);
+		VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1);
+		// Switching to the mixer's own device output: the level the listener applied until then holds from its first block.
+		VpePcmSetMasterGain(s.c, 1, 0);
+		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 0);
+		VpePcmSetMasterGain(s.c, 0, 1);
+		std::vector<float> block(480*2, 1.f); VpePcmRender(s.c, block.data(), 480, 2, 48000, 0);
+		bool silent = true; for (float value : block) silent = silent && value == 0;
+		Check(silent, "an immediate master level applies without a fade");
+		VpePcmSetMasterGain(s.c, 1, 0); VpePcmRender(s.c, block.data(), 480, 2, 48000, 0);
+		Check(block[0] < .001f && Near(block[479*2], .4f), "a later master level ramps again");
 	}
 	{
 		Session s; const std::array<float, 2> constant{{.4f, .2f}};

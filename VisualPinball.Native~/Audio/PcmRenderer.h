@@ -42,8 +42,9 @@ VPE_PCM_API int VpePcmStreamMetrics(void* context, int stream, float* values, in
 // Temporary output envelope, independent of processing preferences. Zero ms snaps; otherwise ramps per sample.
 VPE_PCM_API int VpePcmSetTransitionGain(void* context, float gain, int milliseconds);
 // The user's output level, 0..1, after the processing and the limiter. Unlike the transition envelope it also holds
-// for a settings preview while the game is paused. Ramps over one render block.
-VPE_PCM_API int VpePcmSetMasterGain(void* context, float gain);
+// for a settings preview while the game is paused. Ramps over one render block, unless immediate is nonzero or it is
+// the session's first level, which apply from the next block on.
+VPE_PCM_API int VpePcmSetMasterGain(void* context, float gain, int immediate);
 VPE_PCM_API int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused);
 // Seven bus peaks, stream underflows/overflows/discontinuities, command drops, active voices.
 VPE_PCM_API int VpePcmMetrics(void* context, float* values, int count);

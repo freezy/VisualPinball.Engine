@@ -109,15 +109,25 @@ namespace VisualPinball.Unity
 			if (gain == GlobalMasterGain) return;
 			GlobalMasterGain = gain;
 			MasterGainChanged?.Invoke();
-			foreach (var renderer in Active) renderer.ApplyOutputGain(30);
+			foreach (var renderer in Active) renderer.ApplyMasterGain();
 		}
-		private void ApplyOutputGain(int milliseconds)
+		private void ApplyMasterGain()
+		{
+			if (_session == null || _session.Context == IntPtr.Zero) return;
+			// its own stage leaves a running pause or resume fade alone; a plugin from before it takes the master on the envelope
+			if (!_session.SetMasterGain(DeviceOutput ? GlobalMasterGain : 1)) ApplyOutputGain(30);
+		}
+		/// <summary>
+		/// Sets the master and the transition envelope. <paramref name="device"/> overrides whether the mixer plays through
+		/// its own output, for the levels a device needs before it starts; output switches apply the master at once.
+		/// </summary>
+		private void ApplyOutputGain(int milliseconds, bool? device = null)
 		{
 			if (_session == null || _session.Context == IntPtr.Zero) return;
 			// The master has its own stage in the native graph, which also holds for a preview while the game is paused. A
 			// plugin from before that stage takes it on the transition envelope.
-			var master = DeviceOutput ? GlobalMasterGain : 1;
-			var gain = _session.SetMasterGain(master) ? GlobalTransitionGain : GlobalTransitionGain * master;
+			var master = (device ?? DeviceOutput) ? GlobalMasterGain : 1;
+			var gain = _session.SetMasterGain(master, milliseconds == 0) ? GlobalTransitionGain : GlobalTransitionGain * master;
 			if (!_session.SetTransitionGain(gain, milliseconds)) Diagnose("Update the native audio plugin to enable smooth master transitions.");
 		}
 		public static void SetGlobalProcessing(AudioProcessingSettings settings)
@@ -216,6 +226,9 @@ namespace VisualPinball.Unity
 		{
 			ActiveOutputMode = PcmOutputMode.Shared;
 			if (!PreferDeviceOutput) return false;
+			// a device renders as soon as it starts: give it the master the listener applied so far, and the caller sets
+			// the levels for the output that actually opened
+			ApplyOutputGain(0, true);
 			if (OutputMode == PcmOutputMode.Asio) {
 				if (string.IsNullOrEmpty(AsioDriver)) Diagnose("ASIO output has no driver selected; using shared output.");
 				else if (_session.StartAsioOutput(AsioDriver, _rate, OutputBufferFrames, paused, out var error)) { ActiveOutputMode = PcmOutputMode.Asio; return true; }
