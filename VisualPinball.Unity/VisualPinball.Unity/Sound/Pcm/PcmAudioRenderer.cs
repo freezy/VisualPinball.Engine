@@ -96,16 +96,29 @@ namespace VisualPinball.Unity
 		/// The user's master volume, 0..1 (0 mutes). It scales the mixer's own device output; while the mixer plays
 		/// through Unity, the listener's volume is the master and this one stays out of the way.
 		/// </summary>
+		/// <summary>
+		/// The user's master volume, 0..1, for audio that reaches the speakers neither through Unity's listener nor
+		/// through this mixer (a plugin's own device output, for example): such an output multiplies its level by it.
+		/// </summary>
+		public static float MasterGain => GlobalMasterGain;
+		/// <summary>Raised on the main thread after <see cref="MasterGain"/> changed.</summary>
+		public static event Action MasterGainChanged;
 		public static void SetGlobalMasterGain(float gain)
 		{
 			if (float.IsNaN(gain) || float.IsInfinity(gain) || gain < 0 || gain > 1) throw new ArgumentOutOfRangeException(nameof(gain));
+			if (gain == GlobalMasterGain) return;
 			GlobalMasterGain = gain;
+			MasterGainChanged?.Invoke();
 			foreach (var renderer in Active) renderer.ApplyOutputGain(30);
 		}
 		private void ApplyOutputGain(int milliseconds)
 		{
 			if (_session == null || _session.Context == IntPtr.Zero) return;
-			if (!_session.SetTransitionGain(GlobalTransitionGain * (DeviceOutput ? GlobalMasterGain : 1), milliseconds)) Diagnose("Update the native audio plugin to enable smooth master transitions.");
+			// The master has its own stage in the native graph, which also holds for a preview while the game is paused. A
+			// plugin from before that stage takes it on the transition envelope.
+			var master = DeviceOutput ? GlobalMasterGain : 1;
+			var gain = _session.SetMasterGain(master) ? GlobalTransitionGain : GlobalTransitionGain * master;
+			if (!_session.SetTransitionGain(gain, milliseconds)) Diagnose("Update the native audio plugin to enable smooth master transitions.");
 		}
 		public static void SetGlobalProcessing(AudioProcessingSettings settings)
 		{

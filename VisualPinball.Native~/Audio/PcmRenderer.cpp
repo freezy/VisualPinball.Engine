@@ -84,6 +84,12 @@ struct Context {
 	float transitionTarget = 1;
 	double transitionGain = 1, transitionStep = 0;
 	int transitionRemaining = 0, transitionRate = 0;
+	// The user's output level: the control writer publishes the target, the render thread ramps to it.
+	std::atomic<float> masterRequest{1};
+	// The first level a session is given is where it starts, not a change to fade to: a saved mute stays silent.
+	std::atomic<bool> masterSnap{false};
+	bool masterGiven = false; // control thread only
+	float masterGain = 1;
 	void Collect() {
 		auto r = retiredRead.load(); const auto w = retiredWrite.load(std::memory_order_acquire);
 		while (r != w) { delete retired[r % retired.size()]; ++r; }
@@ -279,6 +285,13 @@ int VpePcmSetTransitionGain(void* context, float gain, int milliseconds) {
 	C(context)->transitionRequest.store((static_cast<std::uint64_t>(milliseconds) << 32) | bits, std::memory_order_release);
 	return 1;
 }
+int VpePcmSetMasterGain(void* context, float gain) {
+	if (!context || !std::isfinite(gain) || gain < 0 || gain > 1) return 0;
+	auto& c = *C(context);
+	c.masterRequest.store(gain, std::memory_order_release);
+	if (!c.masterGiven) { c.masterGiven = true; c.masterSnap.store(true, std::memory_order_release); }
+	return 1;
+}
 int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused) {
 	if (!output || frames < 0 || channels <= 0 || channels > 8) return 0;
 	std::fill_n(output, static_cast<size_t>(frames) * channels, 0.f);
@@ -434,14 +447,21 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 	c.transitionRate = rate;
 	c.transitionStep = c.transitionRemaining ? (c.transitionTarget - c.transitionGain) / c.transitionRemaining : 0;
 	if (!c.transitionRemaining) c.transitionGain = c.transitionTarget;
+	// The snap flag is published after its level, so reading it first never pairs it with the level before.
+	const bool masterSnap = c.masterSnap.exchange(false, std::memory_order_acquire);
+	const float masterTarget = c.masterRequest.load(std::memory_order_acquire);
+	if (masterSnap) c.masterGain = masterTarget;
+	const float masterStep = frames ? (masterTarget - c.masterGain) / frames : 0;
 	for (int f = 0; f < frames; ++f) {
 		if (c.transitionRemaining && !--c.transitionRemaining) c.transitionGain = c.transitionTarget;
 		else if (c.transitionRemaining) c.transitionGain += c.transitionStep;
 		// Settings previews are independent of the paused game's temporary master envelope.
-		const float gain = paused && previewActive ? 1.f : static_cast<float>(c.transitionGain);
+		c.masterGain += masterStep;
+		const float gain = (paused && previewActive ? 1.f : static_cast<float>(c.transitionGain)) * c.masterGain;
 		output[f*2] = Finite(output[f*2]) * gain;
 		output[f*2+1] = Finite(output[f*2+1]) * gain;
 	}
+	if (frames) c.masterGain = masterTarget;
 	return 1;
 }
 int VpePcmMetrics(void* context, float* values, int count) {
