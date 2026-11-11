@@ -55,10 +55,14 @@ LibraryCategoryView {
 	background-color: #333333; /* sampled from project window */
 }
 
-#gridContent .unity-scroll-view__content-container {
+#gridContent .unity-collection-view__item {
+	padding: 0;
+}
+
+.asset-grid-row {
 	flex-direction: row;
-	flex-wrap: wrap;
-	padding: 10px;
+	padding-left: 10px;
+	padding-right: 10px;
 }
 
 #gridContent .unity-image {
