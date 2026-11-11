@@ -362,6 +362,7 @@ namespace VisualPinball.Unity.Editor
 				RootNodeId = _nodeIdByTransform[_table.transform],
 				Schemas = new Dictionary<string, int> {
 					[VpePackageSchemas.Items] = VpePackageSchemas.ItemsVersion,
+					[VpePackageSchemas.ItemsReader] = VpePackageSchemas.ItemsReaderVersion,
 				},
 				ComponentTypes = _usedTypeNames.ToList(),
 			};

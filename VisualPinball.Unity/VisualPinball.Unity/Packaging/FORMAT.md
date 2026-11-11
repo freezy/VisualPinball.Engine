@@ -64,7 +64,7 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
   "FormatVersion": 1,
   "WrittenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
   "RootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
-  "Schemas": { "items": 1, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
+  "Schemas": { "items": 2, "items-reader": 2, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
   "ComponentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
 }
 ```
@@ -74,13 +74,52 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
 | `FormatVersion` | Container layout version. Readers must refuse versions greater than they implement. |
 | `WrittenBy` | Free-form writer identification, diagnostics only. |
 | `RootNodeId` | Node id of the table root in `table.glb`. Readers anchor the restored component hierarchy here. |
-| `Schemas` | Schema version per payload, keyed by payload name. Readers must check a payload's schema version before parsing it and skip (with a warning) versions they don't know. |
+| `Schemas` | Schema version per payload, keyed by payload name. Readers must check a payload's schema version before parsing it and skip (with a warning) versions they don't know. `items-reader` is not a payload: it is the oldest `items` version a reader must implement to load the package (see below). |
 | `ComponentTypes` | All component/asset type names used by `items/`, `refs/` and `assets/`. Lets a reader warn about missing plugins up front. |
 
 **Versioning policy.** `FormatVersion` changes only on incompatible container-layout changes
 (folder structure, node addressing). Payload schemas evolve independently via `Schemas`. Within a
 schema version, adding optional JSON fields is allowed; removing or re-typing a field requires a
 version bump. Fields are never repurposed.
+
+### Versioning the items schema
+
+The `items` schema covers `items/` and `refs/`: the component JSON, and what the runtime makes of
+it. Three constants in `VpePackageSchemas` (`VpePackageManifest.cs`) govern it, and whoever changes
+how components are exported or restored keeps them right:
+
+| Constant | Meaning | Written as |
+| --- | --- | --- |
+| `ItemsVersion` | The version this build writes. | `Schemas["items"]` |
+| `ItemsReaderVersion` | The oldest version a reader must implement to load what this build writes. | `Schemas["items-reader"]` |
+| `MinItemsVersion` | The oldest version this build still loads. | – |
+
+The player loads a package when its `items` is at least `MinItemsVersion` and its `items-reader`
+(or, when missing, its `items`) is at most `ItemsVersion`. Otherwise it refuses the table and says
+why, using `ItemsChanges` for packages that are too old.
+
+Bump them by what the change does to tables and players that already exist:
+
+1. **The change needs no reader to know about it** (a new optional field the restore doesn't depend
+   on, a fix that doesn't alter what's stored): bump nothing.
+2. **The change is compatible both ways**: older players load the new tables correctly (they ignore
+   the new data and lose nothing that matters), and this build loads the old tables. Raise
+   `ItemsVersion` and add a line to `ItemsChanges`. Leave `ItemsReaderVersion` and `MinItemsVersion`
+   alone.
+3. **Older players would load the new tables wrongly** (renamed, removed or re-typed fields, changed
+   meaning, data the restore now depends on): raise `ItemsVersion`, add a line to `ItemsChanges`,
+   and raise `ItemsReaderVersion` to the new `ItemsVersion`. Older players then tell the user to
+   update VPE.
+4. **This build would load the old tables wrongly** (a removed migration, a default that changed
+   meaning): during alpha and beta, raise `ItemsVersion`, add a line to `ItemsChanges`, and raise
+   `MinItemsVersion` (and normally `ItemsReaderVersion`) to the new `ItemsVersion`, so old tables
+   are refused with a request to export them again. After the beta, keep `MinItemsVersion` and
+   migrate the old versions in the reader instead.
+
+An `ItemsChanges` line says what changed, in words a player understands, because it ends up in
+the refusal message. When unsure between two cases, take the stricter one: a refused table with a
+clear message is better than one that loads half-working. `InvalidPackageTests` checks that the
+constants stay consistent.
 
 ## Node identity
 
@@ -312,7 +351,8 @@ needs, cropping it with `table-bounds.json` itself.
 1. Parse `manifest.json`; refuse files without one, and refuse `FormatVersion` greater than
    supported.
 2. Check each payload's schema version (manifest `Schemas` and the payload's own version field)
-   before parsing; skip unknown versions with a warning.
+   before parsing; skip unknown versions with a warning. The runtime reader refuses a package whose
+   `items` version is outside the range it loads, as described under *Versioning the items schema*.
 3. Skip unknown component-type folders and unknown profile types; never fail the import for them.
 4. Ignore unknown JSON fields everywhere.
 5. Resolve all node references through the `vpeId` extras of `table.glb`.
