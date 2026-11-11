@@ -248,6 +248,27 @@ namespace VisualPinball.Unity.Test
 			Assert.Throws<InvalidDataException>(() => file.GetData());
 		}
 
+		[Test] public void StoredEntryLongerThanItsDeclaredLengthCannotBeRead()
+		{
+			// a stored megabyte whose central directory claims one byte uncompressed but keeps the real compressed size
+			var path = Path.Combine(_folder, "stored.vpe");
+			using (var zip = ZipFile.Open(path, ZipArchiveMode.Create)) {
+				using (var stream = zip.CreateEntry("data.bin", System.IO.Compression.CompressionLevel.NoCompression).Open()) stream.Write(new byte[1024 * 1024], 0, 1024 * 1024);
+				var manifest = new VpeIntegrity.Manifest(); manifest.Entries.Add(new VpeIntegrity.Entry { Path = "data.bin", Length = 1, Sha256 = new string('0', 64) });
+				using (var stream = zip.CreateEntry(VpeIntegrity.ManifestName, System.IO.Compression.CompressionLevel.NoCompression).Open()) { var json = VpeIntegrity.Json(manifest); stream.Write(json, 0, json.Length); }
+			}
+			var bytes = File.ReadAllBytes(path);
+			var directory = 0;
+			while (!(bytes[directory] == 'P' && bytes[directory + 1] == 'K' && bytes[directory + 2] == 1 && bytes[directory + 3] == 2)) directory++;
+			// the first central directory header is data.bin's; its uncompressed size sits 24 bytes in
+			Assert.That(BitConverter.ToUInt32(bytes, directory + 24), Is.EqualTo(1024 * 1024));
+			BitConverter.GetBytes(1u).CopyTo(bytes, directory + 24);
+			File.WriteAllBytes(path, bytes);
+			using var storage = PackageApi.StorageManager.OpenStorage(path);
+			Assert.That(storage.TryGetFile("data.bin", out var file), Is.True);
+			Assert.Throws<InvalidDataException>(() => file.GetData());
+		}
+
 		[Test] public void CanceledOpenThrows()
 		{
 			var path = CreatePackage();
