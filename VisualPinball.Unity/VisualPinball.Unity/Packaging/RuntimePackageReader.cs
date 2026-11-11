@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			var openStopwatch = Stopwatch.StartNew();
 			IPackageStorage opened;
 			try {
-				opened = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken, (done, total) => ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, total == 0 ? 1 : (float)((double)done / total), "Verifying package checksums…")), cancellationToken);
+				opened = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken), cancellationToken);
 			} catch (Exception e) when (!(e is OperationCanceledException)) {
 				throw new InvalidPackageException($"This file can't be opened as a .vpe table package: {e.Message}", e);
 			}
@@ -123,6 +123,10 @@ namespace VisualPinball.Unity
 				throw new InvalidPackageException(
 					$"This package uses format version {_manifest.FormatVersion}, but this build only supports up " +
 					$"to version {PackageApi.FormatVersion}. Update VPE to load it.");
+			}
+			var incompatibility = VpePackageSchemas.ItemsIncompatibility(_manifest);
+			if (incompatibility != null) {
+				throw new InvalidPackageException(incompatibility);
 			}
 			try {
 				_tableFolder = storage.GetFolder(PackageApi.TableFolder);

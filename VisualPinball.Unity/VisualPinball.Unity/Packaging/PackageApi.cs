@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="path">Path to the file.</param>
 		/// <returns>Instance of the storage.</returns>
-		IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null);
+		IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default);
 	}
 
 	/// <summary>

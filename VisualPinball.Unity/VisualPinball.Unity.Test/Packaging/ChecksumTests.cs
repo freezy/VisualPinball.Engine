@@ -86,28 +86,25 @@ namespace VisualPinball.Unity.Test
 			Assert.Throws<InvalidDataException>(() => TableProvenance.New().Snapshot(new TableMetadata { TableName = new string('x', 16385) }));
 		}
 
-		[Test] public void PackageFirstOpenHashesPayloadButWarmOpenDoesNot()
+		[Test] public void OpeningAPackageNeverHashesItsPayload()
 		{
 			var path = CreatePackage();
 			long hashed = 0; VpeIntegrity.BytesHashed = n => hashed += n;
 			using (PackageApi.StorageManager.OpenStorage(path)) { }
-			Assert.That(hashed, Is.GreaterThanOrEqualTo(1024 * 1024));
-			hashed = 0;
-			using (PackageApi.StorageManager.OpenStorage(path)) { }
-			Assert.That(hashed, Is.LessThan(16384), "Warm loads must not rehash large payloads.");
+			Assert.That(hashed, Is.LessThan(16384), "A table load must not wait for the payload to be hashed.");
 			hashed = 0; VpeIntegrity.VerifyFile(path);
 			Assert.That(hashed, Is.GreaterThanOrEqualTo(1024 * 1024));
 		}
 
-		[Test] public void ChangedPackageCannotReuseReceipt()
+		[Test] public void ExplicitCheckCatchesAChangedPayload()
 		{
-			var path = CreatePackage(); using (PackageApi.StorageManager.OpenStorage(path)) { }
+			var path = CreatePackage();
 			using (var zip = ZipFile.Open(path, ZipArchiveMode.Update)) {
 				zip.GetEntry("data.bin").Delete();
 				using var stream = zip.CreateEntry("data.bin").Open();
 				var bytes = new byte[1024 * 1024]; bytes[0] = 1; stream.Write(bytes, 0, bytes.Length);
 			}
-			Assert.Throws<InvalidDataException>(() => { using var storage = PackageApi.StorageManager.OpenStorage(path); });
+			Assert.Throws<InvalidDataException>(() => VpeIntegrity.VerifyFile(path));
 		}
 
 		[Test] public void HashlessPackageAndUnsafePathsAreRejected()
@@ -185,9 +182,9 @@ namespace VisualPinball.Unity.Test
 			Assert.That(VpeAudioIdentity.Canonical(bytes.Take(bytes.Length - 1).ToArray()), Is.Null);
 		}
 
-		[Test] public void PackageScrubFailureInvalidatesUnchangedFileReceipt()
+		[Test] public void ExplicitCheckCatchesSilentPackageCorruption()
 		{
-			var path = CreatePackage(); using (PackageApi.StorageManager.OpenStorage(path)) { }
+			var path = CreatePackage();
 			var stamp = File.GetLastWriteTimeUtc(path);
 			using (var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite)) {
 				using var reader = new BinaryReader(stream, Encoding.UTF8, true);
@@ -195,9 +192,7 @@ namespace VisualPinball.Unity.Test
 				stream.Position = 30 + nameLength + extraLength; stream.WriteByte(99);
 			}
 			File.SetLastWriteTimeUtc(path, stamp);
-			using (PackageApi.StorageManager.OpenStorage(path)) { }
 			Assert.Throws<InvalidDataException>(() => VpeIntegrity.VerifyFile(path));
-			Assert.Throws<InvalidDataException>(() => { using var storage = PackageApi.StorageManager.OpenStorage(path); });
 		}
 
 		[Test] public void CorruptReceiptReverifiesOnlyItsObject()
@@ -228,21 +223,36 @@ namespace VisualPinball.Unity.Test
 			Assert.That(error.Message, Does.Contain("Conflicting"));
 		}
 
-		[Test] public void CanceledAdmissionNeverPublishesVerificationReceipt()
+		[Test] public void EntryThatInflatesPastItsDeclaredLengthCannotBeRead()
 		{
-			var path = CreatePackage(); using var cancellation = new System.Threading.CancellationTokenSource();
-			Assert.Throws<OperationCanceledException>(() => { using var storage = PackageApi.StorageManager.OpenStorage(path, cancellation.Token, (_, _) => cancellation.Cancel()); });
-			Assert.That(Directory.Exists(Path.Combine(VpeIntegrity.CacheRoot, "verification", "packages")), Is.False);
+			// a deflated megabyte whose directory entry (and integrity entry) claims a single byte
+			var path = Path.Combine(_folder, "bomb.vpe");
+			using (var zip = ZipFile.Open(path, ZipArchiveMode.Create)) {
+				using (var stream = zip.CreateEntry("data.bin", System.IO.Compression.CompressionLevel.Optimal).Open()) stream.Write(new byte[1024 * 1024], 0, 1024 * 1024);
+				var manifest = new VpeIntegrity.Manifest(); manifest.Entries.Add(new VpeIntegrity.Entry { Path = "data.bin", Length = 1, Sha256 = new string('0', 64) });
+				using (var stream = zip.CreateEntry(VpeIntegrity.ManifestName, System.IO.Compression.CompressionLevel.NoCompression).Open()) { var json = VpeIntegrity.Json(manifest); stream.Write(json, 0, json.Length); }
+			}
+			var bytes = File.ReadAllBytes(path);
+			var declared = BitConverter.GetBytes((uint)(1024 * 1024));
+			// only in the central directory, which is what a reader goes by
+			var directory = 0;
+			while (!(bytes[directory] == 'P' && bytes[directory + 1] == 'K' && bytes[directory + 2] == 1 && bytes[directory + 3] == 2)) directory++;
+			var patched = 0;
+			for (var i = directory; i + 4 <= bytes.Length; i++) {
+				if (bytes[i] == declared[0] && bytes[i + 1] == declared[1] && bytes[i + 2] == declared[2] && bytes[i + 3] == declared[3]) { bytes[i] = 1; bytes[i + 1] = 0; bytes[i + 2] = 0; bytes[i + 3] = 0; patched++; }
+			}
+			Assert.That(patched, Is.GreaterThanOrEqualTo(1), "The uncompressed size should be in the zip directory.");
+			File.WriteAllBytes(path, bytes);
+			using var storage = PackageApi.StorageManager.OpenStorage(path);
+			Assert.That(storage.TryGetFile("data.bin", out var file), Is.True);
+			Assert.Throws<InvalidDataException>(() => file.GetData());
 		}
 
-		[Test] public void CanceledWarmAdmissionKeepsVerifiedReceipt()
+		[Test] public void CanceledOpenThrows()
 		{
-			var path = CreatePackage(); using (PackageApi.StorageManager.OpenStorage(path)) { }
+			var path = CreatePackage();
 			using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
 			Assert.Throws<OperationCanceledException>(() => { using var storage = PackageApi.StorageManager.OpenStorage(path, cancellation.Token); });
-			long hashed = 0; VpeIntegrity.BytesHashed = n => hashed += n;
-			using (PackageApi.StorageManager.OpenStorage(path)) { }
-			Assert.That(hashed, Is.LessThan(16384));
 		}
 
 		[Test] public void AtomicPublicationFailurePreservesDestination()

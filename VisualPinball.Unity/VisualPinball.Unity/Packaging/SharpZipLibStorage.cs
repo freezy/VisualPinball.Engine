@@ -34,10 +34,10 @@ namespace VisualPinball.Unity.Editor
 			return new ZipPackageStorage(path, true);
 		}
 
-		public IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null)
+		public IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default)
 		{
 			// Open existing Zip file (read mode).
-			return new ZipPackageStorage(path, false, cancellationToken, verificationProgress);
+			return new ZipPackageStorage(path, false, cancellationToken);
 		}
 	}
 
@@ -66,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 		// A root folder abstraction to keep track of the top-level.
 		private readonly ZipPackageFolder _rootFolder;
 
-		public ZipPackageStorage(string path, bool writeMode, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null)
+		public ZipPackageStorage(string path, bool writeMode, CancellationToken cancellationToken = default)
 		{
 			_isWriteMode = writeMode;
 
@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 				// Build an in-memory tree of folders/files for quick lookup
 				_rootFolder = new ZipPackageFolder("", null, this, false);
 
-				try { VpeIntegrity.Verify(_readArchive, path, false, cancellationToken, verificationProgress); BuildFolderTree(); }
+				try { VpeIntegrity.Verify(_readArchive, path, false, cancellationToken); BuildFolderTree(); }
 				catch { _readArchive.Dispose(); throw; }
 			}
 		}
@@ -152,22 +152,35 @@ namespace VisualPinball.Unity.Editor
 		{
 			lock (_readGate) {
 				if (_readArchive == null) throw new ObjectDisposedException(nameof(ZipPackageStorage));
-				return new LockedEntryStream(entry.Open(), _readGate);
+				return new LockedEntryStream(entry.Open(), _readGate, entry.Length);
 			}
 		}
 		// Entry substreams share the archive's file cursor. Serialize each read/seek operation, not complete file copies.
+		// An inflated entry must also give exactly the bytes the directory declares: opening a package checks those
+		// lengths against its limits without reading the payload, so an entry that expands past its own would
+		// otherwise be unbounded. (A stored entry can't: its stream is the declared span of the file.)
 		private sealed class LockedEntryStream : Stream
 		{
 			private readonly Stream _inner;
 			private readonly object _gate;
-			internal LockedEntryStream(Stream inner, object gate) { _inner = inner; _gate = gate; }
+			private readonly long _declared;
+			private long _read;
+			internal LockedEntryStream(Stream inner, object gate, long declared) { _inner = inner; _gate = gate; _declared = inner.CanSeek ? -1 : declared; }
+			private int Counted(int read, int asked)
+			{
+				if (_declared < 0) return read;
+				_read += read;
+				if (_read > _declared) throw new InvalidDataException("Package entry exceeds its declared length.");
+				if (read == 0 && asked > 0 && _read < _declared) throw new InvalidDataException("Truncated package entry.");
+				return read;
+			}
 			public override bool CanRead => _inner.CanRead;
 			public override bool CanSeek => _inner.CanSeek;
 			public override bool CanWrite => false;
 			public override long Length { get { lock (_gate) return _inner.Length; } }
 			public override long Position { get { lock (_gate) return _inner.Position; } set { lock (_gate) _inner.Position = value; } }
-			public override int Read(byte[] buffer, int offset, int count) { lock (_gate) return _inner.Read(buffer, offset, count); }
-			public override int Read(Span<byte> buffer) { lock (_gate) return _inner.Read(buffer); }
+			public override int Read(byte[] buffer, int offset, int count) { lock (_gate) return Counted(_inner.Read(buffer, offset, count), count); }
+			public override int Read(Span<byte> buffer) { lock (_gate) return Counted(_inner.Read(buffer), buffer.Length); }
 			public override long Seek(long offset, SeekOrigin origin) { lock (_gate) return _inner.Seek(offset, origin); }
 			public override void Flush() { }
 			public override void SetLength(long value) => throw new NotSupportedException();

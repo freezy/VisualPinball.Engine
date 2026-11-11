@@ -49,17 +49,64 @@ namespace VisualPinball.Unity.Test
 		{
 			var path = Path.Combine(Path.GetTempPath(), $"vpe-no-scene-{Guid.NewGuid():N}.vpe");
 			using (var storage = PackageApi.StorageManager.CreateStorage(path)) {
-				VpePackageManifestIo.Write(storage, new VpePackageManifest { WrittenBy = "test" });
+				VpePackageManifestIo.Write(storage, Manifest(VpePackageSchemas.ItemsVersion));
 				storage.AddFolder(PackageApi.TableFolder);
 			}
 			try {
-				yield return AssertInvalid(path);
+				yield return AssertInvalid(path, "scene");
 			} finally {
 				File.Delete(path);
 			}
 		}
 
-		private static IEnumerator AssertInvalid(string path)
+		[UnityTest]
+		public IEnumerator PackageFromBeforeABreakingChangeIsRefusedWithTheReason()
+		{
+			var path = Path.Combine(Path.GetTempPath(), $"vpe-old-revision-{Guid.NewGuid():N}.vpe");
+			using (var storage = PackageApi.StorageManager.CreateStorage(path)) {
+				VpePackageManifestIo.Write(storage, Manifest(1, "VPE 0.0.1-preview.235"));
+				storage.AddFolder(PackageApi.TableFolder);
+			}
+			try {
+				yield return AssertInvalid(path, "VPE 0.0.1-preview.235", VpePackageSchemas.ItemsChanges[0], "Export the table again");
+			} finally {
+				File.Delete(path);
+			}
+		}
+
+		[UnityTest]
+		public IEnumerator PackageFromANewerBuildIsRefused()
+		{
+			var path = Path.Combine(Path.GetTempPath(), $"vpe-new-revision-{Guid.NewGuid():N}.vpe");
+			using (var storage = PackageApi.StorageManager.CreateStorage(path)) {
+				VpePackageManifestIo.Write(storage, Manifest(VpePackageSchemas.ItemsVersion + 1));
+				storage.AddFolder(PackageApi.TableFolder);
+			}
+			try {
+				yield return AssertInvalid(path, "Update VPE");
+			} finally {
+				File.Delete(path);
+			}
+		}
+
+		[Test]
+		public void EveryItemsSchemaVersionHasItsReason()
+		{
+			Assert.That(VpePackageSchemas.ItemsChanges, Has.Length.EqualTo(VpePackageSchemas.ItemsVersion - 1));
+			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion)), Is.Null);
+			foreach (var change in VpePackageSchemas.ItemsChanges) {
+				Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(1)), Does.Contain(change));
+				// a manifest without the schema table is older than any version
+				Assert.That(VpePackageSchemas.ItemsIncompatibility(new VpePackageManifest { Schemas = null }), Does.Contain(change));
+			}
+		}
+
+		private static VpePackageManifest Manifest(int itemsVersion, string writtenBy = "test") => new VpePackageManifest {
+			WrittenBy = writtenBy,
+			Schemas = new System.Collections.Generic.Dictionary<string, int> { [VpePackageSchemas.Items] = itemsVersion },
+		};
+
+		private static IEnumerator AssertInvalid(string path, params string[] reasons)
 		{
 			var task = new RuntimePackageReader(path).ImportIntoScene();
 			while (!task.IsCompleted) {
@@ -67,6 +114,9 @@ namespace VisualPinball.Unity.Test
 			}
 			Assert.That(task.IsFaulted, Is.True);
 			Assert.That(task.Exception!.InnerException, Is.InstanceOf<InvalidPackageException>(), task.Exception.ToString());
+			foreach (var reason in reasons) {
+				Assert.That(task.Exception.InnerException.Message, Does.Contain(reason));
+			}
 		}
 	}
 }
