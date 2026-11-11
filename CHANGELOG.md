@@ -183,7 +183,7 @@ Built with Unity 6.5
 
 ### Changed
 
-- The items schema version of `.vpe` packages goes up with every breaking change. The player refuses a table with another version and says what changed, instead of loading it half-working; during alpha and beta such tables are exported again rather than migrated.
+- The items schema version of `.vpe` packages goes up with every breaking change. The player refuses a table with a version outside the range it loads and says what changed, instead of loading it half-working; during alpha and beta such tables are exported again rather than migrated.
 - Opening a `.vpe` package checks its structure but no longer hashes its whole payload, which held up the first load after each export for tens of seconds. The editor's "Verify VPE package…" menu still runs the full check.
 - Upgraded from Unity 2022.3 to Unity 6, and later to Unity 6.5 with HDRP 17. New dependencies: Unity Splines and NativeTrees.
 - Hybrid optics are on by default for newly lit inserts, and RGB-mapped lamps are treated as game-driven LEDs.

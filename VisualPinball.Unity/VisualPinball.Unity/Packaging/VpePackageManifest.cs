@@ -63,17 +63,24 @@ namespace VisualPinball.Unity
 	public static class VpePackageSchemas
 	{
 		/// <summary>
-		/// The version of the items schema this build writes and loads. It goes up by one with every change after
-		/// which packages written before it no longer load correctly, with the reason added to
-		/// <see cref="ItemsChanges"/>. The runtime reader refuses any other version and says why.
+		/// The version of the items schema this build writes. It goes up by one with every change to the schema that
+		/// a reader has to know about, with a line added to <see cref="ItemsChanges"/>.
+		/// </summary>
+		public const int ItemsVersion = 2;
+
+		/// <summary>
+		/// The oldest items schema version this build still loads. The runtime reader takes every version from here
+		/// up to <see cref="ItemsVersion"/> and refuses the others, saying why.
 		/// </summary>
 		///
 		/// <remarks>
-		/// This is the policy while VPE is in alpha and beta: a table is exported again instead of being migrated.
+		/// While VPE is in alpha and beta, a breaking change raises this along with <see cref="ItemsVersion"/>: a
+		/// table is exported again instead of being migrated. Once older tables have to keep working, it stays
+		/// behind and the reader copes with the versions in between.
 		/// </remarks>
-		public const int ItemsVersion = 2;
+		public const int MinItemsVersion = 2;
 
-		/// <summary>What each items schema version broke, in words a player can read. The first entry is version 2.</summary>
+		/// <summary>What each items schema version changed, in words a player can read. The first entry is version 2.</summary>
 		public static readonly string[] ItemsChanges = {
 			"switch mappings name the device they belong to, and tables from before load without working switches",
 		};
@@ -82,20 +89,22 @@ namespace VisualPinball.Unity
 		public static string ItemsIncompatibility(VpePackageManifest manifest)
 		{
 			var version = manifest.Schemas != null && manifest.Schemas.TryGetValue(Items, out var written) ? written : 0;
-			if (version == ItemsVersion) {
+			if (version >= MinItemsVersion && version <= ItemsVersion) {
 				return null;
 			}
+			var loads = MinItemsVersion == ItemsVersion ? $"{ItemsVersion}" : $"{MinItemsVersion} to {ItemsVersion}";
 			var writer = string.IsNullOrWhiteSpace(manifest.WrittenBy) ? "an unknown version of VPE" : manifest.WrittenBy;
 			if (version > ItemsVersion) {
 				return $"This table was exported with {writer}, which is newer than this build (items schema {version}, " +
-					$"this build loads {ItemsVersion}). Update VPE to load it.";
+					$"this build loads {loads}). Update VPE to load it.";
 			}
 			var changes = new List<string>();
-			for (var from = System.Math.Max(1, version); from < ItemsVersion; from++) {
+			// what came between the package's version and the oldest one still loaded
+			for (var from = System.Math.Max(1, version); from < MinItemsVersion; from++) {
 				changes.Add(ItemsChanges[from - 1]);
 			}
 			return $"This table was exported with {writer}, and VPE has changed since in a way older tables don't survive " +
-				$"(items schema {version}, this build loads {ItemsVersion}): {string.Join("; ", changes)}. " +
+				$"(items schema {version}, this build loads {loads}): {string.Join("; ", changes)}. " +
 				"Export the table again with a current VPE, or get an updated one from its author.";
 		}
 
