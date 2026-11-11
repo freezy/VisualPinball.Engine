@@ -152,13 +152,19 @@ namespace VisualPinball.Unity.Editor
 		{
 			lock (_readGate) {
 				if (_readArchive == null) throw new ObjectDisposedException(nameof(ZipPackageStorage));
-				return new LockedEntryStream(entry.Open(), _readGate, entry.Length);
+				var stream = entry.Open();
+				// a stored entry's stream spans its compressed size, which a crafted directory can set apart from the declared one
+				if (stream.CanSeek && stream.Length != entry.Length) {
+					stream.Dispose();
+					throw new InvalidDataException("Package entry doesn't match its declared length.");
+				}
+				return new LockedEntryStream(stream, _readGate, entry.Length);
 			}
 		}
 		// Entry substreams share the archive's file cursor. Serialize each read/seek operation, not complete file copies.
 		// An inflated entry must also give exactly the bytes the directory declares: opening a package checks those
 		// lengths against its limits without reading the payload, so an entry that expands past its own would
-		// otherwise be unbounded. (A stored entry can't: its stream is the declared span of the file.)
+		// otherwise be unbounded. A stored entry is checked when it's opened: its stream is a span of the file.
 		private sealed class LockedEntryStream : Stream
 		{
 			private readonly Stream _inner;
