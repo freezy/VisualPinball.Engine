@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 			return Hash(stream, bytes.LongLength);
 		}
 
-		public static string Hash(Stream stream, long expectedLength, CancellationToken ct = default, Action<int> readProgress = null)
+		public static string Hash(Stream stream, long expectedLength, CancellationToken ct = default)
 		{
 			using var hash = SHA256.Create();
 			var buffer = new byte[(int)System.Math.Max(1, System.Math.Min(128 * 1024, expectedLength))];
@@ -69,7 +69,6 @@ namespace VisualPinball.Unity
 				count += read;
 				if (count > expectedLength) throw new InvalidDataException("Entry exceeds its declared length.");
 				hash.TransformBlock(buffer, 0, read, buffer, 0);
-				readProgress?.Invoke(read);
 			}
 			if (count != expectedLength) throw new InvalidDataException("Truncated entry.");
 			hash.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
@@ -106,13 +105,12 @@ namespace VisualPinball.Unity
 				throw new InvalidDataException("Invalid package entry path.");
 		}
 
-		public static Manifest Verify(ZipArchive zip, string path, bool force = false, CancellationToken ct = default, Action<long, long> progress = null)
-		{
-			try { return VerifyCore(zip, path, force, ct, progress); }
-			catch (Exception e) when (!(e is OperationCanceledException)) { InvalidateReceipt(path, "packages"); throw; }
-		}
-
-		private static Manifest VerifyCore(ZipArchive zip, string path, bool force, CancellationToken ct, Action<long, long> progress)
+		/// <summary>
+		/// Checks a package's directory against its integrity manifest: safe paths, bounded sizes, and every entry
+		/// listed with its length. Hashing the payload reads the whole package, far longer than a table load may
+		/// wait, so opening a package doesn't; <see cref="VerifyFile"/> does, on request.
+		/// </summary>
+		public static Manifest Verify(ZipArchive zip, string path, bool hashPayload = false, CancellationToken ct = default)
 		{
 			var initial = new FileInfo(path);
 			initial.Refresh();
@@ -154,19 +152,13 @@ namespace VisualPinball.Unity
 				if (entry == null || entry.Path == ManifestName || !listed.Add(entry.Path) || !IsHash(entry.Sha256) || !files.TryGetValue(entry.Path, out var file) || entry.Length != file.Length)
 					throw new InvalidDataException("Integrity manifest does not match the package directory.");
 			}
-			var directory = string.Join("\n", files.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => p.Key + "\0" + p.Value.Length + "\0" + p.Value.CompressedLength + "\0" + p.Value.Crc32));
-			var identity = Hash(bytes) + Hash(Utf8.GetBytes(directory));
-			if (!force && ReceiptMatches(path, initial, identity, "packages")) return manifest;
-			long verified = 0;
-			var payloadBytes = total - manifestEntry.Length;
-			var progressTimer = System.Diagnostics.Stopwatch.StartNew();
+			if (!hashPayload) return manifest;
 			foreach (var entry in manifest.Entries) {
 				using var stream = files[entry.Path].Open();
-				if (Hash(stream, entry.Length, ct, count => { verified += count; if (progressTimer.ElapsedMilliseconds >= 100 || verified == payloadBytes) { progress?.Invoke(verified, payloadBytes); progressTimer.Restart(); } }) != entry.Sha256) throw new InvalidDataException($"Package checksum mismatch: {entry.Path}");
+				if (Hash(stream, entry.Length, ct) != entry.Sha256) throw new InvalidDataException($"Package checksum mismatch: {entry.Path}");
 			}
 			ct.ThrowIfCancellationRequested();
 			EnsureUnchanged(path, initial);
-			SaveReceipt(path, initial, identity, "packages");
 			return manifest;
 		}
 

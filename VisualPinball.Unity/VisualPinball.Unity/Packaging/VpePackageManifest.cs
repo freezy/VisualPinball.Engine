@@ -62,6 +62,43 @@ namespace VisualPinball.Unity
 
 	public static class VpePackageSchemas
 	{
+		/// <summary>
+		/// The version of the items schema this build writes and loads. It goes up by one with every change after
+		/// which packages written before it no longer load correctly, with the reason added to
+		/// <see cref="ItemsChanges"/>. The runtime reader refuses any other version and says why.
+		/// </summary>
+		///
+		/// <remarks>
+		/// This is the policy while VPE is in alpha and beta: a table is exported again instead of being migrated.
+		/// </remarks>
+		public const int ItemsVersion = 2;
+
+		/// <summary>What each items schema version broke, in words a player can read. The first entry is version 2.</summary>
+		public static readonly string[] ItemsChanges = {
+			"switch mappings name the device they belong to, and tables from before load without working switches",
+		};
+
+		/// <summary>Why a package with another items schema version can't be loaded by this build, or null when it can.</summary>
+		public static string ItemsIncompatibility(VpePackageManifest manifest)
+		{
+			var version = manifest.Schemas != null && manifest.Schemas.TryGetValue(Items, out var written) ? written : 0;
+			if (version == ItemsVersion) {
+				return null;
+			}
+			var writer = string.IsNullOrWhiteSpace(manifest.WrittenBy) ? "an unknown version of VPE" : manifest.WrittenBy;
+			if (version > ItemsVersion) {
+				return $"This table was exported with {writer}, which is newer than this build (items schema {version}, " +
+					$"this build loads {ItemsVersion}). Update VPE to load it.";
+			}
+			var changes = new List<string>();
+			for (var from = System.Math.Max(1, version); from < ItemsVersion; from++) {
+				changes.Add(ItemsChanges[from - 1]);
+			}
+			return $"This table was exported with {writer}, and VPE has changed since in a way older tables don't survive " +
+				$"(items schema {version}, this build loads {ItemsVersion}): {string.Join("; ", changes)}. " +
+				"Export the table again with a current VPE, or get an updated one from its author.";
+		}
+
 		public const string Items = "items";
 		public const string Materials = "materials";
 		public const string Inserts = "inserts";

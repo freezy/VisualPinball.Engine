@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 			return s;
 		}
 
-		public IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null)
+		public IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 			return new OpenMcdfStorage(path);
