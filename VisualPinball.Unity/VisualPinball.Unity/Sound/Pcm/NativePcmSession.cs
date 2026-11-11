@@ -244,6 +244,15 @@ namespace VisualPinball.Unity
 			try { return Context != IntPtr.Zero && VpePcmSetTransitionGain(Context, gain, milliseconds) != 0; }
 			catch (EntryPointNotFoundException) { return false; }
 		}
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmSetMasterGain(IntPtr context, float gain);
+		private bool _masterUnsupported;
+		/// <summary>The output level after processing. False with a native plugin from before it, which only has the envelope.</summary>
+		internal bool SetMasterGain(float gain)
+		{
+			if (_masterUnsupported || Context == IntPtr.Zero) return false;
+			try { return VpePcmSetMasterGain(Context, gain) != 0; }
+			catch (EntryPointNotFoundException) { _masterUnsupported = true; return false; }
+		}
 		internal void SetDeviceOutputPaused(bool paused)
 		{
 			var output = Volatile.Read(ref _output);
