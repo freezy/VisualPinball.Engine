@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
@@ -93,8 +94,14 @@ namespace VisualPinball.Unity.Test
 		public void EveryItemsSchemaVersionHasItsReason()
 		{
 			Assert.That(VpePackageSchemas.ItemsChanges, Has.Length.EqualTo(VpePackageSchemas.ItemsVersion - 1));
-			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion)), Is.Null);
-			foreach (var change in VpePackageSchemas.ItemsChanges) {
+			Assert.That(VpePackageSchemas.MinItemsVersion, Is.InRange(1, VpePackageSchemas.ItemsVersion));
+			for (var version = VpePackageSchemas.MinItemsVersion; version <= VpePackageSchemas.ItemsVersion; version++) {
+				Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(version)), Is.Null, $"Items schema {version}");
+			}
+			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.MinItemsVersion - 1)), Is.Not.Null);
+			Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(VpePackageSchemas.ItemsVersion + 1)), Is.Not.Null);
+			// a package older than the oldest version still loaded is told everything that changed up to it
+			foreach (var change in VpePackageSchemas.ItemsChanges.Take(VpePackageSchemas.MinItemsVersion - 1)) {
 				Assert.That(VpePackageSchemas.ItemsIncompatibility(Manifest(1)), Does.Contain(change));
 				// a manifest without the schema table is older than any version
 				Assert.That(VpePackageSchemas.ItemsIncompatibility(new VpePackageManifest { Schemas = null }), Does.Contain(change));
