@@ -120,6 +120,24 @@ namespace VisualPinball.Unity
 			return list;
 		}
 
+		/// <summary>
+		/// Takes the keyboard off an action, for a host that binds its own key to what the action does. The
+		/// action's other bindings stay.
+		/// </summary>
+		public void DisableKeyboardBindings(string mapName, string actionName)
+		{
+			var action = FindAction(mapName, actionName);
+			if (action == null) {
+				return;
+			}
+			for (var i = 0; i < action.bindings.Count; i++) {
+				var path = action.bindings[i].path;
+				if (path != null && path.StartsWith("<Keyboard>", StringComparison.OrdinalIgnoreCase)) {
+					action.ApplyBindingOverride(i, new InputBinding { overridePath = string.Empty });
+				}
+			}
+		}
+
 		public InputAction FindAction(string mapName, string actionName)
 		{
 			InputAction action = null;
