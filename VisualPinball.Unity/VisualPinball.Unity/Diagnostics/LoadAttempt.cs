@@ -107,6 +107,13 @@ namespace VisualPinball.Unity
 		public string GameId { get; private set; }
 
 		/// <summary>
+		/// The table's id and version from its package: which table this is, whatever its file is
+		/// called and whoever packaged it. Null where the package has none.
+		/// </summary>
+		public string TableId { get; private set; }
+		public string TableVersion { get; private set; }
+
+		/// <summary>
 		/// Where the load's time went: the phases and the reader's steps, plus facts like
 		/// whether the texture cache was hit.
 		/// </summary>
@@ -233,6 +240,13 @@ namespace VisualPinball.Unity
 			FormatVersion = formatVersion;
 			WrittenBy = writtenBy;
 			ComponentTypes = componentTypes;
+			Publish(log: false);
+		}
+
+		public void SetIdentity(string tableId, string version)
+		{
+			TableId = string.IsNullOrEmpty(tableId) ? null : tableId;
+			TableVersion = string.IsNullOrEmpty(version) ? null : version;
 			Publish(log: false);
 		}
 
@@ -483,6 +497,12 @@ namespace VisualPinball.Unity
 			w.Add("size-mb", Size / 1048576.0);
 			if (Fingerprint != null) {
 				w.Add("fingerprint", Fingerprint);
+			}
+			if (TableId != null) {
+				w.Add("id", TableId);
+			}
+			if (TableVersion != null) {
+				w.Add("version", TableVersion);
 			}
 			w.Add("phase", Phase);
 			if (FailedPhase != null) {
