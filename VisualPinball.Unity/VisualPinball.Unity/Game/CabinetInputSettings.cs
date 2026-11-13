@@ -316,7 +316,7 @@ namespace VisualPinball.Unity
 			if (type != TypeCabinetIntent && type != TypeCabinetDirect) {
 				type = TypeGamepad;
 			}
-			strength = Mathf.Clamp(strength, 0f, 2f);
+			strength = Mathf.Clamp(strength, 0f, NudgeSensorSetup.MaxStrength);
 			cabinetMassKg = Mathf.Clamp(cabinetMassKg <= 0f ? 113f : cabinetMassKg, 0f, 200f);
 			mountRotation = Mathf.Clamp(mountRotation, (int)NudgeSensorMountRotation.Rotation0, (int)NudgeSensorMountRotation.Rotation270);
 			x ??= string.Empty;
