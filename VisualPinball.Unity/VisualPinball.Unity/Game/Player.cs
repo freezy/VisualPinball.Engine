@@ -758,6 +758,15 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		/// <summary>
+		/// Takes the keyboard off slow motion. A host with its own key bindings holds the time scale down
+		/// itself, on the key its user chose.
+		/// </summary>
+		public void ReleaseSlowMotionKey()
+		{
+			_inputManager?.DisableKeyboardBindings(InputConstants.MapDebug, InputConstants.ActionSlowMotion);
+		}
+
 		private void HandleInput(object obj, InputActionChange change)
 		{
 			if (obj is not InputAction action || action.actionMap == null) {
