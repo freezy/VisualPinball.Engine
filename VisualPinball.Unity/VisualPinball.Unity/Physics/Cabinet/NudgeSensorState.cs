@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 			YSensor.Configure(yMapped, SensorMappingKind.Position);
 			Intent = new NudgeIntentState(true);
 			Cabinet = CabinetPhysicsState.Default;
-			Strength = math.clamp(strength, 0f, 2f);
+			Strength = math.clamp(strength, 0f, NudgeSensorSetup.MaxStrength);
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
 			_deactivationDelay = 0;
@@ -235,7 +235,7 @@ namespace VisualPinball.Unity
 		public CabinetSensorState(NudgeSensorType type, float strength, float cabinetMassKg,
 			bool velXMapped, bool velYMapped, bool accXMapped, bool accYMapped)
 		{
-			Strength = math.clamp(strength, 0f, 2f);
+			Strength = math.clamp(strength, 0f, NudgeSensorSetup.MaxStrength);
 			CabinetMassKg = math.clamp(cabinetMassKg, 0f, 200f);
 			KalmanX = MotionKalmanAxis.Default;
 			KalmanY = MotionKalmanAxis.Default;

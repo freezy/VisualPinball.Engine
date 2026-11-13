@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Simulation
 	{
 		public NudgeSensorType Type = NudgeSensorType.CabinetDirect;
 
+		// A table is authored up to 2. The player's own sensors, which take these settings' place, go further.
 		[Range(0f, 2f)]
 		public float Strength = 1f;
 
@@ -53,7 +54,7 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public void Normalize()
 		{
-			Strength = Mathf.Clamp(Strength, 0f, 2f);
+			Strength = Mathf.Clamp(Strength, 0f, NudgeSensorSetup.MaxStrength);
 			CabinetMassKg = Mathf.Clamp(CabinetMassKg <= 0f ? 113f : CabinetMassKg, 0f, 200f);
 			MountRotation = NudgeSensorMountTransform.NormalizeRotation(MountRotation);
 			X ??= string.Empty;

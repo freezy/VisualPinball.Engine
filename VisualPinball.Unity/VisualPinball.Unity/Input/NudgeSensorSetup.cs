@@ -14,6 +14,12 @@ namespace VisualPinball.Unity
 	public static class NudgeSensorSetup
 	{
 		public const float Gravity = 9.80665f;
+
+		/// <summary>
+		/// The highest strength multiplier of a sensor. A light sensor board on a
+		/// heavy cabinet reports small motions, which need more than doubling.
+		/// </summary>
+		public const float MaxStrength = 5f;
 		// Pinscape's default joystick velocity range is +/-4096 / 20 mm/s.
 		public const float PinscapeVelocityScale = 0.2048f;
 		// Pico defaults to 100 signed report counts per mm/s.

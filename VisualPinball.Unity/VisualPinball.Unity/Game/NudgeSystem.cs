@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void Normalize()
 		{
-			Strength = math.clamp(Strength, 0f, 2f);
+			Strength = math.clamp(Strength, 0f, NudgeSensorSetup.MaxStrength);
 			CabinetMassKg = math.clamp(CabinetMassKg <= 0f ? 113f : CabinetMassKg, 0f, 200f);
 			MountRotation = NudgeSensorMountTransform.NormalizeRotation(MountRotation);
 			X ??= new SensorMapping();

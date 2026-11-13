@@ -155,7 +155,7 @@ namespace VisualPinball.Unity
 			if ((uint)index >= MaxSensors) {
 				return;
 			}
-			config.Strength = math.clamp(config.Strength, 0f, 2f);
+			config.Strength = math.clamp(config.Strength, 0f, NudgeSensorSetup.MaxStrength);
 			config.CabinetMassKg = math.clamp(config.CabinetMassKg <= 0f ? 113f : config.CabinetMassKg, 0f, 200f);
 			config.MountRotation = NudgeSensorMountTransform.NormalizeRotation(config.MountRotation);
 			ConfigureSensorState(index, config);
