@@ -82,14 +82,40 @@ namespace VisualPinball.Unity.Profiling
 		/// </summary>
 		public static FrameWindowStats Collect(long fromMark, long toMark)
 		{
-			var frames = FrameRecorder.Frames;
+			var stats = Collect(FrameRecorder.Frames, FrameRecorder.Capacity, FrameRecorder.Count, fromMark, toMark, FrameRecorder.CountsAllocations, out var sections, out var phases);
+			if (stats == null) {
+				return null;
+			}
+			var sectionCount = System.Math.Min(SectionRecorder.Count, sections.Length);
+			for (var s = 0; s < sectionCount; s++) {
+				if (sections[s] > 0) {
+					stats.SectionMs.Add(new KeyValuePair<string, double>(SectionRecorder.Name((ProfileSection)s), sections[s]));
+				}
+			}
+			var names = FrameRecorder.PhaseNames;
+			for (var p = 0; p < phases.Length && p < names.Length - 1; p++) {
+				stats.PhaseMs.Add(new KeyValuePair<string, double>(names[p], phases[p]));
+			}
+			return stats;
+		}
+
+		/// <summary>
+		/// The statistics of the frames between two marks in a ring of frames, without the names of the
+		/// sections and phases: their times per frame come back by index.
+		/// </summary>
+		/// <param name="frames">The ring</param>
+		/// <param name="capacity">How many frames the ring holds</param>
+		/// <param name="count">How many frames were written to it so far</param>
+		/// <param name="countsAllocations">Whether the frames have their allocated bytes</param>
+		internal static FrameWindowStats Collect(FrameSample* frames, int capacity, long count, long fromMark, long toMark, bool countsAllocations, out double[] sectionMs, out double[] phaseMs)
+		{
+			sectionMs = phaseMs = null;
 			if (frames == null || fromMark < 0 || toMark < 0) {
 				return null;
 			}
-			var count = FrameRecorder.Count;
 			// an interval needs the next frame's start
 			toMark = System.Math.Min(toMark, count - 1);
-			if (toMark - fromMark < 2 || fromMark < count - FrameRecorder.Capacity) {
+			if (toMark - fromMark < 2 || fromMark < count - capacity) {
 				return null;
 			}
 
@@ -114,14 +140,14 @@ namespace VisualPinball.Unity.Profiling
 			var allocations = 0;
 			var maxBalls = 0;
 			var stats = new FrameWindowStats();
-			var countsAllocations = FrameRecorder.CountsAllocations;
 			var firstGc = -1;
 			var lastGc = -1;
 
 			for (var i = fromMark; i < toMark; i++) {
-				ref var f = ref frames[i % FrameRecorder.Capacity];
-				ref var next = ref frames[(i + 1) % FrameRecorder.Capacity];
-				if (f.Paused != 0 || f.SelfInduced != 0) {
+				ref var f = ref frames[i % capacity];
+				ref var next = ref frames[(i + 1) % capacity];
+				// the interval runs to the next frame's start: neither end may be paused or the instrumentation's own
+				if (f.Paused != 0 || next.Paused != 0 || f.SelfInduced != 0 || next.SelfInduced != 0) {
 					previousPresent = 0;
 					continue;
 				}
@@ -227,16 +253,14 @@ namespace VisualPinball.Unity.Profiling
 			}
 			stats.MaxBalls = maxBalls;
 
-			var sectionCount = System.Math.Min(SectionRecorder.Count, FrameSample.MaxSections);
-			for (var s = 0; s < sectionCount; s++) {
-				if (sections[s] > 0) {
-					stats.SectionMs.Add(new KeyValuePair<string, double>(SectionRecorder.Name((ProfileSection)s), sections[s] / used));
-				}
+			for (var s = 0; s < sections.Length; s++) {
+				sections[s] /= used;
 			}
-			var names = FrameRecorder.PhaseNames;
-			for (var p = 0; p < phases.Length && p < names.Length - 1; p++) {
-				stats.PhaseMs.Add(new KeyValuePair<string, double>(names[p], phases[p] / used));
+			for (var p = 0; p < phases.Length; p++) {
+				phases[p] /= used;
 			}
+			sectionMs = sections;
+			phaseMs = phases;
 			return stats;
 		}
 
