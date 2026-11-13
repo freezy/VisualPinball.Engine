@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Runtime.InteropServices;
 
@@ -126,4 +125,3 @@ namespace VisualPinball.Unity.Profiling
 		private static extern int clock_gettime(int clock, out TimeSpec time);
 	}
 }
-#endif

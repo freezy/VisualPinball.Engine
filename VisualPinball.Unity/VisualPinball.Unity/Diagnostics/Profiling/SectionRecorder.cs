@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -109,8 +108,11 @@ namespace VisualPinball.Unity.Profiling
 				return;
 			}
 			var i = (int)section;
+			if (Depth[i] == 0) {
+				return; // began before the instrumentation was turned on
+			}
 			Markers[i].End();
-			if (Depth[i] == 0 || --Depth[i] > 0) {
+			if (--Depth[i] > 0) {
 				return;
 			}
 			var end = Stopwatch.GetTimestamp();
@@ -178,4 +180,3 @@ namespace VisualPinball.Unity.Profiling
 		}
 	}
 }
-#endif

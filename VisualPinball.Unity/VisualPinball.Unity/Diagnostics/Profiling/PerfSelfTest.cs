@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,7 +28,7 @@ namespace VisualPinball.Unity.Profiling
 	/// <summary>
 	/// <c>--vpe-test-perf=&lt;mode&gt;</c>: makes the problem a detector is for, once, 35 s into
 	/// a table, so every detector, cause and reporting path can be checked end to end in a real
-	/// build. Profile builds only, like <c>--vpe-test-crash</c>.
+	/// build. The argument turns the instrumentation on for the session, like <c>--vpe-profile</c>.
 	/// </summary>
 	///
 	/// <remarks>
@@ -277,4 +276,3 @@ namespace VisualPinball.Unity.Profiling
 		}
 	}
 }
-#endif

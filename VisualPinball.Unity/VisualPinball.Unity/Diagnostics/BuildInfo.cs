@@ -88,10 +88,9 @@ namespace VisualPinball.Unity
 		private static VpeBuildInfo _current;
 
 		/// <summary>
-		/// "release", or for the profile build "profile", "profile-dev" when it's a development
-		/// build. Decided by how this code was compiled, so it can't disagree with it.
+		/// "release", or "development" for a development build of the player.
 		/// </summary>
-		public static string Flavor => !VpeProfiler.IsProfileBuild ? "release" : UnityEngine.Debug.isDebugBuild && !Application.isEditor ? "profile-dev" : "profile";
+		public static string Flavor => UnityEngine.Debug.isDebugBuild && !Application.isEditor ? "development" : "release";
 
 		/// <summary>
 		/// The build info of the running app. Main thread on first access.

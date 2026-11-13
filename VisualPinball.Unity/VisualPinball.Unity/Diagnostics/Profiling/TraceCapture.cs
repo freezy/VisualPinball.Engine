@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -82,8 +81,10 @@ namespace VisualPinball.Unity.Profiling
 		private static int _frameCount, _tickCount, _slowCount, _eventCount, _lockCount;
 		private static readonly SystemLockProbe.Stall[] Stalls = new SystemLockProbe.Stall[SystemLockProbe.Capacity];
 		private static int _stallCount;
-		private static readonly byte[] Json = new byte[JsonCapacity];
-		private static readonly JsonWriter Writer = new(Json);
+		// allocated with the first request and given back when the instrumentation stops: normal play,
+		// which only subscribes to Written, holds none of it
+		private static byte[] Json;
+		private static JsonWriter Writer;
 
 		// context, refreshed (and redacted) on the main thread at table load
 		private static string _table, _fingerprint, _version, _gpu, _cpu, _os, _api, _session, _settings;
@@ -94,7 +95,7 @@ namespace VisualPinball.Unity.Profiling
 		private static string[] _reqPhaseNames = Array.Empty<string>();
 
 		// reused for every trace
-		private static readonly MemoryStream Compressed = new(4 << 20);
+		private static MemoryStream Compressed;
 
 		public static bool IsBusy => _pending || _busy;
 
@@ -173,6 +174,9 @@ namespace VisualPinball.Unity.Profiling
 			_slow = null;
 			_events = null;
 			_locks = null;
+			Json = null;
+			Writer = null;
+			Compressed = null;
 		}
 
 		/// <summary>
@@ -233,6 +237,9 @@ namespace VisualPinball.Unity.Profiling
 			_slow = Alloc<SectionRecorder.SlowCall>(MaxSlow);
 			_events = Alloc<EventSample>(MaxEvents);
 			_locks = Alloc<SimulationTrace.LockRecord>(MaxLocks);
+			Json = new byte[JsonCapacity];
+			Writer = new JsonWriter(Json);
+			Compressed = new MemoryStream(4 << 20);
 		}
 
 		private static T* Alloc<T>(int count) where T : unmanaged
@@ -397,7 +404,7 @@ namespace VisualPinball.Unity.Profiling
 			var origin = _fromTicks;
 			using var process = Process.GetCurrentProcess();
 			w.Raw("{\"displayTimeUnit\":\"ms\",\"metadata\":{");
-			w.Raw("\"producer\":\"VPE profile build\",\"version\":").Str(_reqVersion);
+			w.Raw("\"producer\":\"VPE player\",\"version\":").Str(_reqVersion);
 			w.Raw(",\"os_pid\":").Int(process.Id);
 			w.Raw(",\"session\":").Str(_reqSession).Raw(",\"table\":").Str(_reqTable).Raw(",\"fingerprint\":").Str(_reqFingerprint);
 			w.Raw(",\"gpu\":").Str(_reqGpu).Raw(",\"cpu\":").Str(_reqCpu).Raw(",\"os\":").Str(_reqOs).Raw(",\"api\":").Str(_reqApi).Raw(",\"display\":").Str(_reqSettings);
@@ -703,4 +710,3 @@ namespace VisualPinball.Unity.Profiling
 		private static byte Hex(int value) => (byte)(value < 10 ? '0' + value : 'a' + value - 10);
 	}
 }
-#endif

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Diagnostics;
 using UnityEngine;
@@ -51,7 +50,7 @@ namespace VisualPinball.Unity.Profiling
 	}
 
 	/// <summary>
-	/// A performance problem the profile build found, with what it thinks caused it.
+	/// A performance problem the instrumentation found, with what it thinks caused it.
 	/// </summary>
 	public struct Incident
 	{
@@ -127,7 +126,7 @@ namespace VisualPinball.Unity.Profiling
 	/// </summary>
 	///
 	/// <remarks>
-	/// Only while a table plays (from playable on), not while paused or in the profile build's
+	/// Only while a table plays (from playable on), not while paused or in the instrumentation's
 	/// own frames. O(1) per frame apart from a 120-entry sort, and allocation-free. Main thread
 	/// only.
 	/// </remarks>
@@ -233,6 +232,20 @@ namespace VisualPinball.Unity.Profiling
 		{
 			Reset();
 			ProfileMetrics.Reset();
+		}
+
+		/// <summary>
+		/// The median starts over: what renders from now on isn't comparable to the frames before
+		/// (the graphics settings changed).
+		/// </summary>
+		internal static void RestartIntervals()
+		{
+			_intervalCount = _intervalHead = 0;
+			_presentCount = 0;
+			_pacingWindowStart = 0;
+			_lastPresentTicks = 0;
+			_windowCount = 0;
+			_slowWindows = 0;
 		}
 
 		/// <summary>
@@ -824,4 +837,3 @@ namespace VisualPinball.Unity.Profiling
 		public static long FromSeconds(double seconds) => (long)(seconds * Frequency);
 	}
 }
-#endif

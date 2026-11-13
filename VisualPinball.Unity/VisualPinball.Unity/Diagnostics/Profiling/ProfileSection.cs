@@ -17,7 +17,7 @@
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// A part of VPE whose cost the profile build measures, see <see cref="VpeProfiler"/>.
+	/// A part of VPE whose cost the instrumentation measures, see <see cref="VpeProfiler"/>.
 	/// </summary>
 	/// <remarks>
 	/// Appending is fine; the names go into traces, so don't rename them lightly.
@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 		PluginsUpdate,
 		/// <summary>Overlays and menus drawn.</summary>
 		UiOverlay,
-		/// <summary>The profile build's own per-frame work.</summary>
+		/// <summary>The instrumentation's own per-frame work.</summary>
 		PerfSelf,
 	}
 
@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 		QualityChanged,
 		/// <summary>The GPU memory went over its budget.</summary>
 		VramOverBudget,
-		/// <summary>The profile build's own work starts (value 1) or ends (0): those frames are no incident.</summary>
+		/// <summary>The instrumentation's or a benchmark's own work starts (value 1) or ends (0): those frames are no incident.</summary>
 		SelfInduced,
 		/// <summary>The first time a light of a kind changed state.</summary>
 		FirstUseLight,
@@ -103,7 +103,7 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// What the profile build counts per frame, see <see cref="VpeProfiler.Count"/>.
+	/// What the instrumentation counts per frame, see <see cref="VpeProfiler.Count"/>.
 	/// </summary>
 	public enum ProfileCounter : byte
 	{
