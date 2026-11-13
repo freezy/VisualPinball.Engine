@@ -78,11 +78,9 @@ namespace VisualPinball.Unity
 			// register ball
 			_physicsEngine.RegisterRuntimeBall(ballComp);
 			_player.BallCreated(UnityObjectId.Get(ballGo), ballGo);
-#if VPE_PROFILE
-			if (_physicsEngine.Balls.Count() >= 2) {
+			if (VpeProfiler.IsEnabled && _physicsEngine.Balls.Count() >= 2) {
 				VpeProfiler.Mark(ProfileEvent.FirstUseMultiball);
 			}
-#endif
 
 			return ballComp.Id;
 		}

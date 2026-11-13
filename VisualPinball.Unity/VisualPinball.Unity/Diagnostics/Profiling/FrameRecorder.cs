@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,7 +42,7 @@ namespace VisualPinball.Unity.Profiling
 	}
 
 	/// <summary>
-	/// One frame on the main thread, as recorded in the profile build.
+	/// One frame on the main thread, as recorded while the instrumentation is on.
 	/// </summary>
 	internal unsafe struct FrameSample
 	{
@@ -200,8 +199,11 @@ namespace VisualPinball.Unity.Profiling
 		/// <summary>Stopwatch ticks of Unity's CPU timer, how the frame timings were mapped.</summary>
 		public static double TimerToStopwatch => _timerToStopwatch;
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-		private static void Install()
+		/// <summary>
+		/// Starts recording: allocates the rings and puts the stamps into the PlayerLoop. Called by
+		/// <see cref="VpeProfiler.Start"/>, main thread.
+		/// </summary>
+		internal static void Start()
 		{
 			_mainThreadId = Thread.CurrentThread.ManagedThreadId;
 			SectionRecorder.Install();
@@ -243,10 +245,10 @@ namespace VisualPinball.Unity.Profiling
 				Application.focusChanged += focused => Mark(ProfileEvent.Focus, focused ? 1 : 0);
 				// a trace still waiting for its post-window is written with what there is
 				Application.quitting += () => TraceCapture.Flush();
-				// also when the editor leaves play mode without a domain reload; Install starts it again
+				// also when the editor leaves play mode without a domain reload
 				Application.quitting += SystemLockProbe.Stop;
 #if UNITY_EDITOR
-				UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += Uninstall;
+				UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += Stop;
 #endif
 			}
 			// every time: the editor may have reset the loop since (it skips systems already in)
@@ -257,11 +259,15 @@ namespace VisualPinball.Unity.Profiling
 		}
 
 		/// <summary>
-		/// Takes the stamps out of the PlayerLoop and frees the native memory, before a domain
-		/// reload throws away the pointers (and the delegates the loop still calls).
+		/// Takes the stamps out of the PlayerLoop and frees the native memory: the instrumentation
+		/// is turned off, or a domain reload is about to throw away the pointers (and the
+		/// delegates the loop still calls).
 		/// </summary>
-		private static void Uninstall()
+		internal static void Stop()
 		{
+			if (_frames == null) {
+				return;
+			}
 			var loop = PlayerLoop.GetCurrentPlayerLoop();
 			for (var i = 0; i < loop.subSystemList.Length; i++) {
 				var systems = loop.subSystemList[i].subSystemList;
@@ -335,6 +341,12 @@ namespace VisualPinball.Unity.Profiling
 		private static void StampPresentStart() { if (_open) _current.PresentUpdateStart = Stopwatch.GetTimestamp(); }
 		private static void StampPresentEnd() { if (_open) _current.PresentUpdateEnd = Stopwatch.GetTimestamp(); }
 
+		/// <summary>
+		/// Whether Unity counts the managed bytes allocated per frame here. A frame gets its count two
+		/// frames later.
+		/// </summary>
+		public static bool CountsAllocations => _gcAllocated.Valid;
+
 		/// <summary>The top-level PlayerLoop systems, in the order of <see cref="FrameSample.Phase"/>.</summary>
 		public static string[] PhaseNames { get; private set; } = Array.Empty<string>();
 
@@ -384,7 +396,7 @@ namespace VisualPinball.Unity.Profiling
 		public static int PresentWaitPhase { get; private set; } = -1;
 
 		/// <summary>
-		/// The next frames are the profile build's own doing (a trace copy), so they're no incident.
+		/// The next frames are the instrumentation's own doing (a trace copy), so they're no incident.
 		/// </summary>
 		internal static void MarkSelfInduced(int frames)
 		{
@@ -416,6 +428,10 @@ namespace VisualPinball.Unity.Profiling
 					break;
 				case ProfileEvent.UserMarker:
 					IncidentDetector.UserMarker();
+					break;
+				case ProfileEvent.QualityChanged:
+					// frames before and after render differently: no stutter between them
+					IncidentDetector.RestartIntervals();
 					break;
 				case ProfileEvent.TableUnload:
 					// while the load is still current: the last frames count, nothing after does
@@ -698,4 +714,3 @@ namespace VisualPinball.Unity.Profiling
 		#endregion
 	}
 }
-#endif

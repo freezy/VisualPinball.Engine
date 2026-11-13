@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System.Diagnostics;
 using System.Threading;
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN && !UNITY_EDITOR
@@ -262,4 +261,3 @@ namespace VisualPinball.Unity.Profiling
 #endif
 	}
 }
-#endif

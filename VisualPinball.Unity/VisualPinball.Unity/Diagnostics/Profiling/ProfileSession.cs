@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#if VPE_PROFILE
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -25,14 +24,16 @@ using Logger = NLog.Logger;
 namespace VisualPinball.Unity.Profiling
 {
 	/// <summary>
-	/// What the profile build does with the incidents it finds: a log line each (rate-limited),
+	/// What happens to the incidents the instrumentation finds: a log line each (rate-limited),
 	/// counts per type and cause for the session summary, and traces of the worst ones.
 	/// </summary>
 	///
 	/// <remarks>
 	/// A trace (§6.3) is taken for at most 3 incidents per table, 1 per type and cause, above a
 	/// severity threshold, not in the first 30 s after the table became playable, plus every
-	/// time the user presses F9. Main thread.
+	/// time the user presses F9. Main thread. During a benchmark, incidents are only counted: it
+	/// changes the settings between its steps and reports its own numbers
+	/// (<see cref="VpeProfiler.ReportsIncidents"/>).
 	/// </remarks>
 	public static class ProfileSession
 	{
@@ -60,8 +61,10 @@ namespace VisualPinball.Unity.Profiling
 		private static double _lastLogAt = -100;
 		private static int _suppressed;
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-		private static void Install()
+		/// <summary>
+		/// Starts listening for incidents. Called by <see cref="VpeProfiler.Start"/>, main thread.
+		/// </summary>
+		internal static void Start()
 		{
 			if (string.IsNullOrEmpty(TraceCapture.Directory)) {
 				TraceCapture.Directory = System.IO.Path.Combine(VpeLog.LogDirectory ?? System.IO.Path.Combine(Application.persistentDataPath, "logs"), "perf");
@@ -75,7 +78,16 @@ namespace VisualPinball.Unity.Profiling
 			ResetTable();
 			// realtimeSinceStartup starts over with a new play session in the editor
 			_lastLogAt = -100;
-			Logger.Info("Profile build: frame, section and simulation timing is recorded; incidents are logged, and the worst get a trace in {Folder:l}", TraceCapture.Directory ?? "the log folder");
+			if (VpeProfiler.Purpose == ProfilerPurpose.Session) {
+				Logger.Info("Incidents are logged, and the worst get a trace in {Folder:l}", TraceCapture.Directory ?? "the log folder");
+			}
+		}
+
+		internal static void Stop()
+		{
+			IncidentDetector.Detected -= OnIncident;
+			LoadAttempt.Began -= OnLoadBegan;
+			LoadAttempt.Finished -= OnLoadFinished;
 		}
 
 		private static void OnLoadBegan(LoadAttempt attempt)
@@ -125,6 +137,9 @@ namespace VisualPinball.Unity.Profiling
 			var type = (int)incident.Type;
 			var cause = (int)incident.Cause;
 			Counts[type, cause]++;
+			if (!VpeProfiler.ReportsIncidents) {
+				return;
+			}
 
 			var now = Time.realtimeSinceStartupAsDouble;
 			var user = incident.Type == IncidentType.UserMarker;
@@ -229,4 +244,3 @@ namespace VisualPinball.Unity.Profiling
 		}
 	}
 }
-#endif

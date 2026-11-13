@@ -240,14 +240,9 @@ namespace VisualPinball.Unity.Simulation
 		public const int WindowSeconds = 600;
 
 		/// <summary>
-		/// Length of the recorded window in <see cref="SimulationTraceMode.Summary"/>; two minutes
-		/// in a profile build, matched to its frame recorder.
+		/// Length of the recorded window in <see cref="SimulationTraceMode.Summary"/>.
 		/// </summary>
-#if VPE_PROFILE
-		public const int SummaryWindowSeconds = 120;
-#else
 		public const int SummaryWindowSeconds = 60;
-#endif
 
 		/// <summary>How often the summary is refreshed while the simulation runs.</summary>
 		public const int SummaryIntervalSeconds = 60;
@@ -331,13 +326,6 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public static SimulationTraceMode ResolveMode(bool? commandLine, bool isEditor, bool componentToggle)
 		{
-#if VPE_PROFILE
-			// the profile build's detectors and traces read the ticks: never off
-			if (commandLine != true) {
-				// --no-simulation-trace keeps the summary, but not the CSVs
-				return isEditor && componentToggle && commandLine != false ? SimulationTraceMode.Full : SimulationTraceMode.Summary;
-			}
-#endif
 			if (commandLine.HasValue) {
 				return commandLine.Value ? SimulationTraceMode.Full : SimulationTraceMode.Off;
 			}
@@ -458,10 +446,10 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		internal static void End()
 		{
-#if VPE_PROFILE
-			// a trace still waiting for its post-window needs the ticks before they go
-			Profiling.TraceCapture.Flush();
-#endif
+			if (VpeProfiler.IsEnabled) {
+				// a trace still waiting for its post-window needs the ticks before they go
+				Profiling.TraceCapture.Flush();
+			}
 			var session = _session;
 			if (!_recording || session == null) {
 				return;
