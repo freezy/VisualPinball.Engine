@@ -323,9 +323,15 @@ namespace VisualPinball.Unity.Simulation
 		/// What to record: <c>--simulation-trace</c> writes the full CSVs and
 		/// <c>--no-simulation-trace</c> nothing. Otherwise the editor follows the component's
 		/// toggle (full CSVs or nothing), and a player keeps a summary of the last minute.
+		/// While the performance instrumentation is on it is never off: the stall detection, the
+		/// traces and a benchmark's ball counts and snapshot ages read the simulation's ticks, so
+		/// then <c>--no-simulation-trace</c> and an editor's toggle that is off keep the summary.
 		/// </summary>
-		public static SimulationTraceMode ResolveMode(bool? commandLine, bool isEditor, bool componentToggle)
+		public static SimulationTraceMode ResolveMode(bool? commandLine, bool isEditor, bool componentToggle, bool profiling = false)
 		{
+			if (profiling && commandLine != true) {
+				return isEditor && componentToggle && commandLine != false ? SimulationTraceMode.Full : SimulationTraceMode.Summary;
+			}
 			if (commandLine.HasValue) {
 				return commandLine.Value ? SimulationTraceMode.Full : SimulationTraceMode.Off;
 			}

@@ -52,6 +52,17 @@ namespace VisualPinball.Unity.Test
 			SimulationTrace.ResolveMode(commandLine, isEditor, toggle).Should().Be(expected);
 		}
 
+		[TestCase(null, true, false, SimulationTraceMode.Summary)]
+		[TestCase(null, true, true, SimulationTraceMode.Full)]
+		[TestCase(false, true, true, SimulationTraceMode.Summary)]
+		[TestCase(false, false, false, SimulationTraceMode.Summary)]
+		[TestCase(true, false, false, SimulationTraceMode.Full)]
+		[TestCase(null, false, false, SimulationTraceMode.Summary)]
+		public void ProfilingAlwaysKeepsTheSummary(bool? commandLine, bool isEditor, bool toggle, SimulationTraceMode expected)
+		{
+			SimulationTrace.ResolveMode(commandLine, isEditor, toggle, profiling: true).Should().Be(expected);
+		}
+
 		[Test]
 		public void OffRecordsNothing()
 		{
