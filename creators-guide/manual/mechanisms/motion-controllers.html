@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Motion Controllers | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Motion Controllers | VPE Documentation ">
+      
+      <meta name="description" content="Author coil-driven movement, connect transform followers, and report mechanical position with switches.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/motion-controllers.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="motion_controller">
+<h1 id="motion-controllers">Motion Controllers</h1>
+
+<p>A <strong>Motion Controller</strong> turns a coil signal into a position between <strong>0</strong> and <strong>1</strong>. <strong>Motion Transform</strong> components use that position to translate or rotate objects. One motion controller can drive several parts, each with its own travel, direction, and response curve.</p>
+<p>The Motion Controller defines <em>when and how far the mechanism travels</em>. Its followers define <em>what that travel looks like</em>. Position switches report the motion controller's progress back to the gamelogic engine.</p>
+<pre><code class="lang-mermaid">flowchart LR
+    coil[&quot;Coil input&quot;] --&gt; motionController[&quot;Motion Controller&lt;br/&gt;Position 0–1&quot;]
+    motionController --&gt; rotation[&quot;Motion Transform&lt;br/&gt;Rotate a pivot&quot;]
+    motionController --&gt; translation[&quot;Motion Transform&lt;br/&gt;Translate a part&quot;]
+    motionController --&gt; switches[&quot;Position switches&quot;]
+    switches --&gt; game[&quot;Gamelogic engine&quot;]
+</code></pre>
+<p>With the default follower settings, position <strong>0</strong> is the transform you author in the scene, and position <strong>1</strong> applies the full offset. An <strong>Initial Position</strong> of <code>0.5</code> starts the motion controller halfway through its travel; it does not redefine the authored transform.</p>
+<h2 id="motion-controller">Motion Controller</h2>
+<p>Add <strong>Pinball &gt; Mechs &gt; Motion Controller</strong> to an active GameObject below the table's Player. It exposes one coil input, maintains the shared position, and optionally reports position switches. It does not move geometry by itself.</p>
+<p>All connected Motion Transforms read the same position. Their individual offsets and response curves do not alter the controller's travel or switch feedback.</p>
+<h3 id="connect-a-coil-and-choose-its-behavior">Connect a coil and choose its behavior</h3>
+<p>For a mechanism that matches one of the modes below, open the <a class="xref" href="../../editor/coil-manager.html">Coil Manager</a>, select its gamelogic output, and map it to the Motion Controller's <strong>Motion Controller</strong> coil item. Each motion controller exposes one coil input.</p>
+<p>Choose <strong>Coil Mode</strong> according to what the electrical signal means:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Coil Signal</th>
+<th>Behavior</th>
+<th>Typical mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Follow Coil</strong></td>
+<td>Boolean (on/off)</td>
+<td>A rising edge commands position 1. A qualified release commands position 0.</td>
+<td>A held solenoid, such as a diverter that returns when released.</td>
+</tr>
+<tr>
+<td><strong>Toggle On Pulse</strong></td>
+<td>Boolean pulse</td>
+<td>Each qualified rising edge swaps the target between 0 and 1. Release does not return it.</td>
+<td>A pulse that changes a latched mechanism's state.</td>
+</tr>
+<tr>
+<td><strong>One Shot</strong></td>
+<td>Boolean pulse</td>
+<td>A rising edge commands position 1, holds there for <strong>One Shot Hold Duration</strong>, then returns to 0.</td>
+<td>A pulse that starts a complete out-and-back movement.</td>
+</tr>
+<tr>
+<td><strong>Follow Value</strong></td>
+<td>Float (<code>0</code>–<code>1</code>)</td>
+<td>Each normalized input value becomes the target position.</td>
+<td>A proportional position command.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Follow Coil</strong> continues to its commanded endpoint; it does not integrate motor running time. <strong>One Shot</strong> produces one cycle from a held signal. Another rising edge after a qualified release can retrigger it, including during a return stroke.</p>
+<p>In the three binary modes, a value is active only when it is <strong>greater than Activation Threshold</strong>. The default threshold is <code>0.001</code>. A reduced-strength value such as <code>0.25</code> still commands a full stroke; it does not mean quarter travel.</p>
+<p><strong>Release Delay</strong>, default <code>0.05 s</code>, is the time the input must remain inactive before VPE accepts its release. Short inactive gaps are ignored. In <strong>Follow Coil</strong>, this delays the return; in <strong>Toggle On Pulse</strong> and <strong>One Shot</strong>, it prevents a brief gap from rearming the trigger.</p>
+<div class="TIP">
+<h5>Tip</h5>
+<p><strong>Follow Value</strong> needs a plain coil mapping and a source that actually supplies proportional values. Wire and dynamic-wire paths carry boolean state, so they can only select 0 or 1. <strong>Activation Threshold</strong> and <strong>Release Delay</strong> do not apply in this mode.</p>
+</div>
+<!-- MEDIA: motion-controller-coil-inspector.png
+![Motion Controller inspector showing Follow Coil, startup position, travel durations and curves, activation threshold, and release delay.](motion-controller-coil-inspector.png)
+-->
+<h3 id="tune-the-travel">Tune the travel</h3>
+<table>
+<thead>
+<tr>
+<th>Motion Controller field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Initial Position</strong></td>
+<td>Startup position, from 0 to 1. Default: <code>0</code>. Followers read it when they initialize.</td>
+</tr>
+<tr>
+<td><strong>Activation Duration</strong></td>
+<td>Full-stroke time toward 1, in seconds. Default: <code>0.3</code>.</td>
+</tr>
+<tr>
+<td><strong>Release Duration</strong></td>
+<td>Full-stroke time toward 0, in seconds. Default: <code>0.3</code>.</td>
+</tr>
+<tr>
+<td><strong>Activation Curve / Release Curve</strong></td>
+<td>Progress through the movement over normalized elapsed time. Both default to ease-in/ease-out.</td>
+</tr>
+<tr>
+<td><strong>One Shot Hold Duration</strong></td>
+<td>Time at position 1 before returning in <strong>One Shot</strong> mode. Default: <code>0.5 s</code>; shown only for that mode.</td>
+</tr>
+</tbody>
+</table>
+<p>Travel time scales with distance. With <strong>Activation Duration</strong> set to <code>0.4 s</code>, moving from <code>0.25</code> to <code>0.75</code> takes <code>0.2 s</code>. A reversal starts from the current position and uses the duration and curve for the new direction.</p>
+<p>Author travel curves from <code>(0, 0)</code> to <code>(1, 1)</code>: the horizontal axis is elapsed progress through the move, and the vertical axis is progress from its starting position to its target. Linear gives constant progress; ease-in/ease-out softens the start and finish. The motion controller position stays within 0–1 and finishes at the target.</p>
+<p>A zero duration moves the transform immediately. Use nonzero travel times when moving geometry needs to interact with balls.</p>
+<h3 id="add-position-feedback">Add position feedback</h3>
+<p>Expand <strong>Position Switches</strong> on the Motion Controller and add an entry for each sensor the gamelogic engine expects. Give it a descriptive <strong>Name</strong>, select <strong>Switch Type</strong>, then map that item in the <a class="xref" href="../../editor/switch-manager.html">Switch Manager</a>. Renaming an existing entry preserves its internal ID and mapping.</p>
+<p>Switches use the motion controller's <strong>actual position</strong>, before any follower's input range, Reverse setting, or response curve.</p>
+<table>
+<thead>
+<tr>
+<th>Switch Type</th>
+<th>Settings</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enable Between</strong></td>
+<td><strong>Between</strong></td>
+<td>Enabled while position is inside the inclusive range; disabled outside it.</td>
+</tr>
+<tr>
+<td><strong>Pulse Between</strong></td>
+<td><strong>Between</strong>, <strong>Pulse Every</strong>, <strong>Pulse Duration</strong></td>
+<td>A pulse for each travel mark crossed inside the range, in either direction.</td>
+</tr>
+<tr>
+<td><strong>Always Pulse</strong></td>
+<td><strong>Pulse Every</strong>, <strong>Pulse Duration</strong></td>
+<td>The same travel-based pulses over the entire 0–1 stroke. It does not pulse while stationary.</td>
+</tr>
+</tbody>
+</table>
+<p>For a generic mechanism with two end sensors, add <strong>Home</strong> with <strong>Between</strong> <code>0–0.02</code> and <strong>End</strong> with <code>0.98–1</code>. Both are disabled through the middle of travel. These are illustrative ranges, not T2 switch calibration. Maintained ranges report the current position; use pulse switches if every crossed mark must be counted even when crossed within one update.</p>
+<p><strong>Pulse Every</strong> is distance in normalized travel, not seconds or hertz. With <strong>Always Pulse</strong> and <code>0.1</code>, moving from 0 to 1 crosses ten marks: <code>0.1, 0.2, …, 1</code>. Returning crosses ten marks: <code>0.9, 0.8, …, 0</code>. Remaining on a mark does not emit more pulses.</p>
+<p>For <strong>Pulse Between</strong>, marks start at the lower range boundary and repeat every <strong>Pulse Every</strong>. For example, <strong>Between</strong> <code>0.4–0.6</code> with an interval of <code>0.1</code> places marks at <code>0.4</code>, <code>0.5</code>, and <code>0.6</code>.</p>
+<!-- MEDIA: motion-controller-position-switches.png
+![Position Switches inspector with maintained Home and End ranges and an Always Pulse encoder configured for pulses every 0.1 travel.](motion-controller-position-switches.png)
+-->
+<p><strong>Pulse Duration</strong> is the minimum enabled time in milliseconds; the default is <code>20 ms</code>. Crossed marks are queued and emitted with distinct close/open edges on separate Unity updates. Output is therefore limited to at most roughly half the update rate, and longer pulses reduce it further. If travel produces marks faster than they can be emitted, feedback lags behind the movement. Each switch queues up to 1,024 pending pulses; further pulses are dropped with a warning.</p>
+<p>Startup establishes maintained switch states without generating travel pulses. Editor preview never changes switches.</p>
+<h2 id="motion-transform">Motion Transform</h2>
+<p>Add <strong>Pinball &gt; Animation &gt; Motion Transform</strong> directly to each independently moving visual. Its origin should already match the mechanical pivot. Assign the Motion Controller as its <strong>Emitter</strong>; each follower independently maps the shared position to its own movement:</p>
+<pre><code class="lang-mermaid">flowchart TD
+    source[&quot;Motion Controller position&quot;] --&gt; range[&quot;Map Input Min–Input Max to 0–1&lt;br/&gt;Clamp outside the interval&quot;]
+    range --&gt; reverse[&quot;If Reverse is enabled: 1 − progress&quot;]
+    reverse --&gt; curve[&quot;Evaluate Response Curve&lt;br/&gt;Clamp its output to 0–1&quot;]
+    curve --&gt; pose[&quot;Apply position and/or rotation offset&quot;]
+</code></pre>
+<h3 id="translation-and-rotation">Translation and rotation</h3>
+<p>An explicitly assigned <strong>Emitter</strong> lets a Motion Transform live anywhere in the table hierarchy. When the field is empty, it searches itself and its parents for a compatible animation emitter.</p>
+<p>Enable <strong>Animate Position</strong>, <strong>Animate Rotation</strong>, or both. These affect the GameObject carrying the follower.</p>
+<table>
+<thead>
+<tr>
+<th>Follower field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Position Offset</strong></td>
+<td>Displacement from the authored position at a follower response of 1.</td>
+</tr>
+<tr>
+<td><strong>Translation Space: World</strong></td>
+<td>The offset follows global axes and is measured in scene units. This is the default.</td>
+</tr>
+<tr>
+<td><strong>Translation Space: Local</strong></td>
+<td>The offset follows the follower's authored local gizmo axes and inherits its parent's scale.</td>
+</tr>
+<tr>
+<td><strong>Rotation Offset</strong></td>
+<td>Local Euler offset in degrees, applied relative to the authored rotation.</td>
+</tr>
+</tbody>
+</table>
+<p>A World offset remains world-aligned when a parent rotates, while the underlying authored position still follows that parent. A Local offset uses the follower's <strong>authored</strong> orientation; animating its rotation does not continually turn the translation direction.</p>
+<p>Rotation interpolates between the authored orientation and the offset orientation along the shortest quaternion path. A <code>360°</code> offset does not create a full revolution. Scale animation is not supported.</p>
+<p>For several independently moving parts, add a follower to each visual and assign the same motion controller. Use different offsets or curves for different travel. Keep one animation driver per transform so two behaviors do not overwrite the same pose.</p>
+<h3 id="response-curves-and-reverse">Response curves and Reverse</h3>
+<p>The motion controller's travel curves control movement over <strong>time</strong>. A follower's <strong>Response Curve</strong> controls its pose at a given <strong>position</strong>. These are separate controls: changing one follower's response does not change the motion controller's position or its switches.</p>
+<p>With the default linear response, <strong>Reverse</strong> makes the follower start at its full offset when the motion controller is at 0 and return to its authored pose at 1. Reverse is applied <strong>before</strong> the response curve; with a custom curve, it reads that curve backwards.</p>
+<p>The follower clamps the curve's output to 0–1. A curve can hold, accelerate, or reverse a part's travel within its offset, but cannot extend it beyond that range.</p>
+<h3 id="move-during-part-of-the-stroke">Move during part of the stroke</h3>
+<p>Set <strong>Input Min</strong> and <strong>Input Max</strong> to the source positions where a follower's response begins and ends. For example, <code>0.25</code> and <code>0.75</code> with a linear response give:</p>
+<table>
+<thead>
+<tr>
+<th>Motion Controller position</th>
+<th>Follower response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0–0.25</td>
+<td>0: authored pose.</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>0.5: halfway through its offset.</td>
+</tr>
+<tr>
+<td>0.75–1</td>
+<td>1: full offset.</td>
+</tr>
+</tbody>
+</table>
+<p>This can delay a linkage's movement until another part has cleared it. Each follower evaluates the current position, so it tracks stops and reversals without a separate timer.</p>
+<p>To move a part out and back within the interval, use response keys <code>(0, 0)</code>, <code>(0.5, 1)</code>, and <code>(1, 0)</code>. Outside the interval, the corresponding curve endpoint is held. <strong>Input Min</strong> must be less than <strong>Input Max</strong>, and both must be within 0–1; an invalid range keeps the authored pose and displays an Inspector error.</p>
+<!-- MEDIA: motion-controller-response-window.svg
+![Follower response is zero up to motion controller position 0.25, rises linearly to one at 0.75, and stays at one for the remaining travel. A second curve shows Reverse using the same interval.](motion-controller-response-window.svg)
+-->
+<h3 id="preview-in-edit-mode">Preview in edit mode</h3>
+<p>Select the Motion Controller and scrub <strong>Animation Preview &gt; Preview Position</strong> to inspect all connected Motion Transforms. Preview applies each follower's input range, response curve, and Reverse setting directly; it does not play travel durations, run coil logic, or emit switches.</p>
+<p><strong>Reset Preview</strong> restores the authored transforms. Moving the slider to <strong>0</strong> also restores them, even if Reverse or a custom response curve would produce a different pose at runtime position zero. Use <strong>Initial Position</strong> to set the startup pose.</p>
+<p>Reset preview before editing authored transforms. Temporary poses are also restored before saving the scene, entering Play Mode, reloading scripts, quitting Unity, undoing or redoing, or leaving the Motion Controller inspector. Prefab Mode objects are excluded from preview.</p>
+<h2 id="move-collision-with-the-visuals">Move collision with the visuals</h2>
+<p>For every rigid moving part, keep its render geometry and VPE collision geometry on the driven visual or below it. Make the moving collider objects active and enable <strong>Kinematic</strong> on their VPE collider components <strong>before the table loads</strong>. Configure every moving collider, including separate walls or rails.</p>
+<p>Motion Transform moves a transform; it does not create colliders or configure their kinematic flags. VPE registers moving collision during initialization and derives linear and angular velocity from later pose changes. Making previously inactive geometry active or changing its kinematic flag during play is not a way to register new moving collision.</p>
+<p>An motion controller prescribes movement. Ball impacts do not change its commanded travel. Ball capture, a loaded-ball switch, and firing behavior require their own mechanism setup; rotating the gun visuals alone does not implement those functions.</p>
+<p>After checking poses in edit mode, test movement with balls in Play Mode, including the return stroke and any reversal. Check for fixed collision accidentally left inside the moving part.</p>
+<h2 id="example-preview-the-terminator-2-gun">Example: preview the Terminator 2 gun</h2>
+<p>The rotating gun on <em>Terminator 2</em> demonstrates how to configure a Motion Transform and check its poses. Assume the visual's origin is already on the rotation axis.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>This walkthrough demonstrates the gun's geometry. A complete T2 gun also needs a motor that repeatedly sweeps while powered and stops when power is removed. The current Motion Controller modes do not implement that behavior. Keep the PinMAME Mech Handler for the actual motor setup; use a separate copy of the gun visuals for this exercise. The Williams manual's <a href="https://wwyss.ch/Arcades_Manuals/Manuals/Pinball/Terminator-2_Manual.pdf">Gun Test, page 1-34</a> describes its movement and alignment checks.</p>
+</div>
+<h3 id="1-select-the-moving-visual">1. Select the moving visual</h3>
+<p>Create an active GameObject named <strong>Gun Travel</strong> below the table's Player and add <strong>Pinball &gt; Mechs &gt; Motion Controller</strong>. Place <strong>Gun Visuals</strong> below it, preserving the visual's world pose. Keep fixed mounting hardware outside the moving branch.</p>
+<pre><code class="lang-text">Table (Player)
+└── Gun Travel (Motion Controller)
+    ├── Fixed Mount
+    └── Gun Visuals (Motion Transform)
+</code></pre>
+<p>Add the Motion Transform directly to <strong>Gun Visuals</strong> in the next step. Any child meshes belonging to the same rigid part inherit its movement.</p>
+<div class="TIP">
+<h5>Tip</h5>
+<p>If the visual's origin is not on the mechanical rotation axis, create an empty <strong>Gun Pivot</strong> GameObject at that axis and parent <strong>Gun Visuals</strong> below it, preserving the visual's world pose. Add <strong>Motion Transform</strong> to <strong>Gun Pivot</strong> instead. Put any collision geometry for the same rigid part below that pivot too.</p>
+</div>
+<!-- MEDIA: motion-controller-t2-pivot.png
+![Gun hierarchy and Scene view, with Motion Transform directly on Gun Visuals, its origin on the rotation shaft, and fixed mounting hardware outside the moving branch.](motion-controller-t2-pivot.png)
+-->
+<h3 id="2-define-the-rotation">2. Define the rotation</h3>
+<p>Add <strong>Pinball &gt; Animation &gt; Motion Transform</strong> to <strong>Gun Visuals</strong>, then configure it:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Setting for this exercise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Emitter</strong></td>
+<td>The Motion Controller on <strong>Gun Travel</strong>.</td>
+</tr>
+<tr>
+<td><strong>Animate Position</strong></td>
+<td>Off.</td>
+</tr>
+<tr>
+<td><strong>Animate Rotation</strong></td>
+<td>On.</td>
+</tr>
+<tr>
+<td><strong>Rotation Offset</strong></td>
+<td>The local rotation from the authored pose to the other end of the sweep, in degrees.</td>
+</tr>
+<tr>
+<td><strong>Input Min / Input Max</strong></td>
+<td><code>0</code> / <code>1</code>.</td>
+</tr>
+<tr>
+<td><strong>Response Curve</strong></td>
+<td>Linear from <code>(0, 0)</code> to <code>(1, 1)</code>.</td>
+</tr>
+<tr>
+<td><strong>Reverse</strong></td>
+<td>Off.</td>
+</tr>
+</tbody>
+</table>
+<p>If the visual's local Y axis follows the shaft, try <strong>Rotation Offset</strong> <code>(0, -80, 0)</code> as an illustrative sweep, then adjust it to your model. This is a relative offset, not an absolute orientation or a calibration value from the manual.</p>
+<!-- MEDIA: motion-controller-t2-transform-inspector.png
+![Motion Transform inspector on Gun Visuals, showing rotation enabled, a local Y rotation offset, and a linear response over the full input range.](motion-controller-t2-transform-inspector.png)
+-->
+<h3 id="3-preview-the-poses">3. Preview the poses</h3>
+<p>Select <strong>Gun Travel</strong> and move <strong>Animation Preview &gt; Preview Position</strong> through <code>0.25</code>, <code>0.5</code>, and <code>1</code>. Check that the gun turns around its shaft and clears the fixed hardware. With this linear follower, <code>0.5</code> applies half the rotation offset.</p>
+<!-- MEDIA: motion-controller-t2-preview.png
+![Three views of the gun at preview positions 0, 0.5, and 1, with the same camera and the rotation axis marked.](motion-controller-t2-preview.png)
+-->
+<p>Click <strong>Reset Preview</strong> to return to the authored pose. To start at a different pose in Play Mode, set the Motion Controller's <strong>Initial Position</strong>.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A follower does not move.</td>
+<td>Assign the correct <strong>Emitter</strong>, enable position or rotation, set a nonzero offset, and check the input range.</td>
+</tr>
+<tr>
+<td>A pivot orbits instead of turning in place.</td>
+<td>Put the GameObject origin on the mechanical shaft and move the visuals beneath it.</td>
+</tr>
+<tr>
+<td>Translation follows the wrong axes.</td>
+<td>Check <strong>Translation Space</strong> and the follower's authored local orientation.</td>
+</tr>
+<tr>
+<td>Preview zero differs from the runtime starting pose.</td>
+<td>Preview zero restores the authored transform. Runtime also applies <strong>Initial Position</strong>, <strong>Reverse</strong>, and the response curve.</td>
+</tr>
+<tr>
+<td>The mesh moves but collision stays behind.</td>
+<td>Check that every moving VPE collider was active and <strong>Kinematic</strong> at table load and belongs to the driven hierarchy.</td>
+</tr>
+<tr>
+<td>A pulse does not trigger another movement.</td>
+<td>The input must fall to or below <strong>Activation Threshold</strong> for <strong>Release Delay</strong> before another rising edge is recognized.</td>
+</tr>
+<tr>
+<td>Proportional control jumps between endpoints.</td>
+<td>Check that the source sends fractional values through a plain coil mapping.</td>
+</tr>
+<tr>
+<td>Encoder feedback continues after movement stops.</td>
+<td>Reduce the number of travel marks, shorten pulse duration, or slow the movement so the pulse queue can keep up.</td>
+</tr>
+</tbody>
+</table>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/motion-controllers.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

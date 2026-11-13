@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Insert Presets | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Insert Presets | VPE Documentation ">
+      
+      <meta name="description" content="The lamp, color and look presets, what each one controls, and how to change them or add your own.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/presets.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_presets">
+<h1 id="insert-presets">Insert Presets</h1>
+
+<p>VPE's inserts shader has many properties that can be more easily driven with presets. There are three different types of presets. Each one answers a different question, and no setting belongs to more than one of them.</p>
+<table>
+<thead>
+<tr>
+<th>Preset</th>
+<th>The question</th>
+<th>Shared by</th>
+<th>Where to set it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#lamp"><strong>Lamp</strong></a></td>
+<td>What kind of bulb is under the insert?</td>
+<td>The whole table</td>
+<td>The <em>Lamp Preset</em> row on each Insert Light component, or the <em>Incandescent</em> / <em>LED</em> buttons in <em>Lamp Manager</em> for every insert at once</td>
+</tr>
+<tr>
+<td><a href="#color"><strong>Color</strong></a></td>
+<td>What color is the plastic?</td>
+<td>All inserts of one color</td>
+<td>The color squares under <em>Presets</em> on the Insert component</td>
+</tr>
+<tr>
+<td><a href="#look"><strong>Look</strong></a></td>
+<td>How is the plastic molded, and how does it handle light?</td>
+<td>All inserts of one style</td>
+<td>The <em>Clear Plastic</em> / <em>Colored Plastic</em> buttons under <em>Presets</em> on the Insert component</td>
+</tr>
+</tbody>
+</table>
+<h2 id="where-presets-are-set">Where presets are set</h2>
+<img src="presets/inspector-light.png" width="340" alt="The Lamps section of an Insert Light" class="img-fluid float-end" style="margin-left: 15px">
+<p>The lamp preset lives on the <em>Insert Light</em> component, at the top of its <em>Lamps</em> section. <em>Lamp Preset</em> picks the bulb, and <em>Output</em> shows how much light it gives. <em>Apply to All Lamps</em> puts the same bulb under every insert of the table.</p>
+<div style="clear: both;margin-top: 20px"></div>
+<hr>
+<img src="presets/inspector-insert.png" width="340" alt="The Presets section of an insert" class="img-fluid float-end" style="margin-left: 15px">
+<p>The color and look presets live on the <em>Insert</em> component, in its <em>Presets</em> section. A click on a color square or a look button applies it. The lit one is the preset the insert follows.</p>
+<p>Every preset row has a <em>Manage</em> button that opens <em>Pinball → Insert Presets</em> on the matching tab.</p>
+<div style="clear: both"></div>
+<h2 id="lamp">Lamp</h2>
+<p>The lamp preset is the bulb: the color of its light, how much light it gives, and how quickly it comes on and goes out. A whole table runs on one kind of bulb, so you normally set it once, from <a href="#global-controls"><em>Lamp Manager</em></a>.</p>
+<img src="presets/inspector-preset-window-lamp.png" width="720" alt="The Insert Presets window on its Lamp tab" class="img-fluid d-block mx-auto mb-3">
+<p>The <em>Lamp</em> tab of the <em>Insert Presets</em> window lists the lamps VPE found in the project and its packages, and where each one lives. The ones that ship with VPE are read-only: <em>Duplicate</em> copies one into your project to change, <em>New</em> starts one from defaults, and <em>Delete</em> removes one of the project's own. Below the values, the window counts the Insert Light components that follow the selected lamp, and <em>Apply</em> puts its values back under any of them that drifted.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Off</th>
+<th>On</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Incandescent</strong></td>
+<td><img src="presets/lamp-incandescent-off.png" alt="Incandescent, off"></td>
+<td><img src="presets/lamp-incandescent-on.png" alt="Incandescent, on"></td>
+</tr>
+<tr>
+<td><strong>LED</strong></td>
+<td><img src="presets/lamp-led-off.png" alt="LED, off"></td>
+<td><img src="presets/lamp-led-on.png" alt="LED, on"></td>
+</tr>
+</tbody>
+</table>
+<p>The bulb makes no difference while the lamp is off. Lit, <em>Incandescent</em> is a warm filament like a #44 or #555: a cream-colored core that fades to amber toward the edges, and a lamp that takes a moment to warm up and cool down. <em>LED</em> is a neutral white at three times the output, on and off instantly. There is no warm or cool white LED to choose from: the switch is there to see a table under either kind of bulb while you tune it, not to pick a shade.</p>
+<p><strong>To set:</strong> pick it from <em>Lamp Preset</em> on the Insert Light component, or for the whole table from <a href="#global-controls"><em>Lamp Manager</em></a>. <em>Custom</em> keeps the light's values as they are, following no preset.</p>
+<p><strong>To change:</strong> edit the values from <em>Settings</em> in <em>Lamp Manager</em>, and every Insert Light component following the preset takes the change right away. Edited on the <em>Lamp</em> tab, the values reach those components when you press <em>Apply</em>. Editing the color, output or fades on an Insert Light component itself switches its <em>Lamp Preset</em> to <em>Custom</em>.</p>
+<p><strong>To add:</strong> press <em>Duplicate</em> or <em>New</em> on the <em>Lamp</em> tab, or choose <em>Create → Pinball → Insert Lamp Preset</em> in the Project window. The new lamp appears next to <em>Incandescent</em> and <em>LED</em> everywhere they do. Keep a little of every channel in its color: a lamp with a channel at zero shifts hue instead of fading to white when it gets bright.</p>
+<h2 id="color">Color</h2>
+<p>The color preset is the plastic: its tint, the color of the lamp light that comes through it, how bright it gets, and the color of the clear cover on top. Every insert of one color shares it.</p>
+<img src="presets/inspector-preset-window-color.png" width="720" alt="The Insert Presets window on its Color tab" class="img-fluid d-block mx-auto mb-3">
+<p>The <em>Color</em> tab works like the <em>Lamp</em> tab. Below the values, <em>Linked Materials</em> lists the body and cover materials that follow the selected color.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Clear</th>
+<th>Red</th>
+<th>Green</th>
+<th>Blue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Off</strong></td>
+<td><img src="presets/color-clear-off.png" alt="Clear, off"></td>
+<td><img src="presets/color-red-off.png" alt="Red, off"></td>
+<td><img src="presets/color-green-off.png" alt="Green, off"></td>
+<td><img src="presets/color-blue-off.png" alt="Blue, off"></td>
+</tr>
+<tr>
+<td><strong>On</strong></td>
+<td><img src="presets/color-clear-on.png" alt="Clear, on"></td>
+<td><img src="presets/color-red-on.png" alt="Red, on"></td>
+<td><img src="presets/color-green-on.png" alt="Green, on"></td>
+<td><img src="presets/color-blue-on.png" alt="Blue, on"></td>
+</tr>
+</tbody>
+</table>
+<p>Off, each color shows as tinted plastic over the dark cavity. On, it shows the lamp through that plastic. Colors differ a lot in how much light they let through, which is why <em>Max Brightness</em> is part of the color preset: a blue insert needs more of it than a clear one to come up comparably bright.</p>
+<p><strong>To set:</strong> click a color square under <em>Presets</em> on the Insert component. VPE looks for a material of that color next to the insert's current one and assigns it; if there is none, it makes one and links it to the preset.</p>
+<p><strong>To change:</strong> edit the values on the <em>Color</em> tab, or Ctrl-click a color square to highlight its asset and edit it in the Inspector. Every linked material follows along. <strong>A linked material shows the preset's values grayed out:</strong> they're changed in the preset, for every insert of that color, or the material is unlinked first by setting its <em>Color Preset</em> to none, which keeps the values it has.</p>
+<p><strong>To add:</strong> press <em>Duplicate</em> or <em>New</em> on the <em>Color</em> tab, or choose <em>Create → Pinball → Insert Color Preset</em>. Give it a name and a swatch, and a new square appears on every insert. To fill it with the colors of an insert you have tuned, pick it as the <em>Color Preset</em> of that insert's body and cover materials and choose <em>Copy to</em> when VPE asks whose values to keep.</p>
+<p>A color preset holds these values:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>Color Name</em></td>
+<td>The color's name, used in the button's tooltip, in the names of the materials made for it, and to find them. Keep it distinct and stable.</td>
+</tr>
+<tr>
+<td><em>Order</em></td>
+<td>Where its button appears; lower comes first, names break ties.</td>
+</tr>
+<tr>
+<td><em>Swatch</em></td>
+<td>The button's color. It doesn't change the material.</td>
+</tr>
+<tr>
+<td><em>Tint</em></td>
+<td>The body's <em>Tint</em>.</td>
+</tr>
+<tr>
+<td><em>Cavity Color</em></td>
+<td>The body's <em>Cavity Color</em>, seen through the clear share of the plastic. Its effect depends on <em>Clarity</em>.</td>
+</tr>
+<tr>
+<td><em>Lamp Emission</em></td>
+<td>The body's <em>Lamp Emission</em>: the color of the plastic lit from below by a white lamp. The lamp preset's color multiplies it.</td>
+</tr>
+<tr>
+<td><em>Max Brightness</em></td>
+<td>The body's <em>Max Brightness</em>. Colors differ in how bright they look through the plastic, so each has its own.</td>
+</tr>
+<tr>
+<td><em>Haze Color</em></td>
+<td>The cover's <em>Haze Color</em>. It needs a cover and some <em>Opacity</em> to show.</td>
+</tr>
+<tr>
+<td><em>Cover Tint</em></td>
+<td>The cover's <em>Tint</em>: the color the light takes on its way up through the plastic. Keep a little of every channel in it, and in <em>Lamp Emission</em>, so a bright lamp fades to white instead of shifting hue.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="look">Look</h2>
+<p>The look preset is how the plastic is molded and how it treats light: how clear it is, how glossy, how the facets catch the lamp, how strong and how wide the bulb reads, how much glow spreads through the body. <em>Clear Plastic</em> and <em>Colored Plastic</em> ship with VPE.</p>
+<img src="presets/inspector-preset-window-look.png" width="720" alt="The Insert Presets window on its Look tab" class="img-fluid d-block mx-auto mb-3">
+<p>On the <em>Look</em> tab, <em>Body</em> holds the material values the look sets, and <em>Linked Materials</em> lists the body materials that follow it.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Clear Plastic, off</th>
+<th>Clear Plastic, on</th>
+<th>Colored Plastic, off</th>
+<th>Colored Plastic, on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Clear color</strong></td>
+<td><img src="presets/look-clear-clear-plastic-off.png" alt="Clear color, Clear Plastic, off"></td>
+<td><img src="presets/look-clear-clear-plastic-on.png" alt="Clear color, Clear Plastic, on"></td>
+<td><img src="presets/look-clear-colored-plastic-off.png" alt="Clear color, Colored Plastic, off"></td>
+<td><img src="presets/look-clear-colored-plastic-on.png" alt="Clear color, Colored Plastic, on"></td>
+</tr>
+<tr>
+<td><strong>Red color</strong></td>
+<td><img src="presets/look-red-clear-plastic-off.png" alt="Red color, Clear Plastic, off"></td>
+<td><img src="presets/look-red-clear-plastic-on.png" alt="Red color, Clear Plastic, on"></td>
+<td><img src="presets/look-red-colored-plastic-off.png" alt="Red color, Colored Plastic, off"></td>
+<td><img src="presets/look-red-colored-plastic-on.png" alt="Red color, Colored Plastic, on"></td>
+</tr>
+</tbody>
+</table>
+<p><em>Clear Plastic</em> lets you see the cavity under the insert, keeps the ribs so they catch the lights, flecks their ridges, and returns the room through the grooves; it was tuned against photographs of a real table's clear inserts. <em>Colored Plastic</em> is opaque until the lamp comes on, keeps the ribs crisp, and gives the bulb a tight, strong image. The wrong look on a plastic shows why both exist: clear plastic under the Colored look goes dark and striped, red plastic under the Clear look goes pale and milky. Two more looks ship with VPE: <em>Clear Plastic, Faceted</em> is the clear look without the room return, for a table whose sky has nothing to return, and the color <em>Clear Cool</em> is the Clear color for materials built on a lamp radiance of 85 and a <em>Max Brightness</em> of 8.</p>
+<p><strong>To set:</strong> click <em>Clear Plastic</em> or <em>Colored Plastic</em> under <em>Presets</em> on the Insert component. The body material takes the look's values and keeps following the preset from then on. If the material already had values of its own, you are asked whether to copy them into the look first.</p>
+<img src="presets/inspector-material.png" width="340" alt="A body material following a color and a look, with one edited value" class="img-fluid float-end" style="margin-left: 15px">
+<p><strong>To change:</strong> most of the tuning happens here, so the body material's inspector tells you where every value came from. Hover over a field and its tooltip starts with <em>From the Look preset Clear Plastic</em>, or <em>From the Color preset Red</em> for the values the color owns. Change a field and a • appears next to its name: the value is now the material's own, and the preset will overwrite it the next time the preset changes. The <em>Look Preset</em> row at the top of the <em>Plastic</em> section counts these edits. <em>Copy to Clear Plastic</em> makes them part of the look, so every insert following it gets them too. <em>Reset to Clear Plastic</em> throws them away.</p>
+<p><strong>To add:</strong> press <em>Duplicate</em> or <em>New</em> on the <em>Look</em> tab, and the new button appears on every insert. To fill it with the values of an insert you have tuned, click the new look on that insert and choose <em>Copy to</em> when VPE asks whose values to keep.</p>
+<p>A look preset stores <em>Body Shader</em>, the shader it was captured from, and <em>Body</em>, the list of the material's numeric values it sets: each entry's <em>Name</em> is the shader property, <em>Kind</em> its type, and <em>Float</em> or <em>Vector</em> its value. Colors and <em>Max Brightness</em> belong to the color preset, and a look never sets them.</p>
+<div style="clear: both"></div>
+<h2 id="brightness">Brightness</h2>
+<p>The brightness of an insert is controlled by the lamp's output, the color's maximum brightness, the table's insert brightness, and the light's intensity, multiplied together:</p>
+<blockquote>
+<p><strong>Lamp Output × Color Max Brightness × Insert Brightness × Intensity</strong></p>
+</blockquote>
+<p>The lamp's <em>Output</em> is the bulb: an LED kit gives about three times the light of a filament. The color's <em>Max Brightness</em> is the plastic: how much of that light gets through. <em>Insert Brightness</em> is the table's overall level, which the player app lets its user change (see <a href="#global-controls">Global controls</a>). <em>Intensity</em> is the game: the lamp's level between off and full. When an insert is too bright or too dim, the bulb changes every insert on the table, the color changes every insert of that color, and the intensity is up to the game.</p>
+<p>An insert whose center already shows pure white cannot get any whiter on screen. Turning any of these up shows at the edges of the insert, in what it throws onto the ball and the playfield, and in its bloom.</p>
+<h2 id="global-controls">Global controls</h2>
+<img src="presets/inspector-lamp-manager.png" class="mb-3" width="1050" alt="The lamp buttons and settings in Lamp Manager">
+<p><em>Pinball → Lamp Manager</em> sets the bulb for the whole table. Press <em>Incandescent</em> or <em>LED</em> next to <em>Lamp Preset:</em> in the toolbar, and every insert takes the bulb, and every other lamp on the table takes its fade times, so the whole machine warms up and cools down, or snaps, as one. The lit button is the lamp the inserts follow; none is lit when they follow different lamps.</p>
+<p>Flashers are left alone, and so is any lamp mapped as <em>RGB</em> or <em>RGB Multi</em>: the game drives those, color and fading, which makes them RGB LEDs whatever the rest of the table runs. Their <em>Insert Light</em> component says so instead of offering a lamp preset.</p>
+<p><em>Settings</em> shows the lit lamp's color, output, fade up and fade down above the toolbar. Whatever you change there goes into the preset and under every insert of the table right away. <em>Asset</em> highlights the preset in the Project window, and <em>Manage</em> opens the <em>Lamp</em> tab of the <em>Insert Presets</em> window.</p>
+<p><em>Insert Brightness:</em> is a factor on every insert of the table, on the lens and the spill light alike. It's the table's default: it goes into the <code>.vpe</code> package, and the player starts the table with it. Players can change it per table under <em>Table Settings</em> in the pause menu, and go back to your value with <em>Reset</em>. Use it to balance the inserts against the rest of the table; use the lamp preset and the colors to balance them against each other.</p>
+<p>All of this works while the game is running in the editor, without pausing it, so you can judge a table under both bulbs mid-game.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/presets.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

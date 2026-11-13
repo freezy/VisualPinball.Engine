@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Audio processing and SSF implementation plan | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Audio processing and SSF implementation plan | VPE Documentation ">
+      
+      
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/audio-processing-and-ssf-plan.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="./../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="audio-processing-and-ssf-implementation-plan">Audio processing and SSF implementation plan</h1>
+
+<p>Add a shared audio routing and processing layer to the Unity runtime, expose it through the player's existing Sound settings, and provide separate listening profiles for desktop speakers, headphones, and cabinet Surround Sound Feedback (SSF). Keep a dry Reference profile as the default so tables retain their authored sound. EQ, compression, and room simulation should solve specific playback problems without changing the physics events, sample selection, pitch, or material response that the table already supplies.</p>
+<h2 id="scope-and-current-integration-points">Scope and current integration points</h2>
+<p>The first release covers mechanical effects, ball collisions, rolling, table music and callouts, ROM audio, and player UI sounds. It adds bus routing, parametric EQ, optional compression, output limiting, optional room reverb, and a calibrated four-corner SSF output. It does not require a VST host, a DAW, Equalizer APO, DOF, or table-specific audio scripts. Saturation, multiband mastering, automatic room correction, acoustic ray tracing, and multiple independent sound devices are later extensions.</p>
+<p>The existing mechanical and rolling implementation supplies positions, authored gain, fades, and pitch. Preserve those semantics, including VPX gain curves and silent Ceramic material pairs. <code>MechanicalSoundGain</code> currently applies the player mechanical level to registered sources; <code>SoundMixerView</code> already exposes that level alongside integration volume controls. Extend that view and its cabinet input navigation instead of introducing another volume settings path.</p>
+<p><code>SoundAsset.ConfigureAudioSource</code> currently assigns an optional Unity <code>AudioMixerGroup</code>, but that reference is not a portable routing contract in <code>SoundAssetPacker</code>. The default mixer contains Effects, Music, and Callouts groups and no exposed parameters. Packaged clips therefore need a stable bus identity that can be rebound to the runtime mixer after <code>.vpe</code> restoration. PinMAME separately exposes borrowed PCM frames and an exclusive playback lease through <code>IPluginAudioSource</code> and <code>IPluginAudioPlaybackControl</code>; use those contracts to bring ROM playback into the graph without playing it twice.</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Existing files to extend</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runtime audio</td>
+<td><code>Sound/SoundAsset.cs</code>, <code>Sound/SoundEffectAsset.cs</code>, <code>Sound/MechanicalSoundGain.cs</code>, <code>Sound/DefaultVpeAudioMixer.mixer</code></td>
+<td>Semantic routing, voice positions, gain ownership, bus binding, processing lifecycle.</td>
+</tr>
+<tr>
+<td>Table serialization</td>
+<td><code>Sound/SoundAssetPacker.cs</code> and the existing table packers</td>
+<td>Versioned bus identifiers and optional portable audio recommendations.</td>
+</tr>
+<tr>
+<td>PCM input</td>
+<td><code>VisualPinball.Plugins/Resources/ResourceContracts.cs</code>, <code>ResourceSignal.cs</code>, Unity plugin host bridge</td>
+<td>One playback owner, a playback-gain capability, bounded buffering, sample-rate conversion, stream lifecycle.</td>
+</tr>
+<tr>
+<td>Player</td>
+<td><code>Runtime/Plugins/SoundMixerView.cs</code>, <code>Runtime/PlayerUserConfig.cs</code> and <code>PlayerUserConfigStore</code></td>
+<td>Listening profiles, effects controls, calibration, versioned serializable settings, atomic saves and recovery of bad configuration files.</td>
+</tr>
+<tr>
+<td>PinMAME</td>
+<td><code>Runtime/PinMameGamelogicEngine.cs</code> in its Unity package</td>
+<td>Expose integration output gain through the audio resource, including initial mute, while preserving raw PCM publication and exactly one playback path.</td>
+</tr>
+<tr>
+<td>Shared library</td>
+<td>Optional reusable presets and calibration samples</td>
+<td>Authoring conveniences; never a dependency required by the engine or player.</td>
+</tr>
+</tbody>
+</table>
+<p>Paths in the runtime and serialization rows are relative to <code>VisualPinball.Unity/VisualPinball.Unity/</code> inside the Engine repository. Player and PinMAME paths are relative to their respective repositories. No render-pipeline-specific processing belongs in HDRP.</p>
+<h2 id="what-ssf-needs">What SSF needs</h2>
+<p>SSF uses separately amplified cabinet exciters, commonly mounted at the front left/right near the flippers and the back left/right near the backbox. Exciters couple sound into the cabinet panels, creating both sound and vibration. Four ordinary speakers can use the same position routing, but do not provide the same tactile response. A common installation reserves a separate stereo pair for ROM and backbox audio and uses a 7.1 sound card for the four cabinet channels plus that pair. This is six active channels, not a four-channel global output mode. Center and LFE are not required for the baseline. <a href="https://doflinx.github.io/docs/getting-started/11_SSF.html">DOFLinx SSF documentation</a>, <a href="https://pinball-docs.clevelandsoftwaredesign.com/docs/ssf/configuring-vpx/">Cleveland Software Design VPX configuration</a>.</p>
+<p>Channel labels can be misleading. VPX's current SSF layout uses audio rear left/right for the cabinet front, side left/right for the cabinet back, and front left/right for the backbox. Offer that as a preset, but represent cabinet positions by physical names and verify the actual wiring with a channel test. Never assume a numerical channel index matches a physical jack on every OS and sound card. <a href="https://github.com/vpinball/vpinball/blob/master/src/audio/SpatialAudio.cpp">VPX spatial audio source</a>.</p>
+<p>Unity exposes Quad and 7.1 speaker modes, but requesting a mode is not proof that the device outputs those channels: platform behavior can include downmixing or using the native device layout. Verify the effective configuration and the actual outputs. The initial supported cabinet setup is one OS-selected multichannel device; two unrelated USB devices need separate clock management and are outside the first release. <a href="https://docs.unity.com/en-us/engine/6000.0/script-reference/unityengine/audiospeakermode">Unity AudioSpeakerMode</a>.</p>
+<h2 id="routing-and-ownership">Routing and ownership</h2>
+<p>Introduce stable semantic buses: <code>mechanical.transients</code>, <code>mechanical.rolling</code>, <code>game.rom</code>, <code>table.music</code>, <code>table.callouts</code>, <code>table.synthetic</code>, and <code>player.ui</code>. Transients include flippers, bumpers, switches, collisions, ball-ball impacts, ramp transitions, and other discrete mechanical events. Rolling is separate so its sustained energy can be balanced independently. Existing Mechanical/Synthetic flags provide a migration fallback; current component types identify rolling. Preserve authored custom mixer behavior until explicitly migrated, with an editor diagnostic for routes that bypass player processing.</p>
+<p>Build the Reference route with unity gain and no inherited ducking, sends or high-pass stage from the old default mixer. Preserve explicitly authored custom processing as part of the source scene's existing sound, but do not attach the old default group's effects to newly rebound packaged sounds. Capture both source-scene and restored-table baselines before migration. The player's Reference acceptance target is the restored-table capture; document differences from authoring mixer routes separately rather than adding them to the player during migration. Keep the processing mixer awake while a table, preview or calibration is active; the existing default mixer suspends below -80 dB, which must not freeze a live reverb tail or meter. Stop and reset the graph explicitly when no session uses it.</p>
+<p>Do not promise independent music and speech controls for a ROM that supplies one mixed stream. Present it as ROM/Game audio. Music and Callouts controls apply only to separately authored streams. Integration volume remains owned by that integration; a player ROM processing trim is a distinct, labelled control rather than a second slider secretly writing the same setting.</p>
+<p>For cabinet mode, pan each mechanical voice before mixing it into its transient or rolling bus. Both buses carry four logical cabinet channels. Their EQ and linked compression feed a common mechanical group, followed by per-corner calibration EQ/trim and a limiter linked across all four outputs. ROM, table program audio, and UI feed a separate stereo backbox group with its own processing and linked stereo limiter. The final layout matrix maps those six logical channels to the verified device channels; unused channels are zero. Reject accidental mapping overlap in SSF profiles.</p>
+<pre><code class="lang-text">Mechanical voice + table position -&gt; four-corner panner -&gt; Transients / Rolling
+Transients / Rolling -&gt; bus EQ + linked compression -&gt; Mechanical mix
+Mechanical mix -&gt; corner EQ + trim -&gt; linked four-channel limiter -&gt; channel map -&gt; device
+
+ROM / music / callouts / synthetic / UI -&gt; stereo program buses -&gt; Backbox mix
+Backbox mix -&gt; output EQ + trim -&gt; linked stereo limiter -&gt; channel map -&gt; device
+</code></pre>
+<p>Desktop and headphone modes use a stereo mechanical image and stereo program mix, with an optional room reverb send. Their combined stereo output receives final EQ and limiting after summing so peaks from different buses cannot bypass protection. Processing runs on shared buses and output groups, not as hundreds of individual reverb or compressor components. Reverb returns have a defined route and are included before the relevant final limiter.</p>
+<p>Keep authored per-voice gain separate from player bus level, processing makeup gain, and output calibration. Initially retain the existing <code>MechanicalSoundGain</code> application and leave the new parent mechanical gain at unity; migrate its ownership only with a versioned change and regression tests proving the existing 0–100% setting is applied exactly once. Reserve internal headroom and meter the signal after EQ boosts, makeup gain, reverb returns, and output trims. Digital limiting does not determine the safe physical power of an amplifier or exciter.</p>
+<h3 id="rom-pcm-input">ROM PCM input</h3>
+<p>Add a shared Unity audio input adapter that binds ROM resources and acquires their playback lease only after its renderer is ready. Subscribe first, copy borrowed PCM before the callback returns into a preallocated bounded ring buffer, validate channel layout and encoding, and resample when the producer rate differs from the mixer rate. Clear pre-lease samples at a synchronized takeover boundary so previously heard legacy audio is not replayed; guard the lease transition against a concurrent producer callback. PinMAME timestamps can be absent, so sequence numbers and measured buffer occupancy must support discontinuity detection and bounded clock-drift correction. Silence underflow, count overflows, and never accumulate an unbounded backlog to hide a stalled producer.</p>
+<p>Add an optional resource capability, provisionally <code>IPluginAudioPlaybackGainSource</code>, with a thread-safe <code>PlaybackGain</code> accessor. PinMAME exposes its existing <code>OutputGain</code> through that capability; its current published PCM is raw, and its legacy gain stage is skipped once playback is leased. The managed adapter snapshots the gain when preparing input or handling a volume change and publishes it through the lock-free native parameter exchange. The native callback reads that snapshot once per output block and applies it exactly once, before its own separately labelled processing trim; it never calls a managed interface accessor. Initialize the first block from the current gain, including zero for a saved mute; smooth subsequent changes and retain the integration as the settings owner. Keep existing <code>PluginPcmFrame</code> constructors and the raw PCM contract unchanged. Other providers without the capability use unity playback gain and expose that limitation in Diagnostics instead of claiming integration volume metadata exists.</p>
+<p>Feed the adapter into the ROM bus. On pause, flush the ring and discard incoming frames until resume rather than replaying stale audio or reporting intentional pause as an overflow. On stop, table replacement, audio reset, or failure, clear queued samples and release the subscription and lease in a defined order. If another plugin already owns playback, report that the external path is outside VPE's processing rather than stealing the lease or silently adding another output. Verify stereo and mono ROMs in multichannel device mode; the current legacy PinMAME output contains stereo assumptions and must not be relied upon as a generic 7.1 route. Diagnose a legacy path left active in multichannel mode.</p>
+<h2 id="dsp-choice-and-sound-quality">DSP choice and sound quality</h2>
+<p>Use Unity's native audio plugin interface to wrap a small C++ DSP library, with the same kernels in an offline test harness. Keep Unity's mixer for voice scheduling, grouping, sends, and final delivery. Built-in Unity effects provide a useful comparison and dry fallback, but the shipping chain needs consistent multichannel linking, calibration, metering, and explicit latency control. A plugin host would add binary compatibility and configuration work without solving those requirements.</p>
+<table>
+<thead>
+<tr>
+<th>Processor</th>
+<th>Recommended implementation</th>
+<th>Intended improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EQ</td>
+<td>Signalsmith DSP biquad filters, with VPE parameter smoothing and validated coefficient changes.</td>
+<td>Reduce cabinet resonances and harshness; compensate different speakers without changing recordings.</td>
+</tr>
+<tr>
+<td>Compressor</td>
+<td>A small VPE feed-forward soft-knee compressor, using a shared peak detector and gain envelope for linked channels.</td>
+<td>Optional control of excessive dynamic range while preserving impacts.</td>
+</tr>
+<tr>
+<td>Reverb</td>
+<td>Signalsmith Basics <code>ReverbFloat</code>, an FDN reverb, wrapped as one stereo auxiliary return.</td>
+<td>Subtle room cues for dry desktop/headphone playback.</td>
+</tr>
+<tr>
+<td>Limiter</td>
+<td>Signalsmith Basics <code>LimiterFloat</code>, configured explicitly for short lookahead and full channel linking.</td>
+<td>Catch digital output peaks after processing and calibration.</td>
+</tr>
+</tbody>
+</table>
+<p>Signalsmith's DSP and Basics project licenses are MIT. The vendored STFX wrapper header separately declares the Boost Software License. Pin Basics, its STFX wrapper, and DSP at exact revisions, with DSP at least 1.3.3 for the reverb; retain both license notices and the Boost license text. Basics supplies reverb and limiting, not a conventional compressor. Configure buffers outside active processing. <a href="https://github.com/Signalsmith-Audio/dsp">Signalsmith DSP</a>, <a href="https://github.com/Signalsmith-Audio/basics">Basics API</a>, <a href="https://github.com/Signalsmith-Audio/basics/blob/main/include/stfx/stfx-library.h">STFX wrapper</a>, <a href="https://www.boost.org/LICENSE_1_0.txt">Boost license</a>.</p>
+<p>The limiter defaults to 20 ms attack/lookahead and partial channel linking. Set a proposed 1 ms lookahead and full linking explicitly, report actual sample latency, and validate the ceiling and distortion. Label it sample-peak limiting in dBFS; do not claim true-peak/dBTP performance without oversampled detection and tests. <a href="https://github.com/Signalsmith-Audio/basics/blob/main/include/signalsmith-basics/limiter.h">Limiter implementation</a>, <a href="https://github.com/Signalsmith-Audio/basics/blob/main/include/signalsmith-basics/reverb.h">reverb implementation</a>.</p>
+<p>For the compressor, implement the documented feed-forward topology with explicit threshold, ratio, knee, attack, release, and manual makeup gain. Detect the maximum channel magnitude and apply one smoothed reduction to every channel in a linked group. Do not copy plugin code as an unexplained algorithm. The current Faust library contains GPL-3.0-only declarations on several relevant compressor functions despite its general LGPL exception header; that requires function-level consideration before reuse. The permissively labelled <code>sndfilter</code> compressor is another candidate, but its source includes automatic makeup and a default 6 ms predelay, plus Chromium-derived provenance to verify. A small purpose-built, tested compressor avoids importing those defaults and supports the required four-channel detector directly. <a href="https://github.com/grame-cncm/faustlibraries/blob/master/compressors.lib">Faust compressor source</a>, <a href="https://github.com/velipso/sndfilter/blob/master/src/compressor.c">sndfilter compressor source</a>.</p>
+<p>Before choosing the final reverb and compressor tuning, compare the proposed chain against bypass and Unity's built-in effects using matched output levels. Include single impacts, rapid flipper presses, ramp rolling, multiball, and loud ROM passages. Judge transient clarity, pumping, audible coloration, metallic reverb tails, and CPU cost. A more expensive algorithm or louder preset is not evidence of better sound.</p>
+<h3 id="processing-controls-and-defaults">Processing controls and defaults</h3>
+<p>EQ offers high-pass and low-pass filters, low/high shelves, and up to four bell bands per bus/output. The simple UI shows Bass, Mid, and Treble; Advanced reveals frequency, gain, Q, filter type, and the complete curve. Use minimum-phase filters for low latency. Bound frequency to the current Nyquist limit, reject non-finite values, and interpolate stable coefficients or crossfade filter states during changes.</p>
+<p>Compression is off in Reference. A Night preset can start with a gentle 2:1 ratio, 6 dB knee, approximately 10 ms attack and 120 ms release, with a threshold adjusted during listening tests. These are initial tuning values, not a universal calibration. Makeup gain defaults to zero and automatic makeup is absent in the first release. Keep stereo pairs linked and the four SSF channels fully linked; independent compression would change the perceived position of an impact. Compression and limiting remain separate controls with separate gain-reduction meters.</p>
+<p>Reverb is off in Reference and off on the SSF cabinet branch. A Desktop Room preset can start with a short 0.3–0.6 s decay and a low send, then be tuned against the actual recordings, which may already contain room sound. Offer amount, room size/decay, predelay, high-frequency damping, and return width. Use a common room return with separate bus sends; ROM reverb defaults off. No persistent tails remain after unloading a table or muting output. Large hall presets, convolution impulse-response loading, and physical room simulation are deferred.</p>
+<p>The limiter is off in Reference to retain a true bypass comparison. Processed presets enable a proposed -1 dBFS sample-peak ceiling, 1 ms lookahead, and an auditioned release. Show the added delay, allow global bypass, and keep limiter delay constant during an active game; changing it requires applying a new audio configuration. A short lookahead is a latency/quality tradeoff, not a promise of transparent limiting under every input. If the library cannot meet the tested ceiling and quality requirements at that delay, change the algorithm or budget explicitly rather than silently using its 20 ms default.</p>
+<h2 id="spatial-rendering-and-cabinet-calibration">Spatial rendering and cabinet calibration</h2>
+<h3 id="four-corner-panning">Four-corner panning</h3>
+<p>Normalize a voice's position in table-local playfield coordinates: <code>u</code> runs from left to right, and <code>v</code> from the lockbar toward the backbox. Convert from the table's actual coordinate convention once at the boundary; test mirrored, rotated, translated, and scaled table transforms. Ball-ball impacts use the collision position, static mechanisms use their own position, and rolling voices update as the ball moves. Camera motion and screen rotation never change an SSF speaker assignment.</p>
+<p>Start with corner gains <code>sqrt((1-u)*(1-v))</code>, <code>sqrt(u*(1-v))</code>, <code>sqrt((1-u)*v)</code>, and <code>sqrt(u*v)</code> for front-left, front-right, back-left, and back-right. Clamp the coordinates and smooth moving gains over a short interval. The squared gains sum to one; that is an electrical power convention, not a guarantee of equal perceived loudness through a wooden cabinet. Provide adjustable width/depth response and optional VPX-style response curves after listening comparisons. Maintain a direct low-latency path with no HRTF, Doppler, camera distance attenuation, or room reverb in SSF mode.</p>
+<p>For authored stereo mechanical clips, retain stereo playback on desktop; provide an explicit mono fold-down for SSF and flag phase cancellation during authoring. T2's current mechanical clips are mono. A sound without a valid position uses an explicit authored fallback position or centered mechanical image; it must not accidentally route to the backbox.</p>
+<h3 id="unity-routing-proof-before-implementation">Unity routing proof before implementation</h3>
+<p>The implementation probe corrected an assumption in the original plan. Unity 6000.5 documents spatializer source input as stereo, including mono and multichannel clips; an ordinary spatializer must not depend on receiving eight source channels. The SDK's <code>UseOutputChannelCount</code> flag is for ambisonic decoders and cannot expand this ordinary spatializer path. The standalone probe confirms stereo input/output on the available stereo driver, even when the requested configuration reports 7.1. Retain those measurements as a negative control; they do not certify surround output or establish what a different device's mixer will do. <a href="https://docs.unity.com/en-us/engine/6000.5/manual/audio/mixer-native-audio-plugin/spatializer-sdk">Unity 6000.5 spatializer contract</a>, <a href="https://github.com/Unity-Technologies/NativeAudioPlugins/blob/master/NativeCode/AudioPluginInterface.h">Unity audio plugin interface</a>.</p>
+<p>Use the planned central native multichannel renderer as the production candidate, with explicit PCM inputs before Unity's per-source upmix and a native generator emitting four cabinet channels and backbox stereo. This decision follows the documented source contract, rather than the absence of cabinet hardware. The prototype's eight-channel generator and post-generator meter measure actual callback counts and channel preservation; setting a generator's declared channel count or requesting 7.1 does not by itself prove an eight-channel output. On this stereo driver the generator and mixer still receive two output channels, so discrete transport and physical output validation remain pending.</p>
+<p>The proof must output six distinguishable signals on an actual discrete device, preserve all eight buffer channels through the downstream mixer, keep unused slots silent and avoid a second panning stage. Test standalone playback, input gain/stereo preservation, one channel at a time, moving positions and realistic multiball load. Measure end-to-end impact latency separately. Keep four cabinet outputs fixed in table coordinates regardless of camera position, with no distance attenuation, Doppler or HRTF in SSF mode. Do not implement SSF as ordinary 3D panning plus a Quad setting or assume a mixer group selects a speaker.</p>
+<p>The central renderer owns PCM cursors, resampling/pitch, looping, gain/fades and table-position panning behind the routing API. Prototype tone generation is only a transport test and does not implement those voice semantics. Require parity tests for all existing mechanical and rolling behavior before adoption. Feed ROM stereo and authored 2D music/callouts/UI through explicit pre-upmix PCM routes when using that renderer; preserve integration ownership and authoring gain. Desktop processing can proceed independently, but no incomplete SSF path is silently enabled.</p>
+<h3 id="player-setup-workflow">Player setup workflow</h3>
+<p>Add Sound settings sections for Mix, Processing, Speakers/SSF, and Diagnostics, reachable from both the main menu and the in-game pause menu using the existing keyboard, controller, and cabinet navigation. Basic controls remain useful without opening Advanced.</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>User controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mix</td>
+<td>Master level, Mechanical, Rolling relative level, ROM/Game integration controls, separately authored Music/Callouts, UI, mute, and per-table balance override.</td>
+</tr>
+<tr>
+<td>Processing</td>
+<td>Reference, Desktop Room, Headphones, Night, Cabinet SSF, and Custom presets; EQ, compression, reverb sends, limiter, bypass comparison, peak and gain-reduction meters.</td>
+</tr>
+<tr>
+<td>Speakers/SSF</td>
+<td>Stereo, ordinary surround where supported, or Cabinet SSF; physical channel assignments, front/back and left/right correction, output trims, per-output EQ, channel tests, and profile save/load.</td>
+</tr>
+<tr>
+<td>Diagnostics</td>
+<td>Requested/effective layout, sample rate, DSP block size, algorithmic delay, underruns, playback owner per ROM stream, native plugin version, whether the selected spatializer is loaded and active, and processing coverage for each bus.</td>
+</tr>
+</tbody>
+</table>
+<p>The SSF wizard first explains that the OS must expose one discrete multichannel device. It requests 7.1 and reads back the configuration, offers the VPX wiring preset, and plays a low-level short test through one channel at a time. The user identifies Backbox Left/Right and the four cabinet corners on a diagram, then balances trims and saves the profile. Tests are bounded in duration and stop immediately on cancel. Keep EQ flat until channel mapping and level balance are confirmed; optional test sweeps help the user identify resonances without claiming automatic calibration.</p>
+<p>The pause menu sets <code>AudioListener.pause</code>, so preview and channel-test sources explicitly use <code>ignoreListenerPause</code> while game voices remain paused. Preview uses controlled test clips or tones, with its own stop/cancel lifecycle, rather than unpausing the table or letting a paused ROM backlog accumulate.</p>
+<p>Normal four-speaker surround is a separate mode: it may use camera/listener-relative panning, while SSF is fixed to the cabinet. Headphones initially use stereo spatial playback with optional room ambience. True binaural HRTF rendering is a later step, using a verified cross-platform kernel such as Steam Audio's native API; expose it as a distinct choice rather than calling stereo panning HRTF. Unity selects one project spatializer, and <code>SetSpatializerPluginName</code> is Editor-only. Keep any Unity spatializer selection fixed at build time. With the central PCM renderer, a future HRTF kernel belongs behind its own routing API and mode selection; the player cannot promise to swap independent Unity spatializer plugins at runtime. <a href="https://github.com/ValveSoftware/steam-audio/blob/master/unity/doc/guide.rst">Steam Audio Unity guide</a>, <a href="https://docs.unity.com/en-us/engine/6000.5/script-reference/unityengine/audiosettings/setspatializerpluginname">Unity spatializer selection API</a>.</p>
+<p>An unplugged or changed device invalidates a cabinet mapping until its layout is revalidated. Mute the cabinet branch and show a clear status if discrete routing is unavailable; allow an explicit switch to stereo rather than letting the OS downmix mechanical effects into the backbox unnoticed. <code>AudioSettings.Reset</code> restarts the audio engine and can stop sources and filters. Apply disruptive device/layout changes while paused, rebuild the graph off the audio thread, and restore active loops from current game state when resuming. Preserve a last-known working configuration and provide Revert.</p>
+<h2 id="settings-authoring-and-packaging">Settings, authoring, and packaging</h2>
+<p>Player settings have three layers: portable application listening preferences, hardware-specific output calibration, and optional per-table balance/processing overrides. A hardware profile stores logical speaker assignments, the verified output-layout signature, trims and EQ; it is never embedded in a shared table. With Unity's current default-device API, do not pretend an OS-friendly device name is a stable hardware identifier. Require profile selection or revalidation when identity cannot be established reliably.</p>
+<p>Extend <code>PlayerUserConfig</code> with a versioned audio section. Use <code>JsonUtility</code>-compatible <code>[Serializable]</code> classes and lists, not dictionaries; an audio version of zero triggers migration from <code>mechanicalVolume</code>, independently of whether the serializer constructs a default audio object. Retain plugin-owned integration settings in their existing stores. Change <code>PlayerUserConfigStore</code> explicitly: preserve an unparsable file under a diagnostic name instead of overwriting it with defaults, load a valid backup when available, validate a temporary serialized file, and atomically replace the active file while retaining the last good copy. Table overrides do not modify the imported table. Preset import/export accepts bounded data and known processor identifiers, not executable plugins or DLL paths.</p>
+<p>Live preview changes player-owned processing parameters smoothly; Apply persists them and Cancel restores the prior snapshot. Existing integration volume controls keep their current immediate/queued save semantics and are labelled separately, so Cancel does not promise an atomic rollback across plugin configuration stores. Resolve processing values from built-in defaults, the chosen application preset, then explicit per-table overrides; hardware calibration remains a separate final stage. Table recommendations are adopted only by an explicit user action and cannot turn processing on in Reference or override speaker calibration.</p>
+<p>Table authors assign semantic buses and may supply optional acoustic recommendations such as reverb sends or a tonal preset. Authors do not assign physical device channels or force the user's cabinet calibration. Runtime code, native DSP binaries, the default mixer and essential presets ship with the engine/player. The assets library may contain reusable recommendation presets and calibration clips, but the core runtime has no dependency on it.</p>
+<p>Serialize bus IDs and portable processing recommendations as versioned <code>.vpe</code> data with safe defaults for older tables. Rebind all restored sound banks to the runtime routing service; retain unknown IDs as diagnostics and route to a documented compatible fallback. T2 needs no recording changes for this work. Export/reimport it and verify all existing 41 banks and 214 clips, the seven rolling banks, material rows and mechanical/collision components remain intact. Audio processing presets contain data, not arbitrary Unity object references. If a later convolution option includes impulse responses, those become reachable packaged audio assets with explicit ownership and size limits.</p>
+<h2 id="cross-platform-and-real-time-requirements">Cross-platform and real-time requirements</h2>
+<p>Build the same C++ kernels for Windows x64, Linux x64, and macOS x64/arm64, with reproducible native builds and no mandatory platform DSP framework. Keep mobile compatibility in the API and source; Android arm64 and iOS arm64 builds and device tests are a separate delivery gate. Stereo processing can be available there before SSF; never advertise discrete cabinet output on a platform without verified hardware support. Do not base the design on newer Unity audio-foundation features absent from the project's 6000.5 version.</p>
+<p>Use preallocated buffers and bounded queues. DSP callbacks perform no managed allocation, file I/O, blocking locks, logging, or Unity main-thread calls. Prepare filter coefficients, buffer resizing, sample-rate changes and graph replacement outside the callback, then exchange immutable parameter snapshots safely. Sanitize invalid samples and parameters, handle denormals, and smooth gain/filter changes to avoid clicks. STFX's guard covers SSE/x64; provide VPE's own ARM64 flush-to-zero handling or denormal-state sanitation and test decaying signals on Apple Silicon and mobile targets. Metering is published to the UI without making the callback wait for it.</p>
+<p>Specify lifecycle handling for pause, resume, focus changes, table unload, plugin reload, device reset, and application shutdown. Stop old tails and queues, preserve intentional loop state across graph rebuilds, and ensure stopped mechanisms cannot continue driving exciters. Diagnose externally owned ROM playback rather than claiming it is processed. Extra latency is reported per route, including buffering, resampling and limiter delay; do not equate algorithmic delay with measured end-to-end hardware latency.</p>
+<h2 id="implementation-status">Implementation status</h2>
+<p>The first routing prototype is implemented as an isolated <a href="https://github.com/freezy/VisualPinball.Engine/tree/master/VisualPinball.Native%7E/Audio">native probe and standalone Unity sample</a>. It preserves stereo on the available desktop, measures both a spatializer and an eight-channel generator, and records two-channel callbacks even when Unity accepts a 7.1 setting. Unity's documented stereo source contract rules out the original eight-input spatializer assumption; the central generator/PCM renderer is the production candidate. The central renderer and stereo DSP milestones below implement production buses, portable routing metadata, processing and player controls. Discrete transport and physical SSF remain separate gates.</p>
+<h2 id="delivery-sequence">Delivery sequence</h2>
+<ol>
+<li><strong>Prove routing and select the backend.</strong> Capture a dry T2 baseline, audit every audio ingress, build the six-output standalone probe, use the documented stereo spatializer contract to select the central generator/PCM renderer candidate, verify its actual mixer/device channel path on a real SSF installation, and record channel order and latency. Prove discrete transport before building the cabinet UI around it. Pin DSP revisions and license notices.</li>
+<li><strong>Introduce semantic buses and ROM playback ownership.</strong> Add runtime routing, legacy defaults, <code>.vpe</code> rebinding, the PCM input adapter, and gain migration tests. Confirm Reference has unchanged event behavior and no duplicate ROM playback. List any deliberately external paths in Diagnostics.</li>
+<li><strong>Add EQ, compression, limiting, and player controls.</strong> Implement offline-tested kernels, native wrappers and meters, global/table settings, live preview/revert, and stereo presets. Tune using matched-level listening comparisons. Keep Reference the migration default.</li>
+<li><strong>Add room reverb and portable recommendations.</strong> Wire one stereo auxiliary return, sends, tail management, optional reusable library presets, and <code>.vpe</code> round-trip tests. Keep the cabinet mechanical return dry.</li>
+<li><strong>Ship SSF calibration.</strong> Connect the proven four-corner renderer, independent backbox route, linked processing, channel mapping, calibration wizard, effective-layout checks, and device-change recovery. Validate T2 on a cabinet with four exciters and separate backbox speakers.</li>
+<li><strong>Harden platform coverage and optional spatial modes.</strong> Complete desktop native build/release gates, real-device tests and documentation; then assess HRTF and mobile deployment separately. Multiple physical devices, bass-shaker/LFE routing, convolution, and automatic calibration require their own designs.</li>
+</ol>
+<p>Steps 3–4 can be developed for stereo while cabinet hardware testing proceeds, but SSF is not complete until step 5 passes physical output tests. A central-renderer fallback increases step 1–2 scope and needs its own playback parity milestone rather than being hidden inside an effects change. Include music, callouts, synthetic effects and UI voices in that estimate if their stereo signal cannot be recovered after Unity upmixing and they also need a PCM route before upmixing.</p>
+<h2 id="central-pcm-and-semantic-buses-implementation-milestone">Central PCM and semantic buses: implementation milestone</h2>
+<p>The initial central-PCM milestone added an opt-in dry stereo renderer on <code>feat/audio-processing</code>; the following DSP milestone extends it. Reference playback remains the default. In the player's Sound mixer, select <strong>New stereo mixer</strong>, then load the next table. Mechanical volume keeps its existing meaning and is applied once; independent bus trims are an additional processing stage. Routing and bus trims belong to player configuration, while a sound bank's optional stable bus ID is table metadata. Automatic routing separates mechanical transients, rolling, ROM, music, callouts, synthetic effects and player UI. Unknown IDs survive packaging and fall back to the component's automatic route. Rolling uses its component role, so a bank shared with an impact component can have different automatic routes. No asset-library dependency is introduced at runtime.</p>
+<p>The C++ renderer owns clip cursors, loops, pitch, mono constant-power panning, stereo channel preservation, gain ramps and seven semantic bus accumulators. A dedicated Unity stereo carrier calls the native renderer; ordinary table voices never share its audio filter. Unity <code>AudioSource</code> objects remain authoring/control proxies. Custom mixer routes, unavailable native libraries and unreadable or over-budget clips preserve Reference playback with diagnostics. The cache is bounded to 32 MiB per clip and 256 MiB per table, in addition to Unity's own decoded clips. Pause freezes clip cursors and flushes live PCM. A non-stereo output change restores active proxy sources at their last rendered position and releases ROM takeover. The ordinary camera-dependent Unity path and the central table-relative panning path remain explicitly selectable because they are different spatial policies.</p>
+<p>ROM uses one bounded PCM ring and one exclusive playback lease. PinMAME continues publishing unscaled raw frames for other subscribers and exposes its integration-owned output gain separately; the central renderer applies it once, including saved mute. Providers without gain metadata or a takeover capability keep their own playback. Stream underflow, overflow, sequence gaps and command drops are observable; mono/stereo PCM16 little-endian and float32 are supported at a fixed producer format per session. Format changes release takeover. This stage uses linear sample-rate conversion; adaptive clock-drift control and listening/latency qualification remain required before treating the path as the production default.</p>
+<p>Desktop native build jobs compile and test the renderer for Windows x64/x86, Linux x64 and universal macOS; successful source builds do not certify platform playback. Mobile keeps Reference playback. The physical Windows test machine detects Realtek audio, but its analog speaker endpoint is currently marked unplugged and Unity exposes a stereo driver in the remote session. Physical 7.1 transport, actual cabinet channel mapping and end-to-end impact latency remain unverified. No EQ, compressor, reverb, limiter or user-facing SSF output mode is shipped by this milestone.</p>
+<h2 id="validation-and-completion-criteria">Validation and completion criteria</h2>
+<table>
+<thead>
+<tr>
+<th>Test area</th>
+<th>Required evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reference compatibility</td>
+<td>Existing mechanical, collision, rolling and packaging regressions pass; compare deterministic dry captures of the restored <code>.vpe</code> with processing bypassed and verify identical gain/pitch/event decisions. Record source-scene mixer differences separately. Confirm the old mechanical slider is applied once.</td>
+</tr>
+<tr>
+<td>DSP accuracy</td>
+<td>EQ response and stability at 44.1/48/96 kHz; compressor transfer curve, attack/release and full channel linking; limiter ceiling, distortion and measured latency under impulses and sustained overload, including 40–80 Hz cabinet signals; reverb decay/tail reset and mixer suspension behavior; no NaN propagation or parameter-change clicks.</td>
+</tr>
+<tr>
+<td>Channel integrity</td>
+<td>Isolated impulses reach each named physical output; corner, center and edge positions produce expected weights; camera motion does not affect SSF; no mechanical signal leaks into backbox channels and no ROM signal into exciters.</td>
+</tr>
+<tr>
+<td>Runtime behavior</td>
+<td>Multiball and simultaneous mechanisms, stereo/mono ROMs, producer rate changes, buffer under/overflow, lease acquisition races/conflicts, saved boot mute and live integration volume under takeover, pause-menu previews, unload/reload, audio reset, device loss and fallback. No duplicate/pre-lease playback or stale tails.</td>
+</tr>
+<tr>
+<td>Performance</td>
+<td>No allocation/blocking in callbacks; benchmark representative target hardware and all enabled effects at realistic peak voice counts. Target DSP callback p99 below 20% of its block duration with no underruns during a sustained T2 stress run; record hardware and settings rather than asserting a universal CPU number.</td>
+</tr>
+<tr>
+<td>Hardware and platforms</td>
+<td>Standalone stereo on Windows/Linux/macOS and measured six-channel SSF on each platform advertised as supported; measure output-channel mapping and end-to-end impact latency. Source compilation alone does not certify cabinet routing.</td>
+</tr>
+<tr>
+<td>Packaging and settings</td>
+<td>T2 exports/reimports with the same audio inventory and restored bus IDs without the assets library; old <code>.vpe</code> and old player config load safely; user calibration stays outside the table; profile save/cancel/revert and corrupted-file recovery work.</td>
+</tr>
+<tr>
+<td>Listening quality</td>
+<td>Matched-level comparison with Reference and Unity effects on desktop, headphones and the actual cabinet; impacts retain attack and position, rolling remains continuous, and reverb/compression introduce no objectionable pumping or ringing.</td>
+</tr>
+</tbody>
+</table>
+<p>Completion means a user can load an existing <code>.vpe</code>, keep the original dry sound, or choose a tuned processing profile; a cabinet owner can map and calibrate four exciters plus backbox stereo entirely through the player; and those preferences work across tables without adding table-specific scripts or an asset-library runtime dependency.</p>
+<h2 id="stereo-dsp-implementation-milestone">Stereo DSP implementation milestone</h2>
+<p>Stages 3–4 now add player-owned stereo processing to the central renderer. Seven buses and the summed output have eight minimum-phase EQ filters and a linked feed-forward soft-knee compressor. One stereo Signalsmith FDN return receives explicit post-bus sends and feeds output EQ/compression before the master trim and linked final limiter. The limiter uses a fixed 1 ms lookahead rounded up to a whole sample, full stereo linking and a final numerical peak guard. Dry comparison uses the same delay. Reference routing remains the migration default, and the Reference processing preset disables effects. There are no table-owned processing recommendations or hardware profiles in this milestone.</p>
+<p>The Player owns versioned application preferences and optional per-table processing overrides. UI drafts remain separate from configuration until Apply, so another settings page cannot save an unapplied audio preview. Cancel, scope changes and leaving Sound restore the effective saved profile. Integration settings retain their own save semantics. A bounded stereo-pulse preview runs while game cursors and ROM input remain paused. Configuration writes validate a temporary JSON document before atomic replacement and retain a last-good backup; malformed files are preserved for diagnosis.</p>
+<p>DSP snapshots contain prepared EQ coefficients and bounded parameters. One control producer publishes them to the audio consumer through a fixed SPSC queue. Sample-rate changes allocate a replacement DSP graph on the main thread, adopt it at a block boundary and retire the previous graph for main-thread disposal while native voice cursors remain intact. Callbacks allocate nothing, and SSE/x86 and ARM64 guards handle denormals. Meter publication uses lock-free atomics. Pause, mute, zero master level and unload clear delay/reverb state; resuming fades the master level back in. Unsupported native DSP extensions retain dry playback with explicit diagnostics.</p>
+<p>Signalsmith Basics, its STFX wrapper and Signalsmith DSP are vendored at the revisions in <code>VisualPinball.Native~/Audio/ThirdParty/Signalsmith/*/source.json</code>. Local patches clear the reverb's fourth diffuser on reset and give the limiter's initial box filters a positive length before configuration. MIT and Boost notices are retained both with the sources and in the runtime <code>Resources/VpeAudioDsp-LICENSE.txt</code> notice. Offline fixtures exercise stereo preservation, linking, sample-peak ceilings, EQ response, pause/mute tail removal, parameter rejection, graph replacement and allocation-free callbacks. Physical SSF, adaptive ROM clock drift, HRTF and real-device macOS/mobile playback qualification remain separate gates.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/audio-processing-and-ssf-plan.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

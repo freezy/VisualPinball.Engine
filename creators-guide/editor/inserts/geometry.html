@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Insert Geometry | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Insert Geometry | VPE Documentation ">
+      
+      <meta name="description" content="Every outline, corner, body, channel, bevel, and hole parameter in the insert generator.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/geometry.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_geometry">
+<h1 id="insert-geometry">Insert Geometry</h1>
+
+<p>The geometry of an insert is based on a two-dimensional shape. This shape is then extruded downwards, where it optionally gets inset for an additional channel which is then extruded upwards. To that bottom surface, a <a href="patterns.html">patterns</a> can be additionally applied. On top sits the cover, which becomes part of the playfield.</p>
+<img src="inserts-geometry.svg" width="560" style="display:block;margin-left:auto;margin-right:auto;margin-bottom:20px" alt="The geometry of an insert">
+<p>This setup is procedurally generated, so every parameter can be tweaked directly in the editor and the result is instantly visible. In this section we'll walk you through the common configuration and specifics of each shape that VPE currently supports.</p>
+<h2 id="dimensions-and-coordinates">Dimensions and coordinates</h2>
+<p>Length fields in the mesh generator use <strong>VPX units</strong>, even where the Inspector simply says <em>Width</em> or <em>Depth</em>. One unit is 0.53975 mm; an inch is about 47.059 units. The preview also reports the finished width and height in inches. See <a href="../units-3d-space.html">Units and 3D Space</a>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Controls unique to a shape remain stored when you switch. <em>Width</em> and <em>Height</em> are shared by Triangle, Rectangle, Diamond, Bullet, and Arrow.</p>
+</div>
+<h2 id="rounded-corners-and-sampling">Rounded corners and sampling</h2>
+<p>Every corner group has the same two controls:</p>
+<ul>
+<li><em>Radius</em> is the radius of the rounded corner. Zero gives a sharp corner. A larger radius consumes more of the straight sides on either side. VPE reduces it if it cannot fit and shows a warning.</li>
+<li><em>Segments</em> is the number of straight segments approximating that arc, from 1 to 64. One gives a chamfer; more make it rounder. Each arc has one more vertex than segments.</li>
+</ul>
+<p><em>Radius</em> changes the shape. <em>Segments</em> changes how closely the mesh follows that shape. A higher segment count also adds walls and bake work, so use the lowest count that looks smooth from the intended camera.</p>
+<!-- Screenshot: geometry-corners. Radius 0 versus 4; separately Segments 1 versus 8. Outline overlay and oblique wireframe. Repeat for the groups listed in visuals.md. -->
+<h2 id="triangle">Triangle</h2>
+<img src="geometry/inspector-triangle.png" width="340" alt="Triangle parameters" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Width</em> is the finished width across the base.</li>
+<li><em>Height</em> is the finished distance from the base to the apex.</li>
+<li><em>Base Corners</em> sets the radius and segments shared by the two ends of the base.</li>
+<li><em>Apex Corner</em> sets the radius and segments of the opposing tip.</li>
+</ul>
+<p>Base and apex rounding can be tuned independently. The generator adjusts the underlying triangle so the requested finished dimensions are retained.</p>
+<!-- Screenshot: geometry-triangle. Top view; vary Width, Height, and each corner group individually. -->
+<div style="clear: both"></div>
+<h2 id="rectangle">Rectangle</h2>
+<img src="geometry/inspector-rectangle.png" width="340" alt="Rectangle parameters" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Width</em> is the finished horizontal extent.</li>
+<li><em>Height</em> is the finished vertical extent in the outline preview.</li>
+<li><em>Corners</em> sets the radius and segments shared by all four corners.</li>
+</ul>
+<!-- Screenshot: geometry-rectangle. Square and elongated rectangle; individual width, height, and rounding comparisons. -->
+<div style="clear: both"></div>
+<h2 id="circle">Circle</h2>
+<img src="geometry/inspector-circle.png" width="340" alt="Circle parameters" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Diameter</em> is the diameter of the circular outline.</li>
+<li><em>Vertices</em> is the number of sides approximating the circle, from 6 to 128.</li>
+</ul>
+<p>A circle has no separate corner controls. <em>Vertices</em> determines its entire outline sampling.</p>
+<!-- Screenshot: geometry-circle. Diameter 47.059 versus 70.588; Vertices 8 versus 32 with wireframe. -->
+<div style="clear: both"></div>
+<h2 id="banana">Banana</h2>
+<img src="geometry/inspector-banana.png" width="340" alt="Banana parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>The banana is a band bent around a circle, with rounded ends. Its <em>Diameter</em> describes the circle through the middle of the band, rather than the band's outer diameter.</p>
+<ul>
+<li><em>Diameter</em> is the diameter of the circle followed by the band's centerline.</li>
+<li><em>Thickness</em> is the width across the band. Half extends on either side of that centerline.</li>
+<li><em>Angle</em> is the sweep around the circle, from 1° to 180°. The ends turn upward in the preview.</li>
+<li><em>Arc Vertices</em> is the segment count along each of the two arcs, from 2 to 128.</li>
+<li><em>End Vertices</em> is the segment count around each rounded end, from 2 to 32.</li>
+</ul>
+<p><em>Thickness</em> limits how wide its channel can be. A starburst centered on the banana's arc can create ribs crossing the band evenly; see <a href="patterns.html#starburst">Starburst</a>.</p>
+<!-- Diagram: geometry-banana-measures. Centerline diameter, band thickness, angle, and arc center labeled. -->
+<div style="clear: both"></div>
+<h2 id="diamond">Diamond</h2>
+<img src="geometry/inspector-diamond.png" width="340" alt="Diamond parameters" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Width</em> is the finished extent across the side points.</li>
+<li><em>Height</em> is the finished extent between the top and bottom.</li>
+<li><em>Side Points</em> sets the radius and segments shared by the left and right points.</li>
+<li><em>Top and Bottom</em> sets the radius and segments shared by the upper and lower points.</li>
+<li><em>Shear</em> leans the top and bottom points away from upright, from −75° to 75°. Positive leans toward the table's right in the preview. Zero is upright.</li>
+</ul>
+<!-- Screenshot: geometry-diamond. Shear 0 versus 25, plus separate corner comparisons. -->
+<div style="clear: both"></div>
+<h2 id="flash">Flash</h2>
+<img src="geometry/inspector-flash.png" width="340" alt="Flash parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>The flash has two offset arms, flat ends, projecting spikes, and inward notches. These controls let you fit a lightning-bolt insert without drawing its polygon manually.</p>
+<ul>
+<li><em>Width</em> is the finished extent from spike to spike.</li>
+<li><em>Height</em> is the finished extent from end to end.</li>
+<li><em>Tip Width</em> is the width of each flat end.</li>
+<li><em>Notch Depth</em> is the distance inward from a spike to its notch. It must be less than half the width.</li>
+<li><em>Step Height</em> places the two steps above and below the middle. Zero aligns them with the middle line. Negative values increase the overlap of the arms.</li>
+<li><em>Mirror</em> flips the flash left to right, so the bolt runs the other way.</li>
+<li><em>Tip Corners</em> sets the radius and segments for the four corners of the flat ends.</li>
+<li><em>Spike Corners</em> sets the radius and segments for the two projecting spikes.</li>
+<li><em>Notch Corners</em> sets the radius and segments for the two inward turns. These fillets round inward.</li>
+</ul>
+<p>The <a href="patterns.html#engraved-line">Engraved Line</a> is a pattern on the flash's floor. Its inset is measured from the floor edge, and does not change these outline controls.</p>
+<!-- Diagram: geometry-flash-measures. Tip Width, Notch Depth, Step Height, and all three corner groups labeled. -->
+<div style="clear: both"></div>
+<h2 id="bullet">Bullet</h2>
+<img src="geometry/inspector-bullet.png" width="340" alt="Bullet parameters" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Width</em> is the finished width of the bullet.</li>
+<li><em>Height</em> is the finished height from base to tip.</li>
+<li><em>Tip</em> sets the radius of a circular tip touching the top, and the segments across the whole tip arc. A radius of zero makes the tip pointed. The radius is limited to fit inside the bullet's width and height, and the segment count is rounded up to an even number.</li>
+<li><em>Shoulder Height</em> is the height from the base at which the straight sides turn toward the tip. Zero starts the sloping flanks at the base. The shoulders remain below the tip's center.</li>
+<li><em>Shoulder Corners</em> sets the radius and segments where the straight sides meet those flanks.</li>
+<li><em>Base Corners</em> sets the radius and segments at the two base corners.</li>
+</ul>
+<!-- Diagram: geometry-bullet-measures. Circular tip radius and shoulder height labeled; show pointed and rounded tip. -->
+<div style="clear: both"></div>
+<h2 id="arrow">Arrow</h2>
+<img src="geometry/inspector-arrow.png" width="340" alt="Arrow parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>The arrow can have a flat base, a narrow notch with feet on either side, or a notch spanning the entire base for a chevron.</p>
+<ul>
+<li><em>Width</em> is the finished width across the base.</li>
+<li><em>Height</em> is the finished height from base to tip.</li>
+<li><em>Tip</em> sets the radius and segments of the upper point.</li>
+<li><em>Notch Depth</em> is how far the notch cuts into the base. Zero gives a flat base and disables the notch-specific controls.</li>
+<li><em>Notch Width</em> is the width of the notch opening. At the full base width there are no feet, so <em>Foot Angle</em> and <em>Inner Corners</em> are disabled.</li>
+<li><em>Notch Corner</em> sets the radius and segments at the inward notch apex. A large radius makes a round scoop.</li>
+<li><em>Foot Angle</em> tilts the feet, from −85° to 85°. Positive lifts their inner corners; negative drops them below the outer corners.</li>
+<li><em>Inner Corners</em> sets the radius and segments where each foot turns into the notch.</li>
+<li><em>Feet</em> sets the radius and segments at the two outer base corners.</li>
+</ul>
+<!-- Diagram: geometry-arrow-measures. Flat base, notched arrow, and full-width chevron, with the four corner groups labeled. -->
+<div style="clear: both"></div>
+<h2 id="custom">Custom</h2>
+<img src="geometry/inspector-custom.png" width="340" alt="Custom parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>Choose <em>Custom</em> when a standard outline cannot match the playfield opening. Assign a mesh asset in <em>Source Mesh</em>, including a mesh subasset from an imported model. The source is separate from the generated insert: VPE reads its outline, then builds the body, channel, bevel, holes, and selected pattern using the same controls as the standard shapes.</p>
+<ul>
+<li><em>Source Mesh</em> is a readable, flat mesh containing one closed wire boundary, or a filled surface with one outer boundary. Lines, an explicitly closed Line Strip, triangles, and quads are supported.</li>
+<li><em>Reload</em> reads the source again after you change or reimport the mesh. Geometry edits also read it again. Rebake if the source geometry changed.</li>
+<li><em>Corners</em> sets the rounding shared by the imported outline's corners. A radius of zero preserves the source outline. Straight boundary samples are merged before rounding.</li>
+</ul>
+<div style="clear: both"></div>
+<p>The source's local dimensions are in Unity meters. VPE centers its bounding box and aligns its plane with the insert's XZ plane, retaining its size. A source already in XZ keeps its orientation; other planes are rotated flat. Position, rotation, and scale on the GameObject that originally used the mesh are not part of a mesh asset. Apply those transforms in your modeling tool when they should change the source's dimensions.</p>
+<p>An invalid source shows an error in the Inspector and keeps the last mesh that worked. The bake button is disabled until the problem is corrected. Open boundaries, non-flat vertices, separate shapes, nested boundaries, branches, zero-length edges, and self-intersections are rejected. Add holes with the insert's <em>Holes</em> controls instead of placing another boundary in the source. Enable <em>Read/Write</em> in the model's import settings if requested.</p>
+<!-- Screenshot: geometry-custom. A closed wire and matching filled mesh producing the same insert; Source Mesh None/assigned, Corners Radius 0/2 and Segments 1/8. Show errors for an open, non-flat, and multiple-outline source. -->
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Source geometry and packaged geometry.</strong> The custom source is authoring data. Its original vertex positions and edge/face indices are saved in the editor sidecar when exporting a <code>.vpe</code> and restored as a project mesh asset when importing for editing. The player receives the finished generated mesh in the GLB and never reads or regenerates the custom source. Imported UV/normal seams at identical positions are welded when checking the boundary; the source's UVs and shading normals do not drive the generated insert.</p>
+</div>
+<h2 id="body-channel-and-bottom-bevel">Body, channel, and bottom bevel</h2>
+<img src="geometry/inspector-body.png" width="340" alt="Body, channel, and bottom bevel parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p><em>Depth</em> sinks the main floor below the rim. A channel surrounds that floor and sits lower still, leaving the main floor as a raised middle. This distinction matters when placing holes and limiting pattern height.</p>
+<ul>
+<li><em>Body → Depth</em> is the distance from the rim to the main floor. With a channel, the deepest floor is Body Depth plus Channel Depth.</li>
+<li><em>Channel</em> enables the surrounding recessed channel. Without it, the main floor reaches the outside wall.</li>
+<li><em>Channel → Width</em> is the distance inward from the outline to the raised middle. Zero gives no channel even when the toggle is enabled. It is reduced if the inset would fold or consume the shape.</li>
+<li><em>Channel → Depth</em> is the additional distance below the main floor. The channel's width still matters when its depth is zero.</li>
+<li><em>Bottom Bevel → Width</em> rounds the edge where the outer wall meets the channel floor, extending up the wall and inward along the floor. Zero leaves a sharp edge. It is limited to fit the wall and channel.</li>
+<li><em>Bottom Bevel → Segments</em> is the number of segments approximating that rounding, from 1 to 16. One gives a flat chamfer.</li>
+</ul>
+<p><em>Bottom Bevel</em> is actual geometry and requires a channel. The separate <em>Edge Bevel</em> under <em>Normal Bake</em> rounds sharp edges in the surface normal map; it does not replace this body bevel.</p>
+<!-- Diagram: geometry-body-cutaway. Dimension Body Depth, Channel Width/Depth, and Bottom Bevel Width. Pair channel enabled/disabled and bevel 0/1. -->
+<div style="clear: both"></div>
+<h2 id="holes">Holes</h2>
+<img src="geometry/inspector-holes.png" width="340" alt="Hole parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>Holes cut through the raised middle to the channel floor. They require a channel with a nonzero width. They describe molded detail in the insert, rather than a new physical ball hole in the playfield.</p>
+<ul>
+<li><em>Holes</em> is the editable list of holes. Each numbered row corresponds to the numbered hole in the preview and Scene view.</li>
+<li><em>X, Y</em> is the hole's center relative to the insert's origin, in generator coordinates and VPX units.</li>
+<li><em>R</em> is the radius of that hole. Each hole can have a different radius.</li>
+<li><em>Circle Segments</em> is the side count for every hole, from 3 to 64.</li>
+<li><em>New Hole Radius</em> is the radius assigned when adding a hole or using a placement preset. Changing it does not resize existing holes.</li>
+</ul>
+<p>Drag the circular Scene handle to move a hole across the insert. Drag the small dot on its rim to change its radius. The Inspector's <em>X</em>, <em>Y</em>, and <em>R</em> fields provide exact placement and size.</p>
+<!-- Screenshot: geometry-holes. A numbered Inspector row and its Scene handle; compare center, radius, and circle sampling. -->
+<div style="clear: both"></div>
+<h3 id="placement-helpers">Placement helpers</h3>
+<img src="geometry/inspector-hole-placement.png" width="340" alt="Hole placement helpers" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Corners</em> replaces the list with a hole at each corner of the raised floor.</li>
+<li><em>Corners + Sides</em> replaces the list with corner holes and one halfway along each side.</li>
+<li><em>Around</em> replaces the list with evenly spaced holes along the floor edge. Choose 1–64 in the adjacent count field before pressing the button.</li>
+<li><em>Add Hole</em> adds one hole at an interior starting point, using <em>New Hole Radius</em>. Move it afterward.</li>
+<li><em>Symmetrize</em> snaps nearly centered holes onto the middle line and makes nearly mirrored pairs exact. “Nearly” means within 5% of the outline's larger dimension.</li>
+<li><em>Clear</em> removes all holes.</li>
+</ul>
+<p><em>Corners</em> and <em>Corners + Sides</em> apply to polygonal shapes. Circle and Banana use their sampled curves instead; use <em>Around</em> or individual placement. The placement helpers are available when editing a single insert.</p>
+<div style="clear: both"></div>
+<h2 id="limits">Limits</h2>
+<p>The Inspector reports reduced radii, channel width, bevel width, or pattern height beside the relevant controls. Increasing a value after it has reached the shape's limit may no longer change the mesh. Make more room in the outline, reduce the neighboring feature, or use the smaller value.</p>
+<p>If a rebuild fails completely, VPE retains the last mesh that worked and displays the error. Correct the invalid parameters before baking. Generated meshes belong to the component; hand-editing them is not a lasting customization because a rebuild recreates them.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/geometry.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
