@@ -52,6 +52,23 @@ namespace VisualPinball.Unity.Test
 			Assert.That(source.Snapshot(metadata).RootHash, Is.Not.EqualTo(snapshot.RootHash));
 		}
 
+		[Test] public void APrivatePackageIsTheSameTableAndOnlySaysSoWhenItIs()
+		{
+			var metadata = new TableMetadata { TableName = "Fixture" };
+			var source = TableProvenance.New();
+			var released = source.Snapshot(metadata);
+			Assert.That(Encoding.UTF8.GetString(PackageApi.Packer.Pack(metadata)), Does.Not.Contain("private"), "a released table's metadata is written as before");
+
+			metadata.Private = true;
+			var json = PackageApi.Packer.Pack(metadata);
+			Assert.That(Encoding.UTF8.GetString(json), Does.Contain("\"private\": true"));
+			Assert.That(PackageApi.Packer.Unpack<TableMetadata>(json).Private, Is.True);
+			Assert.That(TableProvenance.CopyMetadata(metadata).Private, Is.True);
+			var snapshot = source.Snapshot(metadata);
+			Assert.That(snapshot.MetadataHash, Is.EqualTo(released.MetadataHash));
+			Assert.That(snapshot.RootHash, Is.EqualTo(released.RootHash));
+		}
+
 		[Test] public void ThreeGenerationsKeepCreditsButOnlyDirectEdges()
 		{
 			var aMeta = new TableMetadata { PrimaryAuthors = new() { new TableAuthor { Name = "Alice" } }, Version = "1.2.0" };

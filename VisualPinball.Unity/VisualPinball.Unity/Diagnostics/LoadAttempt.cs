@@ -113,6 +113,9 @@ namespace VisualPinball.Unity
 		public string TableId { get; private set; }
 		public string TableVersion { get; private set; }
 
+		/// <summary>Whether the package says the table isn't released (see <see cref="TableMetadata.Private"/>).</summary>
+		public bool TablePrivate { get; private set; }
+
 		/// <summary>
 		/// Where the load's time went: the phases and the reader's steps, plus facts like
 		/// whether the texture cache was hit.
@@ -243,10 +246,11 @@ namespace VisualPinball.Unity
 			Publish(log: false);
 		}
 
-		public void SetIdentity(string tableId, string version)
+		public void SetIdentity(string tableId, string version, bool isPrivate = false)
 		{
 			TableId = string.IsNullOrEmpty(tableId) ? null : tableId;
 			TableVersion = string.IsNullOrEmpty(version) ? null : version;
+			TablePrivate = isPrivate;
 			Publish(log: false);
 		}
 
@@ -503,6 +507,9 @@ namespace VisualPinball.Unity
 			}
 			if (TableVersion != null) {
 				w.Add("version", TableVersion);
+			}
+			if (TablePrivate) {
+				w.Add("private", true);
 			}
 			w.Add("phase", Phase);
 			if (FailedPhase != null) {
