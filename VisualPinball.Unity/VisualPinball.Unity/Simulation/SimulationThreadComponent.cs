@@ -443,7 +443,7 @@ namespace VisualPinball.Unity.Simulation
 
 				// Timing trace: CSVs of the last minutes for table developers, a summary of the
 				// last minute for players
-				SimulationTrace.Mode = SimulationTrace.ResolveMode(SimulationTrace.CommandLineOverride(), Application.isEditor, RecordSimulationTrace);
+				SimulationTrace.Mode = SimulationTrace.ResolveMode(SimulationTrace.CommandLineOverride(), Application.isEditor, RecordSimulationTrace, VpeProfiler.IsEnabled);
 				SimulationTrace.OutputDirectory = SimulationTrace.DefaultOutputDirectory();
 
 				// Start simulation thread

@@ -76,6 +76,8 @@ namespace VisualPinball.Unity.Profiling
 			LoadAttempt.Finished -= OnLoadFinished;
 			LoadAttempt.Finished += OnLoadFinished;
 			ResetTable();
+			// a table that is already up doesn't load again to say what it is
+			TraceCapture.RefreshContext();
 			// realtimeSinceStartup starts over with a new play session in the editor
 			_lastLogAt = -100;
 			if (VpeProfiler.Purpose == ProfilerPurpose.Session) {
