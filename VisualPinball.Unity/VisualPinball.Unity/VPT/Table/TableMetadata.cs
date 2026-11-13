@@ -49,6 +49,19 @@ namespace VisualPinball.Unity
 		public string Manufacturer;
 
 		/// <summary>
+		/// The table isn't released: this package is for its testers. What they measure with it (the
+		/// player's benchmark) is kept apart from the released table's results and isn't shown publicly.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Only written to JSON when set. It isn't part of the metadata hash: releasing a table doesn't
+		/// make it another one.
+		/// </remarks>
+		[JsonProperty("private", DefaultValueHandling = DefaultValueHandling.Ignore)]
+		[Tooltip("The table isn't released yet: this package is for its testers. Benchmark results measured with it are kept apart from the released table's and aren't shown publicly.")]
+		public bool Private;
+
+		/// <summary>
 		/// User-supplied backglass image. Not written to JSON; the PackageWriter encodes it to
 		/// screenshots/backglass.jpg when packing the table.
 		/// </summary>
