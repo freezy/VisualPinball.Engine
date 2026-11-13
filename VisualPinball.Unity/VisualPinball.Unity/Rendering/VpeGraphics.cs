@@ -53,6 +53,35 @@ namespace VisualPinball.Unity
 		High = 3,
 	}
 
+	/// <summary>What the lights around the table cast shadows with. The lamps on the table never do.</summary>
+	public enum VpeShadows
+	{
+		Off = 0,
+		/// <summary>Small shadow maps with hard edges.</summary>
+		Low = 1,
+		/// <summary>The shadow maps and filtering the lights were set up with.</summary>
+		High = 2,
+	}
+
+	/// <summary>How far and how finely screen-space reflections are traced.</summary>
+	public enum VpeReflectionQuality
+	{
+		/// <summary>A short trace on opaque surfaces.</summary>
+		Low = 0,
+		/// <summary>A medium trace on opaque surfaces.</summary>
+		Medium = 1,
+		/// <summary>The trace the volume was set up with, on transparent surfaces too where the pipeline has that.</summary>
+		High = 2,
+	}
+
+	/// <summary>An effect a render tier may leave out, see <see cref="VpeGraphics.IsEffectSupported"/>.</summary>
+	public enum VpeEffect
+	{
+		ScreenSpaceReflections,
+		AmbientOcclusion,
+		ScreenSpaceGlobalIllumination,
+	}
+
 	/// <summary>
 	/// Plain-data render-quality settings that are tunable at runtime via the active render pipeline's
 	/// <see cref="IVpeGraphicsApplier"/>. Carries only the SRP-specific knobs (camera AA + Volume effects);
@@ -75,6 +104,8 @@ namespace VisualPinball.Unity
 		// The balls reflect the playfield and what stands on it where SSR finds nothing, instead of the sky.
 		public bool BallReflections;
 		public int MotionBlur; // VpeMotionBlur
+		public int Shadows; // VpeShadows
+		public int ReflectionQuality; // VpeReflectionQuality, while ScreenSpaceReflections is on
 	}
 
 	/// <summary>Implemented by the active render pipeline (e.g. HDRP) to apply <see cref="VpeGraphicsSettings"/>.</summary>
@@ -107,6 +138,15 @@ namespace VisualPinball.Unity
 
 		public static System.Func<VpeUpscaler, bool> UpscalerSupport;
 
+		/// <summary>
+		/// Whether the active pipeline, with the render tier (pipeline asset) in use right now, renders an
+		/// effect at all: a tier can leave one out, and its switch then does nothing. Without a pipeline to
+		/// ask, everything counts as supported.
+		/// </summary>
+		public static bool IsEffectSupported(VpeEffect effect) => EffectSupport == null || EffectSupport(effect);
+
+		public static System.Func<VpeEffect, bool> EffectSupport;
+
 		/// <summary>Whether the active pipeline applies <see cref="VpeGraphicsSettings.BallReflections"/> (it sets this next to its applier).</summary>
 		public static bool BallReflectionsSupported;
 
@@ -128,5 +168,23 @@ namespace VisualPinball.Unity
 		public static float RenderScale => RenderScaleSource?.Invoke() ?? 1f;
 
 		public static System.Func<float> RenderScaleSource;
+
+		/// <summary>
+		/// What the pipeline renders a camera with right now, as it resolved it from the volumes, the camera
+		/// and the pipeline asset: one line, for a log or a benchmark's record. It tells whether a setting
+		/// arrived, which the settings themselves can't. Empty when the pipeline doesn't say.
+		/// </summary>
+		public static string DescribeEffective(UnityEngine.Camera camera) => camera != null ? EffectiveSettingsSource?.Invoke(camera) ?? "" : "";
+
+		public static System.Func<UnityEngine.Camera, string> EffectiveSettingsSource;
+
+		/// <summary>
+		/// Lets the pipeline give back the render buffers it sized for an output that's gone, e.g. after a
+		/// benchmark rendered at a higher resolution than the screen's. The pipelines that keep such buffers
+		/// register <see cref="ReleaseRenderBuffersHandler"/> next to their applier.
+		/// </summary>
+		public static void ReleaseRenderBuffers(int width, int height) => ReleaseRenderBuffersHandler?.Invoke(width, height);
+
+		public static System.Action<int, int> ReleaseRenderBuffersHandler;
 	}
 }
