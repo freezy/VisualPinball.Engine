@@ -181,7 +181,8 @@ namespace VisualPinball.Unity
 			Task<byte[]> ReadSourceAsync(VpeTexture texture) {
 				var digest = DigestOf(texture);
 				return Task.Run(() => {
-					using var stream = table.GetFolder(PackageApi.TexturesFolder).GetFile(texture.FileName).AsStream();
+					if (!PackageApi.TryGetTextureFile(table.GetFolder(PackageApi.TexturesFolder), texture.FileName, out var file)) throw new FileNotFoundException("Texture missing from the package.", texture.FileName);
+					using var stream = file.AsStream();
 					var bytes = VpeIntegrity.ReadBounded(stream, MaxObjectBytes);
 					if (bytes.LongLength != digest.Length || VpeIntegrity.Hash(bytes) != digest.Sha256) throw new InvalidDataException("Texture source checksum mismatch: " + texture.FileName);
 					return bytes;

@@ -90,6 +90,44 @@ namespace VisualPinball.Unity.Test
 			Assert.That(Directory.GetFiles(VpeSharedTextureCache.Root, "*.vpto", SearchOption.AllDirectories).Length, Is.EqualTo(1));
 		}
 
+		[UnityTest] public IEnumerator TexturesInSubfoldersOfTheTexturesFolderLoad()
+		{
+			var original = new Texture2D(32, 16, TextureFormat.RGBA32, false);
+			var pixels = new Color32[32 * 16]; var random = new System.Random(4321);
+			for (var i = 0; i < pixels.Length; i++) pixels[i] = new Color32((byte)random.Next(256), (byte)random.Next(256), (byte)random.Next(256), 255);
+			original.SetPixels32(pixels); original.Apply(); var png = original.EncodeToPNG(); Object.DestroyImmediate(original);
+			var fileName = PackageApi.GeneratedTexturesFolder + "/generated.png";
+			var path = Path.Combine(_cache, "generated.vpe"); Directory.CreateDirectory(_cache);
+			using (var write = PackageApi.StorageManager.CreateStorage(path)) {
+				var textures = write.AddFolder(PackageApi.TableFolder).AddFolder(PackageApi.TexturesFolder);
+				PackageApi.AddTextureFile(textures, "generated.png").SetData(new byte[] { 1 }); // an authored texture of the same name
+				PackageApi.AddTextureFile(textures, fileName).SetData(png);
+			}
+			using var storage = PackageApi.StorageManager.OpenStorage(path);
+			var texturesFolder = storage.GetFolder(PackageApi.TableFolder).GetFolder(PackageApi.TexturesFolder);
+			Assert.That(PackageApi.TryGetTextureFile(texturesFolder, fileName, out var file), Is.True);
+			Assert.That(file.GetData(), Is.EqualTo(png));
+			Assert.That(PackageApi.TryGetTextureFile(texturesFolder, "generated.png", out var authored), Is.True);
+			Assert.That(authored.GetData(), Is.EqualTo(new byte[] { 1 }));
+			foreach (var invalid in new[] { "", "/generated.png", "_generated//generated.png", "../generated.png", "_generated\\generated.png", "missing/generated.png" }) {
+				Assert.That(PackageApi.TryGetTextureFile(texturesFolder, invalid, out _), Is.False, invalid);
+			}
+			Assert.That(PackageApi.TexturePath("./a.png"), Is.Null);
+
+			var payload = new VpeMaterialsPayload { Textures = new[] { new VpeTexture {
+				Id = "generated", SourceName = _prefix + "-generated", FileName = fileName, MimeType = "image/png", Width = 32, Height = 16, ForceUncompressed = true, GenerateMipMaps = false
+			} } };
+			UseAllTextures(payload);
+			var sources = VpeTextureSources.Load(storage.GetFolder(PackageApi.TableFolder), payload);
+			Assert.That(sources.Entries.Single().ByteLength, Is.EqualTo(png.Length));
+			var task = VpeSharedTextureCache.LoadAsync(storage.GetFolder(PackageApi.TableFolder), payload, VpeIntegrity.ReadManifest(storage), 1, false, default);
+			while (!task.IsCompleted) yield return null;
+			if (task.IsFaulted) throw task.Exception.GetBaseException();
+			Assert.That(task.Result.Count, Is.EqualTo(1));
+			Assert.That(task.Result.Values.Single(), Is.Not.Null);
+			Assert.That(task.Result.Values.Single().width, Is.EqualTo(32));
+		}
+
 		[UnityTest] public IEnumerator NormalRefsToStrippedEditorOnlyTexturesAreIgnored()
 		{
 			var (payload, integrity) = Seed(1);

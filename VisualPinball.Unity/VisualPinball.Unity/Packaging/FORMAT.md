@@ -38,6 +38,7 @@ table/
 ├── sounds/<file>            ← original audio files (wav/ogg/mp3/aiff)
 ├── rolling/graph.json       ← rolling-sound materials and what they are bound to (optional)
 ├── textures/<file>          ← image sources (png/jpg; 16-bit PNGs normalized to 8-bit)
+│   └── _generated/<file>    ← textures the export made, like the baked ambient occlusion
 └── meta/
     ├── materials.json       ← portable material payload and texture inventory
     ├── inserts.json         ← editor-only insert generator and bake state
@@ -280,7 +281,7 @@ The per-vertex arrays are not in the JSON. `uvs`, `tangents`, `customMesh.vertic
 
 One plain image file per captured texture, usually the source bytes:
 
-- `fileName` in the payload's texture table is the entry name; `id` is the stable reference key.
+- `fileName` in the payload's texture table is the entry's path below `table/textures/`; `id` is the stable reference key. Authored textures are directly in the folder. What the export makes itself, like the baked `occlusionMap`, is in `_generated/` (`_generated/baked-occlusion.png`), so its names never collide with the authored ones. A path is made of `/`-separated names, none of them empty, `.` or `..`, and none with a `\`; the writer refuses to export a texture whose path isn't, and a package with one is malformed.
 - Allowed types: `image/png`, `image/jpeg`. Sources that have no usable file (runtime-generated) are stored as PNG re-encodes of their pixels. A 16-bit PNG source is converted to 8-bit PNG on export.
 - `width`/`height` carry the *authored* size (after any import clamp); larger source files are
   downsized to this when cooking.
