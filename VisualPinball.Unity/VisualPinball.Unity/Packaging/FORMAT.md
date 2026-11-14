@@ -66,7 +66,7 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
   "formatVersion": 1,
   "writtenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
   "rootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
-  "schemas": { "items": 2, "itemsReader": 2, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
+  "schemas": { "items": 3, "itemsReader": 3, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
   "componentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
 }
 ```
