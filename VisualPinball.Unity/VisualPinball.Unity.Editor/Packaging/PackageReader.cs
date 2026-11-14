@@ -328,6 +328,11 @@ namespace VisualPinball.Unity.Editor
 					$"This package uses format version {_manifest.FormatVersion}, but this VPE version only supports " +
 					$"up to version {PackageApi.FormatVersion}. Update VPE to import it.");
 			}
+			// what an older table stored under names this build no longer reads would be lost without a word
+			var incompatibility = VpePackageSchemas.ItemsIncompatibility(_manifest);
+			if (incompatibility != null) {
+				throw new Exception(incompatibility);
+			}
 
 			_integrity = VpeIntegrity.ReadManifest(storage);
 

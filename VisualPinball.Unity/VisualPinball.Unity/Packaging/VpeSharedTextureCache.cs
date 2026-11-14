@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 		public static string Key(VpeTexturePayload source, string hash, bool normal, int divisor, bool compress, string backend, bool cookSupported = true)
 		{
 			if (!VpeIntegrity.IsHash(hash)) throw new InvalidDataException("Missing source SHA-256.");
-			return VpeIntegrity.Hash(VpeIntegrity.Json(new { Domain = "VPE-TEXTURE-RECIPE", Version, Cook = VpeTextureCookSettings.FormatVersion, Source = hash, source.MimeType, source.PixelFormat, source.Width, source.Height, source.GenerateMipMaps, source.ForceUncompressed, Normal = normal, Divisor = source.ForceUncompressed ? 1 : divisor, Compress = !source.ForceUncompressed && compress, Backend = backend, Compute = cookSupported }));
+			return VpeIntegrity.KeyHash(new { Domain = "VPE-TEXTURE-RECIPE", Version, Cook = VpeTextureCookSettings.FormatVersion, Source = hash, source.MimeType, source.PixelFormat, source.Width, source.Height, source.GenerateMipMaps, source.ForceUncompressed, Normal = normal, Divisor = source.ForceUncompressed ? 1 : divisor, Compress = !source.ForceUncompressed && compress, Backend = backend, Compute = cookSupported });
 		}
 		public static string ObjectPath(string key)
 		{
@@ -288,7 +288,7 @@ namespace VisualPinball.Unity
 					foreach (var property in insert?.Properties ?? Array.Empty<VpeInsertShaderProperty>())
 						if (property?.Texture != null && property.Name is "_NormalMap" or "_CoverNormalMap") property.Texture.TextureId = NormalId(property.Texture.TextureId);
 			}
-			var used = new HashSet<string>(((JContainer)JToken.Parse(System.Text.Encoding.UTF8.GetString(PackageApi.Packer.Pack(payload.Profiles ?? Array.Empty<VpeMaterialProfile>())))).DescendantsAndSelf().OfType<JProperty>().Where(p => p.Name == "TextureId").Select(p => (string)p.Value), StringComparer.Ordinal);
+			var used = new HashSet<string>(((JContainer)JToken.Parse(System.Text.Encoding.UTF8.GetString(PackageApi.Packer.Pack(payload.Profiles ?? Array.Empty<VpeMaterialProfile>())))).DescendantsAndSelf().OfType<JProperty>().Where(p => p.Name == "textureId").Select(p => (string)p.Value), StringComparer.Ordinal);
 			payload.Textures = textures.Where(t => used.Contains(t.Id)).ToArray();
 		}
 	}

@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using GLTFast;
 using GLTFast.Export;
 using GLTFast.Logging;
-using Newtonsoft.Json;
 using NLog;
 using UnityEditor;
 using UnityEngine;
@@ -997,10 +996,7 @@ namespace VisualPinball.Unity.Editor
 			if (_refs.HasType(comp.GetType())) {
 
 				try {
-					// todo abstract this
-					return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(comp, Formatting.Indented, new JsonSerializerSettings {
-						ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-					}));
+					return PackageApi.Packer.Pack(comp);
 				} catch (Exception e) {
 					Debug.LogError(e);
 					return null;

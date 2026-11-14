@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 		/// The version of the items schema this build writes. It goes up by one with every change to the schema that
 		/// a reader has to know about, with a line added to <see cref="ItemsChanges"/>.
 		/// </summary>
-		public const int ItemsVersion = 2;
+		public const int ItemsVersion = 3;
 
 		/// <summary>
 		/// The oldest items schema version a reader must implement to load what this build writes, stored in the manifest
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 		/// older reader can ignore, so older players keep loading new tables; a change they would load wrongly raises it
 		/// to <see cref="ItemsVersion"/>.
 		/// </summary>
-		public const int ItemsReaderVersion = 2;
+		public const int ItemsReaderVersion = 3;
 
 		/// <summary>
 		/// The oldest items schema version this build still loads. The runtime reader takes every version from here
@@ -91,11 +91,12 @@ namespace VisualPinball.Unity
 		/// table is exported again instead of being migrated. Once older tables have to keep working, it stays
 		/// behind and the reader copes with the versions in between.
 		/// </remarks>
-		public const int MinItemsVersion = 2;
+		public const int MinItemsVersion = 3;
 
 		/// <summary>What each items schema version changed, in words a player can read. The first entry is version 2.</summary>
 		public static readonly string[] ItemsChanges = {
 			"switch mappings name the device they belong to, and tables from before load without working switches",
+			"the names in a table's files were made consistent, and tables from before would lose the settings stored under the old names",
 		};
 
 		/// <summary>Why a package with another items schema version can't be loaded by this build, or null when it can.</summary>
@@ -125,7 +126,7 @@ namespace VisualPinball.Unity
 
 		public const string Items = "items";
 		/// <summary>The oldest items schema version that loads the package, see <see cref="ItemsReaderVersion"/>.</summary>
-		public const string ItemsReader = "items-reader";
+		public const string ItemsReader = "itemsReader";
 		public const string Materials = "materials";
 		public const string Inserts = "inserts";
 		public const string Lights = "lights";
