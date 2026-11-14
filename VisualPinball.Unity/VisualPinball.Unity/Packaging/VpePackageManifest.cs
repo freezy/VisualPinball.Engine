@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 		/// The version of the items schema this build writes. It goes up by one with every change to the schema that
 		/// a reader has to know about, with a line added to <see cref="ItemsChanges"/>.
 		/// </summary>
-		public const int ItemsVersion = 4;
+		public const int ItemsVersion = 5;
 
 		/// <summary>
 		/// The oldest items schema version a reader must implement to load what this build writes, stored in the manifest
@@ -98,6 +98,7 @@ namespace VisualPinball.Unity
 			"switch mappings name the device they belong to, and tables from before load without working switches",
 			"the names in a table's files were made consistent, and tables from before would lose the settings stored under the old names",
 			"the settings of a table's objects moved from thousands of small files into one, and tables from before have them where this build no longer looks",
+			"the objects of a prefab instance say which of the prefab's objects they are, so the editor links them to the prefab again even when they were renamed",
 		};
 
 		/// <summary>
