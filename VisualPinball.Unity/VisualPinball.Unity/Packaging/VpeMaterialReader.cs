@@ -51,7 +51,8 @@ namespace VisualPinball.Unity
 			bool loadSourceBytes,
 			out VpeMaterialsPayload payload,
 			out VpeTextureSources.Result sources,
-			bool includeEditorOnlyTextures = true)
+			bool includeEditorOnlyTextures = true,
+			bool stripBakedOcclusion = false)
 		{
 			payload = null;
 			sources = null;
@@ -70,6 +71,10 @@ namespace VisualPinball.Unity
 			if (!includeEditorOnlyTextures) {
 				payload.Textures = payload.Textures?.Where(texture => texture != null && !texture.EditorOnly).ToArray()
 					?? Array.Empty<VpeTexture>();
+			}
+			if (stripBakedOcclusion) {
+				// Before the sources load, so the stripped maps aren't read either.
+				VpeBakedOcclusion.Strip(payload);
 			}
 			sources = loadSourceBytes
 				? VpeTextureSources.Load(tableFolder, payload)

@@ -157,20 +157,54 @@ namespace VisualPinball.Unity
 
 		public static async Task<Dictionary<string, Texture2D>> LoadAsync(IPackageFolder table, VpeMaterialsPayload payload, VpeIntegrity.Manifest integrity, int divisor, bool compress, CancellationToken ct, Action<int, int> progress = null)
 		{
+			// Before the split: it prunes the occlusion maps nothing references once they're merged. Only the cook
+			// merges them; without it the table loads without its baked occlusion.
+			var cookSupported = VpeTextureCook.IsSupported;
+			Dictionary<string, VpeBakedOcclusion.Merge> occlusionMerges;
+			if (cookSupported) {
+				occlusionMerges = VpeBakedOcclusion.Prepare(payload);
+			} else {
+				VpeBakedOcclusion.Strip(payload);
+				occlusionMerges = new Dictionary<string, VpeBakedOcclusion.Merge>(StringComparer.Ordinal);
+			}
 			SplitNormalUses(payload);
 			var normals = VpeTextureCook.CollectNormalTextureIds(payload);
 			var digests = integrity.Entries.ToDictionary(e => e.Path, StringComparer.Ordinal);
 			var backend = SystemInfo.graphicsDeviceType + ":" + SystemInfo.graphicsDeviceVendorID;
 			compress &= SystemInfo.SupportsTextureFormat(TextureFormat.BC7);
-			var cookSupported = VpeTextureCook.IsSupported;
 			var textures = new Dictionary<string, Texture2D>(StringComparer.Ordinal);
 			var normalPacked = new List<string>();
 			var wrote = false;
 			var writtenKeys = new HashSet<string>(StringComparer.Ordinal);
+			VpeIntegrity.Entry DigestOf(VpeTexture texture) => digests.TryGetValue(PackageApi.TableFolder + "/" + PackageApi.TexturesFolder + "/" + texture.FileName, out var digest)
+				? digest : throw new InvalidDataException("Texture missing from integrity manifest.");
+			Task<byte[]> ReadSourceAsync(VpeTexture texture) {
+				var digest = DigestOf(texture);
+				return Task.Run(() => {
+					using var stream = table.GetFolder(PackageApi.TexturesFolder).GetFile(texture.FileName).AsStream();
+					var bytes = VpeIntegrity.ReadBounded(stream, MaxObjectBytes);
+					if (bytes.LongLength != digest.Length || VpeIntegrity.Hash(bytes) != digest.Sha256) throw new InvalidDataException("Texture source checksum mismatch: " + texture.FileName);
+					return bytes;
+				}, ct);
+			}
 			var requests = (payload.Textures ?? Array.Empty<VpeTexture>()).Where(t => t != null && !t.EditorOnly).Select(source => {
-				if (!digests.TryGetValue(PackageApi.TableFolder + "/" + PackageApi.TexturesFolder + "/" + source.FileName, out var digest)) throw new InvalidDataException("Texture missing from integrity manifest.");
+				var digest = DigestOf(source);
 				var descriptor = VpeTextureSources.ToPayload(source);
-				return (Source: source, Descriptor: descriptor, Digest: digest, Key: Key(descriptor, digest.Sha256, normals.Contains(source.Id), divisor, compress, backend, cookSupported));
+				var hash = digest.Sha256;
+				// A mask with baked occlusion is a recipe of both sources (the source is the one with more texels,
+				// the other is sampled into it). An occlusion map that is the mask cooks like the map itself.
+				var merge = occlusionMerges.TryGetValue(source.Id, out var m) && m.Mask != null ? m : null;
+				if (merge != null) {
+					hash = VpeIntegrity.KeyHash(new {
+						Domain = "VPE-BAKED-OCCLUSION", Version = 2, Source = digest.Sha256,
+						Sampled = DigestOf(merge.CooksFromOcclusion ? merge.Mask : merge.Occlusion).Sha256,
+						merge.CooksFromOcclusion, AoMin = merge.AoRemap.x, AoMax = merge.AoRemap.y,
+						// How ComposeInto samples the mask.
+						MaskRepeats = merge.CooksFromOcclusion && merge.Mask.WrapMode == VpeWrapModes.Repeat,
+						MaskPointFiltered = merge.CooksFromOcclusion && merge.Mask.FilterMode == VpeFilterModes.Point,
+					});
+				}
+				return (Source: source, Descriptor: descriptor, Digest: digest, Key: Key(descriptor, hash, normals.Contains(source.Id), divisor, compress, backend, cookSupported), Merge: merge);
 			}).ToArray();
 			// A batch amortizes Unity's main-thread continuation over several cache reads.
 			// Only the current batch and one worker batch are retained, never the whole table.
@@ -182,7 +216,7 @@ namespace VisualPinball.Unity
 			try {
 				for (var i = 0; i < requests.Length; i++) {
 					ct.ThrowIfCancellationRequested();
-					var (source, descriptor, digest, key) = requests[i];
+					var (source, descriptor, digest, key, merge) = requests[i];
 					if (batch == null || i == batchStart + batch.Count) {
 						// Waiting for I/O already gives the UI a frame; it must not consume the upload budget too.
 						uploadSlice.Stop();
@@ -207,22 +241,43 @@ namespace VisualPinball.Unity
 						descriptor.PixelFormat = cached.Header.Format; descriptor.MimeType = cached.Header.Mime;
 						if (cached.Header.NormalPacked) normalPacked.Add(source.Id);
 					} else {
-						data = await Task.Run(() => {
-							using var stream = table.GetFolder(PackageApi.TexturesFolder).GetFile(source.FileName).AsStream();
-							var bytes = VpeIntegrity.ReadBounded(stream, MaxObjectBytes);
-							if (bytes.LongLength != digest.Length || VpeIntegrity.Hash(bytes) != digest.Sha256) throw new InvalidDataException("Texture source checksum mismatch: " + source.FileName);
-							return bytes;
-						}, ct);
+						data = await ReadSourceAsync(source);
 						descriptor.ByteOffset = 0; descriptor.ByteLength = data.Length;
+						Dictionary<string, Action<byte[], int, int>> transforms = null;
+						if (merge != null && cookSupported) {
+							var sampledBytes = await ReadSourceAsync(merge.CooksFromOcclusion ? merge.Mask : merge.Occlusion);
+							var other = await Task.Run(() => {
+								var pixels = merge.CooksFromOcclusion
+									? VpeBakedOcclusion.DecodeMask(sampledBytes, out var width, out var height)
+									: VpeBakedOcclusion.DecodeOcclusion(sampledBytes, out width, out height);
+								return (Pixels: pixels, Width: width, Height: height);
+							}, ct);
+							Action<byte[], int, int> transform = merge.CooksFromOcclusion
+								? (rgba, width, height) => VpeBakedOcclusion.ComposeInto(rgba, width, height, other.Pixels, other.Width, other.Height, merge.AoRemap,
+									merge.Mask.WrapMode == VpeWrapModes.Repeat, merge.Mask.FilterMode == VpeFilterModes.Point)
+								: (rgba, width, height) => VpeBakedOcclusion.MultiplyInto(rgba, width, height, other.Pixels, other.Width, other.Height, merge.AoRemap);
+							transforms = new Dictionary<string, Action<byte[], int, int>>(StringComparer.Ordinal) { [source.Id] = transform };
+						}
 						VpeTextureCook.Result cooked = null;
-						try { if (cookSupported) cooked = await VpeTextureCook.CookAsync(new[] { descriptor }, normals, data, null, ct, divisor, compress); }
+						try { if (cookSupported) cooked = await VpeTextureCook.CookAsync(new[] { descriptor }, normals, data, null, ct, divisor, compress, transforms); }
 						catch (Exception e) when (!(e is OperationCanceledException) && !(e is OutOfMemoryException)) { Logger.Warn(e, "Texture cook failed; using encoded source {Texture}", source.FileName); }
+						if (merge != null && cooked == null) {
+							// Fall back to the authored mask as it was: its bytes (the encoded occlusion map is no
+							// mask) and its occlusion remap. Not cached, so the next load cooks it again.
+							Logger.Warn("Cannot cook the baked occlusion into {Texture}; the table loads without it.", source.FileName);
+							if (merge.CooksFromOcclusion) {
+								data = await ReadSourceAsync(merge.Mask);
+								descriptor = VpeTextureSources.ToPayload(merge.Mask);
+								descriptor.Id = source.Id;
+							}
+							VpeBakedOcclusion.RestoreRemap(payload, merge);
+						}
 						var packed = cooked?.Manifest.AgPackedNormalIds.Contains(source.Id) == true;
 						if (cooked != null) { descriptor = cooked.Manifest.Textures.Single(); data = cooked.CookedData; }
 						if (packed) normalPacked.Add(source.Id);
 						// Encoded fallbacks are cached too. Compute availability is part of the recipe,
 						// so a later supported backend does not inherit an unsupported backend's fallback.
-						{
+						if (merge == null || cooked != null) {
 							try { await Task.Run(() => Write(key, descriptor, data, packed), ct); writtenKeys.Add(key); wrote = true; }
 							catch (Exception e) when (e is IOException || e is InvalidDataException || e is UnauthorizedAccessException) { Logger.Warn(e, "Cannot persist shared texture cache."); }
 						}

@@ -53,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly bool _runtimeCompressSideChannelTextures;
 		private readonly bool _runtimeCompressNormalMaps;
 		private readonly string _screenshotFolder;
+		private readonly VpeOcclusionBakeSettings _occlusionBake;
 		private IReadOnlyDictionary<string, GlbImageSwap.ImageReplacement> _originalGltfImageReplacements;
 		private Dictionary<Transform, string> _nodeIdByTransform;
 		private readonly SortedSet<string> _usedTypeNames = new(StringComparer.Ordinal);
@@ -72,12 +73,14 @@ namespace VisualPinball.Unity.Editor
 			GameObject table,
 			bool runtimeCompressSideChannelTextures = true,
 			bool runtimeCompressNormalMaps = true,
-			string screenshotFolder = null)
+			string screenshotFolder = null,
+			VpeOcclusionBakeSettings occlusionBake = null)
 		{
 			_table = table;
 			_runtimeCompressSideChannelTextures = runtimeCompressSideChannelTextures;
 			_runtimeCompressNormalMaps = runtimeCompressNormalMaps;
 			_screenshotFolder = screenshotFolder;
+			_occlusionBake = occlusionBake;
 			_refs = new PackagedRefs(table.transform);
 		}
 
@@ -227,8 +230,18 @@ namespace VisualPinball.Unity.Editor
 				// the export, kept off the main thread so the editor stays responsive.
 				ct.ThrowIfCancellationRequested();
 				sw1 = Stopwatch.StartNew();
-				await MaterializeTextureBlobsAsync(progress, 0.25f, 0.70f, ct);
+				await MaterializeTextureBlobsAsync(progress, 0.25f, 0.68f, ct);
 				Logger.Info($"Textures loaded in {sw1.ElapsedMilliseconds}ms.");
+
+				// Bakes after the materials are captured: the occlusion goes into the receivers' profiles.
+				if (_occlusionBake != null) {
+					ct.ThrowIfCancellationRequested();
+					Report(progress, 0.68f, "Baking ambient occlusion…");
+					await Yield();
+					sw1 = Stopwatch.StartNew();
+					await BakeOcclusionAsync(progress, 0.68f, 0.71f, ct);
+					Logger.Info($"Ambient occlusion baked in {sw1.ElapsedMilliseconds}ms.");
+				}
 
 				// write assets & co
 				ct.ThrowIfCancellationRequested();
@@ -1092,6 +1105,73 @@ namespace VisualPinball.Unity.Editor
 			Logger.Info(
 				$"Captured material payload: {payload.Profiles.Length} profile(s), " +
 				$"{sourceCount} source texture(s) (bytes loaded later off-thread).");
+		}
+
+		// Bakes the playfield's ambient occlusion into a texture of the source layer and points the profiles of the
+		// meshes it was baked for at it. Runs after the materials are captured and their bytes are loaded.
+		private async Task BakeOcclusionAsync(IProgress<ExportProgress> progress, float startFraction, float endFraction, CancellationToken ct)
+		{
+			if (_capturedMaterialPayload?.Profiles == null || _capturedMaterialIds == null) {
+				return;
+			}
+			var bake = await VpeOcclusionBaker.BakePlayfieldAsync(_table, _occlusionBake,
+				done => Report(progress, Mathf.Lerp(startFraction, endFraction, done), "Baking ambient occlusion…"), ct);
+			if (bake == null) {
+				return;
+			}
+
+			// A profile another mesh uses too would hand that mesh the playfield's occlusion.
+			var receiverNodes = new HashSet<string>(bake.Receivers
+				.Select(r => _nodeIdByTransform.GetValueOrDefault(r.transform))
+				.Where(id => id != null), StringComparer.Ordinal);
+			var profileIds = new HashSet<string>(StringComparer.Ordinal);
+			foreach (var material in bake.Materials) {
+				if (material && _capturedMaterialIds.TryGetValue(material, out var profileId)) {
+					profileIds.Add(profileId);
+				}
+			}
+			foreach (var binding in _capturedMaterialPayload.Bindings ?? Array.Empty<VpeMaterialBinding>()) {
+				if (binding != null && profileIds.Contains(binding.ProfileId) && !receiverNodes.Contains(binding.NodeId)) {
+					Logger.Warn($"Not baking ambient occlusion into material profile '{binding.ProfileId}': a mesh other than the playfield uses it too.");
+					profileIds.Remove(binding.ProfileId);
+				}
+			}
+			var profiles = _capturedMaterialPayload.Profiles
+				.Where(p => p?.Lit != null && p.Type == VpeMaterialTypes.Lit && profileIds.Contains(p.Id))
+				.ToArray();
+			if (profiles.Length == 0) {
+				Logger.Warn("Baked the playfield's ambient occlusion, but none of its materials can take it.");
+				return;
+			}
+
+			var textures = _capturedMaterialPayload.Textures ?? Array.Empty<VpeTexture>();
+			var id = "baked-occlusion";
+			for (var i = 2; textures.Any(t => t != null && (t.Id == id || t.FileName == id + ".png")); i++) {
+				id = $"baked-occlusion-{i}";
+			}
+			var texture = new VpeTexture {
+				Id = id,
+				FileName = id + ".png",
+				MimeType = "image/png",
+				ColorSpace = VpeColorSpaces.Linear,
+				WrapMode = VpeWrapModes.Clamp,
+				FilterMode = VpeFilterModes.Trilinear,
+				GenerateMipMaps = true,
+				RuntimeCompress = _runtimeCompressSideChannelTextures,
+				SourceName = "Baked ambient occlusion",
+				Width = bake.Width,
+				Height = bake.Height,
+			};
+			_capturedMaterialPayload.Textures = textures.Append(texture).ToArray();
+			_capturedMaterialTextureBlobs = new Dictionary<string, byte[]>(
+				_capturedMaterialTextureBlobs ?? new Dictionary<string, byte[]>(), StringComparer.Ordinal) {
+				[texture.FileName] = bake.Png,
+			};
+			foreach (var profile in profiles) {
+				profile.Lit.OcclusionMap = new VpeTextureRef { TextureId = texture.Id };
+			}
+			Logger.Info($"Baked the playfield's ambient occlusion ({bake.Width}x{bake.Height}, {bake.Png.Length / 1024f:F0} KB) " +
+				$"for {string.Join(", ", profiles.Select(p => p.Name))}.");
 		}
 
 		private void WriteInsertAuthoring()

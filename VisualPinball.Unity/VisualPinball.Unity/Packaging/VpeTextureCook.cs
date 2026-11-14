@@ -61,6 +61,8 @@ namespace VisualPinball.Unity
 			public bool IsNormal;
 			public bool UseBc7;
 			public bool MainThreadDecode;
+			// Changes the decoded RGBA32 pixels (bottom row first) before mips and compression.
+			public Action<byte[], int, int> Transform;
 			public int[] MipWidths;
 			public int[] MipHeights;
 			public long[] MipOffsets; // absolute offsets into the cooked blob
@@ -83,6 +85,8 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Cooks the given source textures. Returns null when cooking is not possible (no compute
 		/// support, decode failures); callers then fall back to the slow decode-at-load path.
+		/// <paramref name="pixelTransforms"/> change the decoded pixels of the textures they're keyed by
+		/// (RGBA32, bottom row first, at the decoded size) before mips and compression.
 		/// Must be awaited on the main thread.
 		/// </summary>
 		public static async Task<Result> CookAsync(
@@ -90,7 +94,8 @@ namespace VisualPinball.Unity
 			HashSet<string> normalIds,
 			byte[] sourceTextureData,
 			Action<int, int> reportProgress,
-			CancellationToken cancellationToken, int? resolutionDivisor = null, bool? compressTextures = null)
+			CancellationToken cancellationToken, int? resolutionDivisor = null, bool? compressTextures = null,
+			IReadOnlyDictionary<string, Action<byte[], int, int>> pixelTransforms = null)
 		{
 			if (textures == null || textures.Length == 0 || sourceTextureData == null) {
 				return null;
@@ -115,7 +120,7 @@ namespace VisualPinball.Unity
 
 			// Plan pass: image headers only. Determines final dimensions, formats, mip counts and
 			// blob offsets up front so workers can write into disjoint ranges without coordination.
-			var plan = BuildPlan(textures, sourceTextureData, normalIds, resolutionDivisor ?? VpeTextureCookSettings.ResolutionDivisor, compressTextures ?? VpeTextureCookSettings.CompressTextures, out var cookedSize);
+			var plan = BuildPlan(textures, sourceTextureData, normalIds, resolutionDivisor ?? VpeTextureCookSettings.ResolutionDivisor, compressTextures ?? VpeTextureCookSettings.CompressTextures, pixelTransforms, out var cookedSize);
 			if (plan.Count == 0) {
 				return null;
 			}
@@ -480,6 +485,7 @@ namespace VisualPinball.Unity
 			VpeTexturePayload[] assets,
 			byte[] sourceData,
 			HashSet<string> normalIds, int resolutionDivisor, bool compressTextures,
+			IReadOnlyDictionary<string, Action<byte[], int, int>> pixelTransforms,
 			out long cookedSize)
 		{
 			var plan = new List<CookPlanItem>(assets.Length);
@@ -540,7 +546,9 @@ namespace VisualPinball.Unity
 				item.IsNormal = normalIds.Contains(asset.Id);
 				item.UseBc7 = !asset.ForceUncompressed && compressTextures
 					&& width % 4 == 0 && height % 4 == 0 && width >= 4 && height >= 4;
-				item.MainThreadDecode = item.UseBc7 && asset.ByteLength >= MainThreadDecodeThresholdBytes;
+				item.Transform = pixelTransforms != null && pixelTransforms.TryGetValue(asset.Id, out var transform) ? transform : null;
+				// The managed decoder hands the pixels to the transform; Unity's native one would need a copy.
+				item.MainThreadDecode = item.UseBc7 && asset.ByteLength >= MainThreadDecodeThresholdBytes && item.Transform == null;
 				item.MipWidths = new int[mipCount];
 				item.MipHeights = new int[mipCount];
 				item.MipOffsets = new long[mipCount];
@@ -619,6 +627,7 @@ namespace VisualPinball.Unity
 					$"{item.Cooked.Width}x{item.Cooked.Height}.");
 				return null;
 			}
+			item.Transform?.Invoke(pixels, width, height);
 
 			return new GpuWork { Item = item, BasePixels = pixels, TotalPixels = (long)width * height * 4 / 3 };
 		}

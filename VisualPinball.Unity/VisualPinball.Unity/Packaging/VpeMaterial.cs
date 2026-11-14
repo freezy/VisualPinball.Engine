@@ -310,6 +310,12 @@ namespace VisualPinball.Unity
 		// UV channel the base maps sample (0-based).
 		public int UvBase;
 
+		// Optional ambient occlusion baked for this table at export (≈ glTF occlusionTexture): a
+		// grayscale map in the material's UV space (UV channel UvBase with the base map's tiling),
+		// red channel = occlusion. Readers multiply it into the mask's occlusion channel, or use it
+		// as the occlusion of a mask they make from the scalars when the profile has none.
+		public VpeTextureRef OcclusionMap;
+
 		public VpeNormalMapRef NormalMap;
 
 		public VpeEmissive Emissive = new();
