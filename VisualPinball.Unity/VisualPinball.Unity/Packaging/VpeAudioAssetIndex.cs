@@ -160,7 +160,7 @@ namespace VisualPinball.Unity
 			if (intent.PlatformSettings.Any(p => !Platforms.Contains(p.Key) || string.IsNullOrEmpty(p.Value))) throw new InvalidDataException("Unsupported audio platform settings.");
 			intent.Guid = null;
 			intent.PlatformSettings = intent.PlatformSettings.OrderBy(p => p.Key, StringComparer.Ordinal).ToDictionary(p => p.Key, p => p.Value);
-			return VpeIntegrity.Hash(VpeIntegrity.Json(intent));
+			return VpeIntegrity.KeyHash(intent);
 		}
 
 		private static bool Compatible(SoundMetaPackable a, SoundMetaPackable b) => IntentKey(a) == IntentKey(b);

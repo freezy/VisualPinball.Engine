@@ -50,6 +50,8 @@ Already-compressed payloads (the two GLBs, everything under `textures/`) are wri
 zip entries; JSON entries are deflated. Entry timestamps are fixed (DOS epoch) so identical
 content produces byte-identical packages.
 
+Every key in the package's JSON is camelCase (`formatVersion`, `isActive`, `nodeId`), and private serialized fields lose their leading underscore (`_deviceId` is written `deviceId`). Keys of maps keyed by data (node ids, file names, payload names) are that data and keep their spelling. Packages of `items` schema 2 and older used PascalCase.
+
 Optional inert consumer content is stored below `table/content/<content-id>/` with a
 `manifest.json` and a `files/` directory. The normative layout and security rules are specified
 in [content bundles](#content----inert-directory-bundles).
@@ -61,23 +63,23 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
 
 ```json
 {
-  "FormatVersion": 1,
-  "WrittenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
-  "RootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
-  "Schemas": { "items": 2, "items-reader": 2, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
-  "ComponentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
+  "formatVersion": 1,
+  "writtenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
+  "rootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
+  "schemas": { "items": 2, "itemsReader": 2, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
+  "componentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
-| `FormatVersion` | Container layout version. Readers must refuse versions greater than they implement. |
-| `WrittenBy` | Free-form writer identification, diagnostics only. |
-| `RootNodeId` | Node id of the table root in `table.glb`. Readers anchor the restored component hierarchy here. |
-| `Schemas` | Schema version per payload, keyed by payload name. Readers must check a payload's schema version before parsing it and skip (with a warning) versions they don't know. `items-reader` is not a payload: it is the oldest `items` version a reader must implement to load the package (see below). |
-| `ComponentTypes` | All component/asset type names used by `items/`, `refs/` and `assets/`. Lets a reader warn about missing plugins up front. |
+| `formatVersion` | Container layout version. Readers must refuse versions greater than they implement. |
+| `writtenBy` | Free-form writer identification, diagnostics only. |
+| `rootNodeId` | Node id of the table root in `table.glb`. Readers anchor the restored component hierarchy here. |
+| `schemas` | Schema version per payload, keyed by payload name. Readers must check a payload's schema version before parsing it and skip (with a warning) versions they don't know. `itemsReader` is not a payload: it is the oldest `items` version a reader must implement to load the package (see below). |
+| `componentTypes` | All component/asset type names used by `items/`, `refs/` and `assets/`. Lets a reader warn about missing plugins up front. |
 
-**Versioning policy.** `FormatVersion` changes only on incompatible container-layout changes
+**Versioning policy.** `formatVersion` changes only on incompatible container-layout changes
 (folder structure, node addressing). Payload schemas evolve independently via `Schemas`. Within a
 schema version, adding optional JSON fields is allowed; removing or re-typing a field requires a
 version bump. Fields are never repurposed.
@@ -91,10 +93,10 @@ how components are exported or restored keeps them right:
 | Constant | Meaning | Written as |
 | --- | --- | --- |
 | `ItemsVersion` | The version this build writes. | `Schemas["items"]` |
-| `ItemsReaderVersion` | The oldest version a reader must implement to load what this build writes. | `Schemas["items-reader"]` |
+| `ItemsReaderVersion` | The oldest version a reader must implement to load what this build writes. | `Schemas["itemsReader"]` |
 | `MinItemsVersion` | The oldest version this build still loads. | – |
 
-The player loads a package when its `items` is at least `MinItemsVersion` and its `items-reader`
+The player loads a package when its `items` is at least `MinItemsVersion` and its `itemsReader`
 (or, when missing, its `items`) is at most `ItemsVersion`. Otherwise it refuses the table and says
 why, using `ItemsChanges` for packages that are too old.
 
@@ -133,7 +135,7 @@ stable id in the standard glTF per-node extension point:
 - Ids are 32-char lowercase hex GUIDs, unique within the package, generated at export.
 - Everything else in the package references nodes **by this id**: item folders, cross-references,
   mapping devices, renderer states, light profiles.
-- The id of the table root is repeated in the manifest as `RootNodeId`.
+- The id of the table root is repeated in the manifest as `rootNodeId`.
 - glTF exporters/importers may add synthetic nodes (e.g. `*_Orientation` helpers for lights,
   per-primitive mesh children). These carry no `vpeId` and are not referenced by the package.
 - Reordering nodes in the GLB does not break a package; ids are the identity, not positions.
@@ -166,87 +168,87 @@ table/refs/<nodeId>/<TypeName>/0.json     ← cross-references, restored in a se
 
 - `<TypeName>` is the component's registered pack name (PackAs attribute), decoupled from C#
   type names.
-- `item.json`: `{ "Name", "IsActive", "IsStatic", "PrefabGuid" }`. `PrefabGuid` is an editor hint
+- `item.json`: `{ "name", "isActive", "isStatic", "prefabGuid" }`. `prefabGuid` is an editor hint
   (asset-library re-link) and is meaningless outside Unity.
 - Component JSON shapes are owned by each component (schema `items` covers the folder layout and
   `item.json`). Unknown fields must be ignored; unknown `<TypeName>` folders must be skipped with
   a warning, not fail the import.
-- References inside component JSON use the shape `{ "Id": "<nodeId>", "Type": "<TypeName>" }`;
-  a null `Id` means "no reference".
+- References inside component JSON use the shape `{ "id": "<nodeId>", "type": "<TypeName>" }`;
+  a null `id` means "no reference".
 - Only active objects are exported. The cabinet and backbox are authored inactive but force-
   activated for export; a package always contains them active.
 
 ## global/
 
 The logical wiring of the table: lists of switch, coil, wire and lamp mappings. Devices are
-referenced by node id (`_deviceId`). These files mirror VPE's `MappingConfig` and are restored
+referenced by node id (`deviceId`). These files mirror VPE's `MappingConfig` and are restored
 after items and refs.
 
 ## meta/materials.json
 
 The portable material interchange. The top level of each profile is rendering *intent* any engine
-can implement; everything pipeline-specific sits in a nested `Hdrp` block (other blocks may be
+can implement; everything pipeline-specific sits in a nested `hdrp` block (other blocks may be
 added later) that readers are free to ignore.
 
 ```json
 {
-  "FormatVersion": 2,
-  "WrittenBy": "HdrpMaterialTranslator",
-  "Profiles":        [ { "Id", "Name", "Type", "Lit|Decal|Unlit|Metal|Rubber|Dmd|InsertHybrid|InsertCover": { … } } ],
-  "Textures":        [ { "Id", "FileName", "MimeType", "ColorSpace", "WrapMode", "FilterMode",
-                         "AnisoLevel", "GenerateMipMaps", "RuntimeCompress", "ForceUncompressed", "EditorOnly", "SourceName",
-                         "Width", "Height" } ],
-  "Bindings":        [ { "NodeId", "Slot", "ProfileId" } ],
-  "RendererStates":  [ { "NodeId", "CastShadows", "ReceiveShadows", "RenderingLayerMask",
-                         "Hdrp": { "RayTracingMode" } } ]
+  "formatVersion": 2,
+  "writtenBy": "HdrpMaterialTranslator",
+  "profiles":        [ { "id", "name", "type", "lit|decal|unlit|metal|rubber|dmd|insertHybrid|insertCover": { … } } ],
+  "textures":        [ { "id", "fileName", "mimeType", "colorSpace", "wrapMode", "filterMode",
+                         "anisoLevel", "generateMipMaps", "runtimeCompress", "forceUncompressed", "editorOnly", "sourceName",
+                         "width", "height" } ],
+  "bindings":        [ { "nodeId", "slot", "profileId" } ],
+  "rendererStates":  [ { "nodeId", "castShadows", "receiveShadows", "renderingLayerMask",
+                         "hdrp": { "rayTracingMode" } } ]
 }
 ```
 
-**Profile types** (`Type` discriminator; unknown types are skipped):
+**Profile types** (`type` discriminator; unknown types are skipped):
 
 | Type | Payload | Notes |
 | --- | --- | --- |
-| `vpe.lit` | `Lit` | Standard PBR surface. |
-| `vpe.decal` | `Decal` | Projected decal. |
-| `vpe.unlit` | `Unlit` | Unlit color/texture. |
-| `vpe.metal`, `vpe.rubber` | `Metal`/`Rubber` + `Lit` | Player-owned template (by `TemplateName`); the `Lit` profile is the portable fallback. |
-| `vpe.fabric.silk` | `Fabric` | HDRP fabric/silk surface; contains a `Lit` portable fallback plus fabric-specific HDRP controls. |
-| `vpe.dmd` | `Dmd` | Player-owned DMD template. |
-| `vpe.insert.hybrid` | `InsertHybrid` | Opaque insert body Shader Graph properties; the player supplies the pipeline shader. |
-| `vpe.insert.cover` | `InsertCover` | Transparent cover Shader Graph properties; the player supplies the pipeline shader. |
+| `vpe.lit` | `lit` | Standard PBR surface. |
+| `vpe.decal` | `decal` | Projected decal. |
+| `vpe.unlit` | `unlit` | Unlit color/texture. |
+| `vpe.metal`, `vpe.rubber` | `metal`/`rubber` + `lit` | Player-owned template (by `templateName`); the `lit` profile is the portable fallback. |
+| `vpe.fabric.silk` | `fabric` | HDRP fabric/silk surface; contains a `lit` portable fallback plus fabric-specific HDRP controls. |
+| `vpe.dmd` | `dmd` | Player-owned DMD template. |
+| `vpe.insert.hybrid` | `insertHybrid` | Opaque insert body Shader Graph properties; the player supplies the pipeline shader. |
+| `vpe.insert.cover` | `insertCover` | Transparent cover Shader Graph properties; the player supplies the pipeline shader. |
 
-`Bindings` identify a renderer node and material slot, so independently baked inserts can share a material name without sharing a profile. `EditorOnly` textures are used only by insert authoring data and are skipped by the player before source loading and cooking. Optical response and optical normal maps remain 8-bit, retain their exported resolution, and are not block-compressed by the player cook.
+`bindings` identify a renderer node and material slot, so independently baked inserts can share a material name without sharing a profile. `editorOnly` textures are used only by insert authoring data and are skipped by the player before source loading and cooking. Optical response and optical normal maps remain 8-bit, retain their exported resolution, and are not block-compressed by the player cook.
 
-**`Lit` portable core** — semantics map onto glTF PBR and its KHR extensions where they exist:
+**`lit` portable core** — semantics map onto glTF PBR and its KHR extensions where they exist:
 
-- Base: `BaseColor` (color + texture ref), `Metallic`, `Smoothness` (= 1 − roughness),
-  `OcclusionStrength`, `IridescenceMask`/`IridescenceThickness`.
-- Mask: `MaskMap` + `MaskPacking` (`hdrpMaskMap`: R=metal G=AO B=detail A=smooth, or
-  `gltfMetallicRoughness`: R=occlusion G=roughness B=metal) + `MetallicRemap`/`SmoothnessRemap`/
-  `AoRemap`/`AlphaRemap` (vec2 min/max).
-- `NormalMap`: texture ref + `Strength` + `Packing` (`rgb` | `rg` | `dxt5nm`) — packages always
+- Base: `baseColor` (color + texture ref), `metallic`, `smoothness` (= 1 − roughness),
+  `occlusionStrength`, `iridescenceMask`/`iridescenceThickness`.
+- Mask: `maskMap` + `maskPacking` (`hdrpMaskMap`: R=metal G=AO B=detail A=smooth, or
+  `gltfMetallicRoughness`: R=occlusion G=roughness B=metal) + `metallicRemap`/`smoothnessRemap`/
+  `aoRemap`/`alphaRemap` (vec2 min/max).
+- `normalMap`: texture ref + `strength` + `packing` (`rgb` | `rg` | `dxt5nm`) — packages always
   ship `rgb` sources.
-- `Emissive`: HDR color, optional LDR color, texture, `UseIntensity` + `Intensity` +
-  `IntensityUnit` (`nits` | `ev100` | `luminance`).
-- Surface: `SurfaceType` (`opaque` | `alphaTest` | `transparent`), `AlphaCutoff`, `DoubleSided`,
-  `DoubleSidedGi`, `BlendMode` (`alpha` | `additive` | `premultiply`), `SortPriority`, `UvBase`.
+- `emissive`: HDR color, optional LDR color, texture, `useIntensity` + `intensity` +
+  `intensityUnit` (`nits` | `ev100` | `luminance`).
+- Surface: `surfaceType` (`opaque` | `alphaTest` | `transparent`), `alphaCutoff`, `doubleSided`,
+  `doubleSidedGi`, `blendMode` (`alpha` | `additive` | `premultiply`), `sortPriority`, `uvBase`.
 - Transmission/refraction (≈ `KHR_materials_transmission` + `KHR_materials_volume` +
-  `KHR_materials_ior`): `HasTransmission`, `RefractionModel` (`none` | `planar` | `sphere` |
-  `thin`), `Ior`, `Thickness` + `ThicknessRemap` + `ThicknessMap`, `AbsorptionDistance`,
-  `TransmittanceColor`.
+  `KHR_materials_ior`): `hasTransmission`, `refractionModel` (`none` | `planar` | `sphere` |
+  `thin`), `ior`, `thickness` + `thicknessRemap` + `thicknessMap`, `absorptionDistance`,
+  `transmittanceColor`.
 
-**`Lit.Hdrp` hints** (ignored by non-HDRP readers, visuals degrade gracefully): planar-mapping
+**`lit.hdrp` hints** (ignored by non-HDRP readers, visuals degrade gracefully): planar-mapping
 scales, specular AA/occlusion/color, clear-coat mask, decal support, cull-mode overrides,
 transparent depth pre/post-pass, motion vectors, transparent preserve-specular blending, Z-test
 overrides, fog, SSR flags, ray tracing, HDRP material id, render-queue override, transmission
 scalars, diffusion-profile binding, emissive exposure weight.
 
-**`Fabric`** stores `{ "Lit": { ... }, "Hdrp": { ... } }`. `Lit` is the portable fallback above.
-`Fabric.Hdrp` carries HDRP/Fabric silk controls: `UseThreadMap`, `ThreadMap`,
-`ThreadAOStrength01`, `ThreadNormalStrength`, `ThreadSmoothnessScale`, `ThreadUvChannel`,
-`FuzzMap`, `FuzzStrength`, and `FuzzMapUvScale`.
+**`fabric`** stores `{ "lit": { ... }, "hdrp": { ... } }`. `lit` is the portable fallback above.
+`fabric.hdrp` carries HDRP/Fabric silk controls: `useThreadMap`, `threadMap`,
+`threadAOStrength01`, `threadNormalStrength`, `threadSmoothnessScale`, `threadUvChannel`,
+`fuzzMap`, `fuzzStrength`, and `fuzzMapUvScale`.
 
-**Texture refs** are `{ "TextureId", "Offset": [u,v], "Scale": [u,v] }`. A null/empty `TextureId`
+**Texture refs** are `{ "textureId", "offset": [u,v], "scale": [u,v] }`. A null/empty `textureId`
 on a captured profile means "no texture"; on glTF-path refs it means "read pixels from the
 imported glTF material".
 
@@ -255,32 +257,32 @@ explicitly Unity-valued fields inside `Hdrp` blocks.
 
 ## meta/inserts.json
 
-This editor-only sidecar has `FormatVersion: 1` and an `Inserts` array keyed by `NodeId`. Each record stores the serialized generator fields as `GeneratorJson`, the pre-bake material profile id, and optional bake data: hash, owner, UVs, tangents, map texture ids, optical parameters, bake material profile id, packer, and UV fill. The editor imports these references as project assets and regenerates an editable insert mesh. Runtime readers never open this file; the player renders the finished insert meshes in `table.glb` and restores only runtime insert and lamp component state from `items/` and `refs/`.
+This editor-only sidecar has `formatVersion: 1` and an `inserts` array keyed by `nodeId`. Each record stores the serialized generator fields as `generatorJson`, the pre-bake material profile id, and optional bake data: hash, owner, UVs, tangents, map texture ids, optical parameters, bake material profile id, packer, and UV fill. The editor imports these references as project assets and regenerates an editable insert mesh. Runtime readers never open this file; the player renders the finished insert meshes in `table.glb` and restores only runtime insert and lamp component state from `items/` and `refs/`.
 
 ## table/textures/ — the source layer
 
 One plain image file per captured texture, usually the source bytes:
 
-- `FileName` in the payload's texture table is the entry name; `Id` is the stable reference key.
+- `fileName` in the payload's texture table is the entry name; `id` is the stable reference key.
 - Allowed types: `image/png`, `image/jpeg`. Sources that have no usable file (runtime-generated) are stored as PNG re-encodes of their pixels. A 16-bit PNG source is converted to 8-bit PNG on export.
-- `Width`/`Height` carry the *authored* size (after any import clamp); larger source files are
+- `width`/`height` carry the *authored* size (after any import clamp); larger source files are
   downsized to this when cooking.
-- `ColorSpace` (`sRGB` | `Linear`) is decided by the semantic slot (mask/thickness/normal data is
+- `colorSpace` (`sRGB` | `Linear`) is decided by the semantic slot (mask/thickness/normal data is
   linear), independent of the file's own metadata.
 - GPU-ready payloads (block-compressed, mip-baked) are never stored in a package.
 
 ## meta/lights.json
 
-`{ "Version": 1, "Lights": [ … ] }` — one entry per light source: `NodeId`, enabled state, type,
-shape, color, intensity, range, spot angles, area size, shadow parameters, plus an `Hdrp` block
+`{ "version": 1, "lights": [ … ] }` — one entry per light source: `nodeId`, enabled state, type,
+shape, color, intensity, range, spot angles, area size, shadow parameters, plus an `hdrp` block
 (volumetrics, dimmers, ray-traced shadows). This is the authored truth for lights; the GLB's
 `KHR_lights_punctual` is the portable approximation.
 
 ## sounds/ and meta/sounds.json
 
 Original audio files plus a meta map keyed by file name:
-`{ "Guid", "ForceToMono", "Ambisonic", "LoadInBackground", "LoadType", "CompressionFormat",
-"Quality" }`. `Guid` is an opaque identity used to de-duplicate against existing project assets
+`{ "guid", "forceToMono", "ambisonic", "loadInBackground", "loadType", "compressionFormat",
+"quality" }`. `guid` is an opaque identity used to de-duplicate against existing project assets
 on editor re-import; the import-intent fields are editor hints.
 
 ## colliders.glb and meta/colliders.json
