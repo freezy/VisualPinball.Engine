@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -131,6 +132,8 @@ namespace VisualPinball.Unity.Editor
 				UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(tableComponent);
 			}
 			_metadataSnapshot = TableProvenance.CopyMetadata(tableComponent.Metadata ?? new TableMetadata());
+			// the package's, not the table's: only the snapshot that is written gets it
+			_metadataSnapshot.ExportDate = DateTime.UtcNow.ToString(TableMetadata.ExportDateFormat, CultureInfo.InvariantCulture);
 			_provenanceSnapshot = tableComponent.Provenance.Snapshot(_metadataSnapshot);
 			if (_provenanceSnapshot.Kind == "diagnostic") throw new InvalidOperationException("Materials-only imports cannot be exported as complete tables.");
 			TableProvenanceEditor.CheckRelease(_provenanceSnapshot, _metadataSnapshot.Version);
