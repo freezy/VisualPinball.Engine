@@ -515,12 +515,27 @@ namespace VisualPinball.Unity.Editor
 					others.Add((transform, transform.name));
 				}
 			}
+			// The glTF import puts a light on a child without a node of its own, rotated for glTF. Below a game object of
+			// this instance whose prefab has a light, that child goes after the link: the instance would light twice.
+			var lightHelpers = new List<int>();
+			for (var i = 0; i < others.Count; i++) {
+				var parent = others[i].Transform.parent;
+				if ((parent == go.transform || nodeIds.TryGetValue(parent, out var parentId) && matched.ContainsKey(parentId))
+					&& IsLightHelper(others[i].Transform, nodeIds)) {
+					lightHelpers.Add(i);
+				}
+			}
 			for (var i = 0; i < others.Count; i++) {
 				others[i].Transform.name = UnlinkedName + i;
 			}
 			foreach (var (id, _) in matched.OrderBy(pair => pair.Value.GetSiblingIndex())) {
 				_transformByNodeId[id].SetAsLastSibling();
 			}
+
+			// The link drops the components the imported game objects have and the prefab's don't, like the light
+			// glTF puts on the node itself. The package's own components are only created after the link.
+			var extras = matched.ToDictionary(pair => pair.Key, pair => ExtraComponents(_transformByNodeId[pair.Key], pair.Value), StringComparer.Ordinal);
+			var rootExtras = ExtraComponents(go.transform, prefab.transform);
 
 			item.Apply(go);
 
@@ -534,9 +549,11 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+			var unlinked = new Transform[others.Count];
 			foreach (var t in go.GetComponentsInChildren<Transform>(true)) {
 				if (t.name.StartsWith(UnlinkedName, StringComparison.Ordinal)
 					&& int.TryParse(t.name.Substring(UnlinkedName.Length), out var i) && i >= 0 && i < others.Count) {
+					unlinked[i] = t;
 					// the dictionary finds the game object the link replaced by its instance id
 					if (nodeIds.TryGetValue(others[i].Transform, out var id)) {
 						_transformByNodeId[id] = t;
@@ -557,7 +574,94 @@ namespace VisualPinball.Unity.Editor
 				transform.localScale = pose.Scale;
 				PrefabUtility.RecordPrefabInstancePropertyModifications(transform.gameObject);
 				PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
+				RestoreComponents(transform, extras[id]);
 			}
+			RestoreComponents(go.transform, rootExtras);
+
+			var dropped = 0;
+			foreach (var i in lightHelpers) {
+				var helper = unlinked[i];
+				if (helper && helper.parent && helper.parent.GetComponent<UnityEngine.Light>()) {
+					Object.DestroyImmediate(helper.gameObject);
+					dropped++;
+				}
+			}
+			if (dropped > 0) {
+				Logger.Info($"Dropped {dropped} imported light helper(s) below '{go.name}' whose lights its prefab has.");
+			}
+		}
+
+		// The components of an imported game object beyond the ones of the prefab's game object it is an instance of,
+		// by type and index among the components of that type, with their serialized values. Only the ones the glTF
+		// import creates whose references are assets: the JSON can't keep references to game objects of the scene.
+		private static List<(Type Type, int Index, string Json)> ExtraComponents(Transform imported, Transform prefabObject)
+		{
+			var extras = new List<(Type, int, string)>();
+			var seen = new Dictionary<Type, int>();
+			foreach (var component in imported.GetComponents<Component>()) {
+				if (!component || component is Transform) {
+					continue;
+				}
+				var type = component.GetType();
+				seen.TryGetValue(type, out var index);
+				seen[type] = index + 1;
+				if (index < prefabObject.GetComponents(type).Count(c => c.GetType() == type)) {
+					continue;
+				}
+				if (component is UnityEngine.Light or MeshFilter or MeshRenderer || RequiresLight(component)) {
+					extras.Add((type, index, EditorJsonUtility.ToJson(component)));
+				} else {
+					Logger.Warn($"Linking '{imported.name}' to its prefab drops its {type.Name}, which the prefab's game object doesn't have.");
+				}
+			}
+			return extras;
+		}
+
+		private static void RestoreComponents(Transform transform, List<(Type Type, int Index, string Json)> extras)
+		{
+			foreach (var (type, index, json) in extras) {
+				// adding one can have added another, like the render pipeline's light data with a light
+				var existing = transform.GetComponents(type).Where(c => c.GetType() == type).ToArray();
+				var component = existing.Length > index ? existing[index] : transform.gameObject.AddComponent(type);
+				if (component) {
+					EditorJsonUtility.FromJsonOverwrite(json, component);
+				}
+			}
+		}
+
+		// Whether an imported game object is a light helper: no node in it, and nothing but lights, one at least, with
+		// what they require (like the render pipeline's light data).
+		private static bool IsLightHelper(Transform helper, IReadOnlyDictionary<Transform, string> nodeIds)
+		{
+			var lights = 0;
+			foreach (var t in helper.GetComponentsInChildren<Transform>(true)) {
+				if (nodeIds.ContainsKey(t)) {
+					return false;
+				}
+				foreach (var component in t.GetComponents<Component>()) {
+					switch (component) {
+						case Transform:
+							break;
+						case UnityEngine.Light:
+							lights++;
+							break;
+						default:
+							if (!RequiresLight(component)) {
+								return false;
+							}
+							break;
+					}
+				}
+			}
+			return lights > 0;
+		}
+
+		// what comes with a light, like the render pipeline's light data
+		private static bool RequiresLight(Component component)
+		{
+			return component && component.GetType().GetCustomAttributes(typeof(RequireComponent), true)
+				.Cast<RequireComponent>()
+				.Any(required => required.m_Type0 == typeof(UnityEngine.Light) || required.m_Type1 == typeof(UnityEngine.Light) || required.m_Type2 == typeof(UnityEngine.Light));
 		}
 
 		// a name no prefab has, followed by an index into the game objects it was given to
