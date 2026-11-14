@@ -38,8 +38,8 @@ namespace VisualPinball.Unity
 		public int? OriginalReleaseYear { get; set; }
 		public IReadOnlyList<string> PrimaryAuthors { get; set; } = Array.Empty<string>();
 
-		/// <summary>The package is of a table that isn't released (see <see cref="TableMetadata.Private"/>).</summary>
-		public bool Private { get; set; }
+		/// <summary>The package is of a table that isn't released (see <see cref="TableMetadata.IsPrivate"/>).</summary>
+		public bool IsPrivate { get; set; }
 
 		// Aspect ratio (width / height) of the packaged table screenshot, derived from the crop bounds
 		// in screenshots/table-bounds.json. Null when the package has no screenshot bounds. Lets the
@@ -109,7 +109,7 @@ namespace VisualPinball.Unity
 					Manufacturer = tableMetadata.Manufacturer?.Trim(),
 					OriginalReleaseYear = tableMetadata.OriginalReleaseYear > 0 ? tableMetadata.OriginalReleaseYear : null,
 					PrimaryAuthors = primaryAuthors,
-					Private = tableMetadata.Private,
+					IsPrivate = tableMetadata.IsPrivate,
 					// Same open: pull the screenshot aspect so the player never has to decode an image
 					// just to lay out its carousel.
 					ScreenshotAspectRatio = TryReadScreenshotAspect(zip)

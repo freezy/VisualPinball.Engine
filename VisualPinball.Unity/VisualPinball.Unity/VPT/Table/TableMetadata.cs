@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		[JsonProperty("private", DefaultValueHandling = DefaultValueHandling.Ignore)]
 		[Tooltip("The table isn't released yet: this package is for its testers. Benchmark results measured with it are kept apart from the released table's and aren't shown publicly.")]
-		public bool Private;
+		public bool IsPrivate;
 
 		/// <summary>
 		/// User-supplied backglass image. Not written to JSON; the PackageWriter encodes it to

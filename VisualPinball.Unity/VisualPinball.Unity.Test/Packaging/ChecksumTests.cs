@@ -59,11 +59,11 @@ namespace VisualPinball.Unity.Test
 			var released = source.Snapshot(metadata);
 			Assert.That(Encoding.UTF8.GetString(PackageApi.Packer.Pack(metadata)), Does.Not.Contain("private"), "a released table's metadata is written as before");
 
-			metadata.Private = true;
+			metadata.IsPrivate = true;
 			var json = PackageApi.Packer.Pack(metadata);
 			Assert.That(Encoding.UTF8.GetString(json), Does.Contain("\"private\": true"));
-			Assert.That(PackageApi.Packer.Unpack<TableMetadata>(json).Private, Is.True);
-			Assert.That(TableProvenance.CopyMetadata(metadata).Private, Is.True);
+			Assert.That(PackageApi.Packer.Unpack<TableMetadata>(json).IsPrivate, Is.True);
+			Assert.That(TableProvenance.CopyMetadata(metadata).IsPrivate, Is.True);
 			var snapshot = source.Snapshot(metadata);
 			Assert.That(snapshot.MetadataHash, Is.EqualTo(released.MetadataHash));
 			Assert.That(snapshot.RootHash, Is.EqualTo(released.RootHash));
