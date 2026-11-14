@@ -62,6 +62,21 @@ namespace VisualPinball.Unity
 		public bool IsPrivate;
 
 		/// <summary>
+		/// When the package was written, in UTC as <c>yyyy-MM-ddTHH:mm:ssZ</c>. The exporter sets it; null for a
+		/// table that comes from a scene, and in packages written before it existed.
+		/// </summary>
+		///
+		/// <remarks>
+		/// A property, so Unity doesn't keep it in the scene: it describes a .vpe file, not the table. It isn't
+		/// part of the metadata hash either: exporting a table again doesn't make it another one.
+		/// </remarks>
+		[JsonProperty("exportDate", DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public string ExportDate { get; set; }
+
+		/// <summary>The format of <see cref="ExportDate"/>.</summary>
+		public const string ExportDateFormat = "yyyy-MM-ddTHH:mm:ssZ";
+
+		/// <summary>
 		/// User-supplied backglass image. Not written to JSON; the PackageWriter encodes it to
 		/// screenshots/backglass.jpg when packing the table.
 		/// </summary>

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Globalization;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -151,10 +152,16 @@ namespace VisualPinball.Unity.Test
 			Directory.CreateDirectory(_cache); var path = Path.Combine(_cache, "source.vpe");
 			try {
 				var table = source.AddComponent<TableComponent>(); table.Metadata = new TableMetadata { TableName = "Original", Version = "1.2.0", PrimaryAuthors = new() { new TableAuthor { Name = "Alice" } } }; table.RestoreProvenance(TableProvenance.New());
+				var exportStarted = DateTime.UtcNow.AddSeconds(-1);
 				var export = new PackageWriter(source).WritePackageAsync(path); while (!export.IsCompleted) yield return null; export.GetAwaiter().GetResult();
 				var original = table.Provenance.Snapshot(table.Metadata);
 				var load = new RuntimePackageReader(path).ImportIntoScene(); while (!load.IsCompleted) yield return null; runtime = load.GetAwaiter().GetResult();
 				Assert.That(runtime.GetComponent<TableComponent>().Provenance.TableId, Is.EqualTo(original.TableId));
+				// the package says when it was written; the table it came from doesn't change for it
+				var exportDate = runtime.GetComponent<TableComponent>().Metadata.ExportDate;
+				Assert.That(DateTime.TryParseExact(exportDate, TableMetadata.ExportDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var exported), Is.True, exportDate);
+				Assert.That(exported, Is.InRange(exportStarted, DateTime.UtcNow.AddSeconds(1)));
+				Assert.That(table.Metadata.ExportDate, Is.Null);
 				var import = new PackageReader(path).ImportIntoScene(name); while (!import.IsCompleted) yield return null; import.GetAwaiter().GetResult();
 				imported = Object.FindObjectsByType<TableComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None).Single(t => t != table && t.gameObject != runtime).gameObject;
 				var derivative = imported.GetComponent<TableComponent>();
