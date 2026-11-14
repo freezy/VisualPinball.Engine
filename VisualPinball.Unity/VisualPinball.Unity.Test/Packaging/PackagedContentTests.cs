@@ -95,6 +95,22 @@ namespace VisualPinball.Unity.Test.Packaging
 		}
 
 		[Test]
+		public async Task BundleWithoutFilesResolvesToAnEmptyDirectory()
+		{
+			// nothing in the package says there is a files folder, since a folder is there through its files
+			var source = Path.Combine(_root, "nothing");
+			Directory.CreateDirectory(source);
+			var package = Path.Combine(_root, "empty.vpe");
+			var contentRef = CreatePackage(package, source);
+			var resolver = new PackagedContentResolver(package, new PackagedContentCacheOptions { CacheRoot = Path.Combine(_root, "cache") });
+
+			var resolved = await resolver.ResolveAsync(contentRef, null, CancellationToken.None);
+
+			Directory.GetFiles(resolved).Select(Path.GetFileName).Should().BeEquivalentTo(".complete");
+			PackagedContentValidator.ValidatePackage(package).Should().BeEmpty();
+		}
+
+		[Test]
 		public async Task IdenticalTreesAreDeterministicAndShareCacheEntry()
 		{
 			var firstSource = CreateFixture("first");

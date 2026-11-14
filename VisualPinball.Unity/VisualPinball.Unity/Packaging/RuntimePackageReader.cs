@@ -55,6 +55,9 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		// what a component is given that was written without data
+		private static readonly byte[] EmptyPayload = PackageApi.Packer.Empty;
+
 		public RuntimePackageReader(string vpePath)
 		{
 			_vpePath = vpePath;
@@ -99,11 +102,12 @@ namespace VisualPinball.Unity
 			// scene itself; pull them off disk (and parse the JSON payload) on a worker thread while
 			// the main thread imports the scene and restores items. When a valid cooked-texture
 			// cache exists for this package, the worker loads it instead of the source textures. A
-			// second worker bulk-reads the thousands of tiny item/ref entries so the restore loops
-			// don't pay per-entry zip cost on the main thread. Each worker opens its own storage;
-			// SharpZipLib readers are not safe to share across threads.
-			// They start once the file turned out to be a package, so a rejected file isn't still
-			// being read in the background.
+			// second worker reads the component data of all nodes and cuts it into its payloads.
+			// The workers read from the storage opened here: opening a package checks its whole
+			// directory, which is paid once per load, and the storage serializes the reads of its
+			// entries. They start once the file turned out to be a package, so a rejected file
+			// isn't still being read in the background, and they are joined before the storage is
+			// closed.
 
 			var openStopwatch = Stopwatch.StartNew();
 			IPackageStorage opened;
@@ -119,22 +123,15 @@ namespace VisualPinball.Unity
 					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
 					"incompatible pre-release version of VPE).");
 			}
-			if (_manifest.FormatVersion != PackageApi.FormatVersion) {
-				throw new InvalidPackageException(
-					$"This package uses format version {_manifest.FormatVersion}, but this build only supports up " +
-					$"to version {PackageApi.FormatVersion}. Update VPE to load it.");
-			}
-			var incompatibility = VpePackageSchemas.ItemsIncompatibility(_manifest);
+			var incompatibility = VpePackageSchemas.Incompatibility(_manifest);
 			if (incompatibility != null) {
 				throw new InvalidPackageException(incompatibility);
 			}
-			try {
-				_tableFolder = storage.GetFolder(PackageApi.TableFolder);
-			} catch (Exception e) when (!(e is OperationCanceledException)) {
-				throw new InvalidPackageException($"This package has no '{PackageApi.TableFolder}' folder.", e);
-			}
-			if (!_tableFolder.TryGetFile(PackageApi.SceneFile, out _)) {
-				throw new InvalidPackageException($"This package has no scene ('{PackageApi.SceneFile}').");
+			// a folder is there through its files, so a package without the table folder has no scene either
+			try { _tableFolder = storage.GetFolder(PackageApi.TableFolder); }
+			catch (ArgumentException) { _tableFolder = null; }
+			if (_tableFolder == null || !_tableFolder.TryGetFile(PackageApi.SceneFile, out _)) {
+				throw new InvalidPackageException($"This package has no scene ('{PackageApi.TableFolder}/{PackageApi.SceneFile}').");
 			}
 			try { _provenance = TableProvenance.Read(_tableFolder, out _); }
 			catch (Exception e) { throw new InvalidPackageException("Invalid table metadata or ancestry: " + e.Message, e); }
@@ -142,20 +139,24 @@ namespace VisualPinball.Unity
 
 			_resolutionDivisor = VpeTextureCookSettings.ResolutionDivisor;
 			_compressTextures = VpeTextureCookSettings.CompressTextures;
-			var materialPrefetchTask = Task.Run(() => PrefetchMaterialData(_vpePath, cancellationToken), cancellationToken);
-			var packablePrefetchTask = Task.Run(() => PrefetchPackableData(_vpePath, cancellationToken), cancellationToken);
-			// The PackAsAttribute type scan reflects over every loaded assembly; warm it on a worker
-			// so building PackagedRefs after the scene import is effectively free.
-			var typeScanTask = Task.Run(PackagedRefs.WarmUpTypeScan, cancellationToken);
 			LoadAttempt.Current?.SetPackage(_manifest.FormatVersion, _manifest.WrittenBy, _manifest.ComponentTypes?.Count ?? 0);
 			LoadAttempt.Current?.SetPhase(LoadAttempt.PhaseImport);
 			Logger.Debug($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 
 			using var materialCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			Task<MaterialPrefetchResult> materialPrefetchTask = null;
+			Task<List<PackagedItems.Node>> itemsTask = null;
 			Task<MaterialPrefetchResult> materialPreparation = null;
 			var reportMaterialProgress = false;
 			try {
+				var tableFolder = _tableFolder;
+				materialPrefetchTask = Task.Run(() => PrefetchMaterialData(tableFolder), cancellationToken);
+				itemsTask = Task.Run(() => PackagedItems.Read(tableFolder), cancellationToken);
+				// The PackAsAttribute type scan reflects over every loaded assembly; warm it on a worker
+				// so building PackagedRefs after the scene import is effectively free.
+				var typeScanTask = Task.Run(PackagedRefs.WarmUpTypeScan, cancellationToken);
+
 				var importModelsStopwatch = Stopwatch.StartNew();
 				_table = await ImportModels(parent, progress, cancellationToken);
 				importModelsStopwatch.Stop();
@@ -185,7 +186,7 @@ namespace VisualPinball.Unity
 
 					// Texture I/O/uploads can overlap audio requests and component restoration. Assign
 					// materials only after packables/globals, so their restoration order stays unchanged.
-					materialPreparation = PrepareMaterialTexturesAsync(materialPrefetchTask, materialCancellation.Token, (done, total) => {
+					materialPreparation = PrepareMaterialTexturesAsync(storage, materialPrefetchTask, materialCancellation.Token, (done, total) => {
 						if (reportMaterialProgress) ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, GetProgress01(done, total), $"Preparing texture {done}/{total}…");
 					});
 
@@ -220,72 +221,21 @@ namespace VisualPinball.Unity
 					LoadAttempt.Current?.Mark("meshes");
 					Logger.Debug($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
 
-					Dictionary<string, byte[]> packableBytes = null;
+					List<PackagedItems.Node> nodes;
 					try {
-						packableBytes = await packablePrefetchTask;
-					} catch (Exception ex) {
-						Logger.Warn(ex, "RuntimePackageReader: packable data prefetch failed; reading from package directly.");
+						nodes = await itemsTask;
+					} catch (Exception e) when (!(e is OperationCanceledException)) {
+						throw new InvalidPackageException($"The settings of this table's objects ('{PackageApi.TableFolder}/{PackageApi.ItemsFile}{PackageApi.Packer.FileExtension}') can't be read: {e.Message}", e);
 					}
 
 					var readItemsStopwatch = Stopwatch.StartNew();
-					await ReadPackablesAsync(
-						PackageApi.ItemFolder,
-						RuntimePackageLoadStage.RestoringPackables,
-						"Restoring table objects",
-						ApplyItemData,
-						(item, type, file, index) => {
-							var comps = item.gameObject.GetComponents(type);
-							var comp = comps.Length > index
-								? comps[index]
-								: AddPackageComponent(item.gameObject, type);
-							if (comp is IPackable packable) {
-								packable.Unpack(file.GetData());
-							} else {
-								PackageApi.Packer.Unpack(file.GetData(), comp);
-							}
-						},
-						packableBytes,
-						progress,
-						cancellationToken);
+					var references = await RestoreItemsAsync(nodes, progress, cancellationToken);
 					readItemsStopwatch.Stop();
 					LoadAttempt.Current?.Mark("packables");
 					Logger.Debug($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
 
 					var readRefsStopwatch = Stopwatch.StartNew();
-					await ReadPackablesAsync(
-						PackageApi.ItemReferencesFolder,
-						RuntimePackageLoadStage.RestoringReferences,
-						"Restoring gameplay references",
-						null,
-						(item, type, file, index) => {
-							var comps = item.gameObject.GetComponents(type);
-							var comp = comps.Length > index
-								? comps[index]
-								: AddPackageComponent(item.gameObject, type);
-							if (comp == null) {
-								Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
-								return;
-							}
-							if (comp is not IPackable packable) {
-								Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name} because the component does not implement {nameof(IPackable)}.");
-								return;
-							}
-
-							// Some components are intentionally refs-only and return null from Pack().
-							// Ensure they still get created so UnpackReferences can restore wiring.
-							if (comps.Length <= index) {
-								Logger.Debug($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
-							}
-
-							try {
-								packable.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
-							} catch (Exception ex) {
-								Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
-							}
-						},
-						packableBytes,
-						progress,
-						cancellationToken);
+					await RestoreReferencesAsync(references, progress, cancellationToken);
 					var slingshots = _table.GetComponentsInChildren<RubberSlingshotComponent>(true);
 					foreach (var slingshot in slingshots) {
 						slingshot.ValidateAfterUnpack();
@@ -349,6 +299,12 @@ namespace VisualPinball.Unity
 				if (materialPreparation != null) {
 					try { DestroyPreparedTextures(await materialPreparation); }
 					catch { /* Preserve the original load failure; LoadAsync cleans up its own failure. */ }
+				}
+				// The workers read from the storage this method closes on its way out.
+				foreach (var worker in new Task[] { materialPrefetchTask, itemsTask }) {
+					if (worker == null) continue;
+					try { await worker; }
+					catch { /* Preserve the original load failure. */ }
 				}
 				importStopwatch.Stop();
 				_files?.Rolling.Dispose();
@@ -570,12 +526,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void ApplyItemData(GameObject gameObject, IPackageFile itemFile)
+		private void ApplyItemData(GameObject gameObject, byte[] item)
 		{
-			if (itemFile == null) {
-				return;
-			}
-			var itemData = ItemPackable.Unpack(itemFile.GetData());
+			var itemData = ItemPackable.Unpack(item);
 			itemData.ApplyRuntime(gameObject);
 			// The table node can itself carry an ItemPackable that reactivates it, which would run
 			// Awake and OnEnable of components added later, before their data is restored.
@@ -594,145 +547,115 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Loops through all items and components in the package, and applies the given action.
-		/// The item action is executed before the component action.
+		/// First pass: applies the state of every node and creates its components with their data, in the order of the
+		/// package. Returns the components that carry references, for the second pass.
 		/// </summary>
-		private async Task ReadPackablesAsync(
-			string rootFolder,
-			RuntimePackageLoadStage stage,
-			string statusPrefix,
-			Action<GameObject, IPackageFile> itemAction,
-			Action<Transform, Type, IPackageFile, int> componentAction,
-			IReadOnlyDictionary<string, byte[]> prefetchedBytes,
+		private async Task<List<(Component Component, PackagedItems.Entry Entry)>> RestoreItemsAsync(
+			List<PackagedItems.Node> nodes,
 			IProgress<RuntimePackageLoadProgress> progress,
 			CancellationToken cancellationToken)
 		{
-			if (!_tableFolder.TryGetFolder(rootFolder, out var itemsFolder)) {
+			const RuntimePackageLoadStage stage = RuntimePackageLoadStage.RestoringPackables;
+			const string statusPrefix = "Restoring table objects";
+			var references = new List<(Component, PackagedItems.Entry)>();
+			var totalOperations = 0;
+			foreach (var node in nodes) {
+				totalOperations += (node.Item != null ? 1 : 0) + node.Components.Count;
+			}
+			if (totalOperations == 0) {
 				ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
-				return;
+				return references;
 			}
 
-			var itemFolders = GetFolders(itemsFolder);
-			var totalOperations = itemAction != null ? itemFolders.Count : 0;
-			foreach (var itemFolder in itemFolders) {
-				foreach (var typeFolder in GetFolders(itemFolder)) {
-					totalOperations += GetFiles(typeFolder).Count;
+			ReportProgress(progress, stage, 0f, statusPrefix + "...");
+			var processedOperations = 0;
+			// how many components of a type the current node has been given so far
+			var created = new Dictionary<Type, int>();
+
+			foreach (var node in nodes) {
+				cancellationToken.ThrowIfCancellationRequested();
+
+				var item = _refs.GetNode(node.Id);
+				if (item == null) {
+					throw new Exception($"Cannot find node '{node.Id}' in the imported scene. The package does not match its scene GLB.");
+				}
+
+				if (node.Item != null) {
+					ApplyItemData(item.gameObject, node.Item);
+					processedOperations++;
+					await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
+				}
+
+				created.Clear();
+				foreach (var entry in node.Components) {
+					processedOperations++;
+					if (!_refs.TryGetType(entry.Type, out var type)) {
+						// Forward compatibility: data of unknown component types (newer VPE,
+						// missing plugin) is skipped instead of failing the whole import.
+						if (_unknownTypeNames.Add(entry.Type)) {
+							Logger.Warn("Skipping unknown component type {Type} while reading the package. A plugin may be missing.", entry.Type);
+						}
+						continue;
+					}
+
+					created.TryGetValue(type, out var index);
+					created[type] = index + 1;
+					var comp = PackagedItems.FindComponent(item.gameObject, type, index);
+					if (!comp) {
+						comp = AddPackageComponent(item.gameObject, type);
+					}
+					if (!comp) {
+						throw new Exception($"Cannot create component {entry.Type} on '{item.name}'.");
+					}
+					var data = entry.Data ?? EmptyPayload;
+					if (comp is IPackable packable) {
+						packable.Unpack(data);
+					} else {
+						PackageApi.Packer.Unpack(data, comp);
+					}
+					if (entry.Refs != null) {
+						references.Add((comp, entry));
+					}
+					await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
 				}
 			}
 
-			if (totalOperations == 0) {
+			ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
+			return references;
+		}
+
+		/// <summary>
+		/// Second pass: now that every component exists, hands each one the references it was written with.
+		/// </summary>
+		private async Task RestoreReferencesAsync(
+			List<(Component Component, PackagedItems.Entry Entry)> references,
+			IProgress<RuntimePackageLoadProgress> progress,
+			CancellationToken cancellationToken)
+		{
+			const RuntimePackageLoadStage stage = RuntimePackageLoadStage.RestoringReferences;
+			const string statusPrefix = "Restoring gameplay references";
+			if (references.Count == 0) {
 				ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
 				return;
 			}
 
 			ReportProgress(progress, stage, 0f, statusPrefix + "...");
-			var processedOperations = 0;
-
-			foreach (var itemFolder in itemFolders) {
+			for (var i = 0; i < references.Count; i++) {
 				cancellationToken.ThrowIfCancellationRequested();
-
-				var item = _refs.GetNode(itemFolder.Name);
-				if (item == null) {
-					throw new Exception($"Cannot find node '{itemFolder.Name}' in the imported scene. The package does not match its scene GLB.");
-				}
-
-				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
-					itemAction(item.gameObject, ResolvePackableFile(prefetchedBytes, rootFolder, itemFolder.Name, null, itemFile));
-					processedOperations++;
-					await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
-				}
-
-				foreach (var typeFolder in GetFolders(itemFolder)) {
-					if (!_refs.TryGetType(typeFolder.Name, out var type)) {
-						// Forward compatibility: data of unknown component types (newer VPE,
-						// missing plugin) is skipped instead of failing the whole import.
-						if (_unknownTypeNames.Add(typeFolder.Name)) {
-							Logger.Warn("Skipping unknown component type {Type} while reading the package. A plugin may be missing.", typeFolder.Name);
-						}
-						processedOperations += GetFiles(typeFolder).Count;
-						continue;
-					}
-
-					var index = 0;
-					foreach (var compFile in GetFiles(typeFolder)) {
-						componentAction(item, type, ResolvePackableFile(prefetchedBytes, rootFolder, itemFolder.Name, typeFolder.Name, compFile), index++);
-						processedOperations++;
-						await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
+				var (comp, entry) = references[i];
+				if (comp is not IPackable packable) {
+					Logger.Warn($"Cannot unpack references for type {entry.Type} on {comp.name} because the component does not implement {nameof(IPackable)}.");
+				} else {
+					try {
+						packable.UnpackReferences(entry.Refs, _table.transform, _refs, _files);
+					} catch (Exception ex) {
+						Logger.Warn(ex, $"Failed unpacking references for type {entry.Type} on {comp.name}.");
 					}
 				}
+				await ReportProgressAndYieldAsync(progress, stage, statusPrefix, i + 1, references.Count, cancellationToken);
 			}
 
 			ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
-		}
-
-		private static IPackageFile ResolvePackableFile(
-			IReadOnlyDictionary<string, byte[]> prefetchedBytes,
-			string rootFolder,
-			string itemName,
-			string typeName,
-			IPackageFile file)
-		{
-			if (prefetchedBytes != null
-				&& prefetchedBytes.TryGetValue(PackableKey(rootFolder, itemName, typeName, file.Name), out var bytes)
-				&& bytes != null) {
-				return new PrefetchedPackageFile(file.Name, bytes);
-			}
-			return file;
-		}
-
-		private static string PackableKey(string rootFolder, string itemName, string typeName, string fileName)
-		{
-			return typeName == null
-				? $"{rootFolder}|{itemName}|{fileName}"
-				: $"{rootFolder}|{itemName}|{typeName}|{fileName}";
-		}
-
-		// Runs on a worker thread with its own storage instance; bulk-reads every item/ref entry so
-		// the main-thread restore loops get their bytes from memory.
-		private static Dictionary<string, byte[]> PrefetchPackableData(string vpePath, CancellationToken cancellationToken)
-		{
-			try {
-				using var storage = PackageApi.StorageManager.OpenStorage(vpePath, cancellationToken);
-				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
-				var result = new Dictionary<string, byte[]>(4096, StringComparer.Ordinal);
-				foreach (var rootName in new[] { PackageApi.ItemFolder, PackageApi.ItemReferencesFolder }) {
-					if (!tableFolder.TryGetFolder(rootName, out var rootFolder)) {
-						continue;
-					}
-					rootFolder.VisitFolders(itemFolder => {
-						if (itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
-							result[PackableKey(rootName, itemFolder.Name, null, itemFile.Name)] = itemFile.GetData();
-						}
-						itemFolder.VisitFolders(typeFolder => {
-							typeFolder.VisitFiles(file => {
-								result[PackableKey(rootName, itemFolder.Name, typeFolder.Name, file.Name)] = file.GetData();
-							});
-						});
-					});
-				}
-				return result;
-
-			} catch (Exception ex) when (!(ex is OperationCanceledException)) {
-				Logger.Warn(ex, "RuntimePackageReader: failed prefetching packable data; falling back to direct package reads.");
-				return null;
-			}
-		}
-
-		private sealed class PrefetchedPackageFile : IPackageFile
-		{
-			private readonly byte[] _data;
-
-			public PrefetchedPackageFile(string name, byte[] data)
-			{
-				Name = name;
-				_data = data;
-			}
-
-			public string Name { get; }
-			public Stream AsStream() => new MemoryStream(_data, false);
-			public byte[] GetData() => _data;
-			public void SetData(byte[] data, PackageCompression compression = PackageCompression.Default)
-				=> throw new InvalidOperationException("Prefetched package files are read-only.");
 		}
 
 		private async Task ReadGlobalsAsync(IProgress<RuntimePackageLoadProgress> progress, CancellationToken cancellationToken)
@@ -817,7 +740,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private async Task<MaterialPrefetchResult> PrepareMaterialTexturesAsync(Task<MaterialPrefetchResult> prefetchTask, CancellationToken cancellationToken, Action<int, int> progress)
+		private async Task<MaterialPrefetchResult> PrepareMaterialTexturesAsync(IPackageStorage storage, Task<MaterialPrefetchResult> prefetchTask, CancellationToken cancellationToken, Action<int, int> progress)
 		{
 			MaterialPrefetchResult prefetch = null;
 			try { prefetch = await prefetchTask; }
@@ -825,8 +748,7 @@ namespace VisualPinball.Unity
 				Logger.Warn(ex, "RuntimePackageReader: material data prefetch failed; reading synchronously.");
 			}
 			cancellationToken.ThrowIfCancellationRequested();
-			using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken), cancellationToken);
-			var tableFolder = storage.GetFolder(PackageApi.TableFolder);
+			var tableFolder = _tableFolder;
 			var payload = prefetch?.Payload;
 			if (payload == null && !VpeMaterialReader.TryLoad(tableFolder, false, out payload, out _, false)) return null;
 			var textures = await VpeSharedTextureCache.LoadAsync(tableFolder, payload, VpeIntegrity.ReadManifest(storage), _resolutionDivisor, _compressTextures, cancellationToken, progress);
@@ -852,10 +774,10 @@ namespace VisualPinball.Unity
 			prepared.Textures.Clear();
 		}
 
-		private static MaterialPrefetchResult PrefetchMaterialData(string vpePath, CancellationToken cancellationToken)
+		// Runs on a worker thread, reading from the storage the load opened.
+		private static MaterialPrefetchResult PrefetchMaterialData(IPackageFolder tableFolder)
 		{
-			using var storage = PackageApi.StorageManager.OpenStorage(vpePath, cancellationToken);
-			return VpeMaterialReader.TryLoad(storage.GetFolder(PackageApi.TableFolder), false, out var payload, out _, false)
+			return VpeMaterialReader.TryLoad(tableFolder, false, out var payload, out _, false)
 				? new MaterialPrefetchResult { Payload = payload } : null;
 		}
 
@@ -947,20 +869,6 @@ namespace VisualPinball.Unity
 				RuntimePackageLoadStage.Finalizing => (0.97f, 1f),
 				_ => (0f, 1f),
 			};
-		}
-
-		private static List<IPackageFolder> GetFolders(IPackageFolder folder)
-		{
-			var folders = new List<IPackageFolder>();
-			folder.VisitFolders(folders.Add);
-			return folders;
-		}
-
-		private static List<IPackageFile> GetFiles(IPackageFolder folder)
-		{
-			var files = new List<IPackageFile>();
-			folder.VisitFiles(files.Add);
-			return files;
 		}
 	}
 }

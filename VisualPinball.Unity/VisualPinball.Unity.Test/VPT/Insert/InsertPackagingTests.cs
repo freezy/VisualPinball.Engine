@@ -457,8 +457,8 @@ namespace VisualPinball.Unity.Test
 					new Dictionary<Transform, string> { [sourceGo.transform] = "insert-node" },
 					new Dictionary<Material, string> { [preBake] = "before", [baked] = "baked" },
 					new Dictionary<Texture2D, string> { [normal] = "normal", [optical] = "optical", [response] = "response" });
-				var serializedSidecar = PackageApi.Packer.Pack(sidecar);
-				var restoredSidecar = PackageApi.Packer.Unpack<InsertAuthoringPayload>(serializedSidecar);
+				var serializedSidecar = sidecar.Pack(out var sidecarBuffer);
+				var restoredSidecar = InsertAuthoringPayload.Unpack(serializedSidecar, sidecarBuffer);
 				var target = targetGo.AddComponent<InsertComponent>();
 				target.Unpack(source.Pack());
 				target.GetComponent<MeshRenderer>().sharedMaterial = baked;

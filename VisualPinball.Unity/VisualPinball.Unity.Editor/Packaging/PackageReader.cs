@@ -86,31 +86,8 @@ namespace VisualPinball.Unity.Editor
 				await ReadAssets();
 				using var insertGenerationScope = InsertComponent.DeferGenerationForPackageImport();
 
-				// create components and update game objects
-				ReadPackables(PackageApi.ItemFolder, (go, file) => {
-					ItemPackable.Unpack(file.GetData()).Apply(go);
-					// The table node can itself carry an ItemPackable that reactivates it.
-					if (go == _table) { _table.SetActive(false); }
-				}, (item, type, file, index) => {
-					// add or update component
-					var comps = item.gameObject.GetComponents(type);
-					var comp = comps.Length > index
-						? comps[index]
-						: item.gameObject.AddComponent(type);
-					if (comp is IPackable packable) {
-						packable.Unpack(file.GetData());
-
-					} else {
-						PackageApi.Packer.Unpack(file.GetData(), comp);
-					}
-				});
-
-				// add references
-				ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, stream, _) => {
-					// add the component and unpack it.
-					var comp = item.gameObject.GetComponent(type) as IPackable;
-					comp?.UnpackReferences(stream.GetData(), _tableRoot, _refs, _files);
-				});
+				// create components and update game objects, then add the references between them
+				ReadReferences(ReadItems());
 				insertGenerationScope.Dispose();
 				var slingshots = _tableRoot.GetComponentsInChildren<RubberSlingshotComponent>(true);
 				foreach (var slingshot in slingshots) {
@@ -248,7 +225,8 @@ namespace VisualPinball.Unity.Editor
 				|| !meta.TryGetFile(PackageApi.InsertAuthoringFile, out var file, PackageApi.Packer.FileExtension)) {
 				return;
 			}
-			var payload = PackageApi.Packer.Unpack<InsertAuthoringPayload>(file.GetData());
+			var payload = InsertAuthoringPayload.Unpack(file.GetData(),
+				meta.TryGetFile(PackageApi.InsertAuthoringBufferFile, out var buffer) ? buffer.GetData() : null);
 			payload.Restore(id => _transformByNodeId.GetValueOrDefault(id),
 				_importedMaterialsById, _importedTexturesById, _assetPath);
 		}
@@ -323,13 +301,8 @@ namespace VisualPinball.Unity.Editor
 					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
 					"incompatible pre-release version of VPE).");
 			}
-			if (_manifest.FormatVersion != PackageApi.FormatVersion) {
-				throw new Exception(
-					$"This package uses format version {_manifest.FormatVersion}, but this VPE version only supports " +
-					$"up to version {PackageApi.FormatVersion}. Update VPE to import it.");
-			}
-			// what an older table stored under names this build no longer reads would be lost without a word
-			var incompatibility = VpePackageSchemas.ItemsIncompatibility(_manifest);
+			// what an older table stored where this build no longer reads it would be lost without a word
+			var incompatibility = VpePackageSchemas.Incompatibility(_manifest);
 			if (incompatibility != null) {
 				throw new Exception(incompatibility);
 			}
@@ -420,49 +393,78 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Loops through all items and components in the package, and applies the given action.
-		/// The item action is executed before the component action.
+		/// First pass over the package's nodes: applies the state of every game object and creates its components
+		/// with their data. Returns the components that carry references, for <see cref="ReadReferences"/>.
 		/// </summary>
-		/// <param name="rootFolder">Which root folder of the package to start with</param>
-		/// <param name="itemAction">Action to execute on the item</param>
-		/// <param name="componentAction">Action to execute on the component</param>
-		/// <exception cref="Exception">When there are item nodes in the package that don't correspond to the instantiated scene.</exception>
-		private void ReadPackables(string rootFolder, Action<GameObject, IPackageFile> itemAction, Action<Transform, Type, IPackageFile, int> componentAction) {
+		/// <exception cref="Exception">When there are nodes in the package that don't correspond to the instantiated scene.</exception>
+		private List<(GameObject Item, Type Type, int Index, Component Component, PackagedItems.Entry Entry)> ReadItems()
+		{
+			var references = new List<(GameObject, Type, int, Component, PackagedItems.Entry)>();
+			var empty = PackageApi.Packer.Empty;
+			// how many components of a type the current node has been given so far
+			var created = new Dictionary<Type, int>();
 
-			if (!_tableFolder.TryGetFolder(rootFolder, out var itemsFolder)) {
-				return;
-			}
-
-			// -> rootFolder <- / nodeId / CompType / 0
-			itemsFolder.VisitFolders(itemFolder => {
-
-				// rootFolder / -> nodeId <- / CompType / 0
-				var item = ResolveItemNode(itemFolder.Name);
+			foreach (var node in PackagedItems.Read(_tableFolder)) {
+				var item = ResolveItemNode(node.Id);
 				if (item == null) {
-					throw new Exception($"Cannot find item '{itemFolder.Name}' on node {_table.name}.");
+					throw new Exception($"Cannot find item '{node.Id}' on node {_table.name}.");
 				}
-				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
-					itemAction(item.gameObject, itemFile);
+				var go = item.gameObject;
+				if (node.Item != null) {
+					ItemPackable.Unpack(node.Item).Apply(go);
+					// The table node can itself carry an ItemPackable that reactivates it.
+					if (go == _table) { _table.SetActive(false); }
 				}
-				itemFolder.VisitFolders(typeFolder => {
 
-					// rootFolder / nodeId / -> CompType <- / 0
-					if (!_refs.TryGetType(typeFolder.Name, out var t)) {
+				created.Clear();
+				foreach (var entry in node.Components) {
+					if (!_refs.TryGetType(entry.Type, out var type)) {
 						// Forward compatibility: data of unknown component types (newer VPE,
 						// missing plugin) is skipped instead of failing the whole import.
-						if (_unknownTypeNames.Add(typeFolder.Name)) {
-							Logger.Error($"Skipping unknown component type '{typeFolder.Name}' while reading the package. A plugin may be missing.");
+						if (_unknownTypeNames.Add(entry.Type)) {
+							Logger.Error($"Skipping unknown component type '{entry.Type}' while reading the package. A plugin may be missing.");
 						}
-						return;
+						continue;
 					}
-					var index = 0;
-					typeFolder.VisitFiles(compFile => {
 
-						// rootFolder / nodeId / CompType / -> 0 <- (there might be multiple components of the same type)
-						componentAction(item, t, compFile, index++);
-					});
-				});
-			});
+					// add or update the component: the n-th entry of a type is the n-th component of that type
+					created.TryGetValue(type, out var index);
+					created[type] = index + 1;
+					var comp = PackagedItems.FindComponent(go, type, index);
+					if (!comp) {
+						comp = go.AddComponent(type);
+					}
+					if (!comp) {
+						throw new Exception($"Cannot create component {entry.Type} on '{go.name}'.");
+					}
+					var data = entry.Data ?? empty;
+					if (comp is IPackable packable) {
+						packable.Unpack(data);
+					} else {
+						PackageApi.Packer.Unpack(data, comp);
+					}
+					if (entry.Refs != null) {
+						references.Add((go, type, index, comp, entry));
+					}
+				}
+			}
+			return references;
+		}
+
+		/// <summary>
+		/// Second pass: hands each component the references it was written with, now that every component exists.
+		/// </summary>
+		private void ReadReferences(List<(GameObject Item, Type Type, int Index, Component Component, PackagedItems.Entry Entry)> references)
+		{
+			foreach (var (go, type, index, created, entry) in references) {
+				// relinking a later node to its prefab can have replaced the component
+				var comp = created ? created : PackagedItems.FindComponent(go, type, index);
+				if (comp is IPackable packable) {
+					packable.UnpackReferences(entry.Refs, _tableRoot, _refs, _files);
+				} else {
+					Logger.Warn($"Cannot restore the references of {entry.Type} on '{go.name}': the component is gone or can't be packaged.");
+				}
+			}
 		}
 
 		private void ReadGlobals()

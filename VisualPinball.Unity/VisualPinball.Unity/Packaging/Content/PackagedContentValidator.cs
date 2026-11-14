@@ -135,7 +135,8 @@ namespace VisualPinball.Unity
 						var contentRef = new PackagedContentRef(bundle.Name, manifest.Kind, manifest.EntryPoint, manifest.ContentHash);
 						ValidateReference(contentRef);
 						ValidateManifest(manifest, contentRef, maxFileCount, maxBundleBytes);
-						if (!bundle.TryGetFolder("files", out var filesFolder)) {
+						// A folder is in the package through its files, so a bundle without files has no files folder.
+						if (!bundle.TryGetFolder("files", out var filesFolder) && manifest.Files.Count > 0) {
 							throw new InvalidDataException($"Content bundle '{bundle.Name}' is missing its files directory.");
 						}
 						foreach (var entry in manifest.Files) {

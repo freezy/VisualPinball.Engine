@@ -201,17 +201,15 @@ namespace VisualPinball.Unity.Editor
 				Report(progress, 0.06f, "Writing components…");
 				await Yield();
 				sw1 = Stopwatch.StartNew();
-				WritePackables(
-					PackageApi.ItemFolder,
-					packageable => packageable.Pack(),
-					go => ItemPackable.Instantiate(go).Pack(),
-					PackNativeComponent);
-				Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
+				var packed = PackItems();
+				Logger.Info($"Component data packed in {sw1.ElapsedMilliseconds}ms.");
 
-				// write reference data
+				// Pack the references in a pass of their own, as they are restored: after the data of every
+				// component. Then both go into the one file that holds them.
 				sw1 = Stopwatch.StartNew();
-				WritePackables(PackageApi.ItemReferencesFolder, packageable => packageable.PackReferences(_table.transform, _refs, _files));
-				Logger.Info($"References written in {sw1.ElapsedMilliseconds}ms.");
+				PackItemReferences(packed);
+				WritePackageFile(_tableFolder, PackageApi.ItemsFile + PackageApi.Packer.FileExtension, PackagedItems.Write(packed.Nodes));
+				Logger.Info($"References packed and items written in {sw1.ElapsedMilliseconds}ms.");
 
 				// write globals (this captures the material metadata + the deferred texture sources)
 				ct.ThrowIfCancellationRequested();
@@ -898,39 +896,36 @@ namespace VisualPinball.Unity.Editor
 			return export == null ? null : () => SaveGltfToBytes(export, isScene: false);
 		}
 
-		/// <summary>
-		/// Walks through the entire game object tree and creates the same structure for
-		/// a given storage name, for each IPackageable component. Folders are keyed by the
-		/// node's stable id.
-		/// </summary>
-		/// <param name="folderName">Name of the storage within table storage</param>
-		/// <param name="getPackableData">Retrieves component-specific data.</param>
-		/// <param name="getItemData">Retrieves item-specific data.</param>
-		private void WritePackables(string folderName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null, Func<Component, byte[]> getNativeData = null)
+		/// <summary>The nodes that go into the items file, and the components their entries were packed from.</summary>
+		private sealed class PackedItems
 		{
-			// -> rootName <- / nodeId / CompType / 0
-			var folder = _tableFolder.AddFolder(folderName);
+			public readonly List<PackagedItems.Node> Nodes = new();
+			public readonly List<(IPackable Packable, PackagedItems.Entry Entry, Transform Node)> Components = new();
+		}
 
-			// walk the entire tree
+		/// <summary>
+		/// Walks the table's hierarchy and packs the state of every game object and the data of every
+		/// <see cref="IPackable"/> component on it. A node is listed, by its stable id, when the package has
+		/// something to say about it.
+		/// </summary>
+		private PackedItems PackItems()
+		{
+			var packed = new PackedItems();
+
+			// walk the entire tree: the order of the nodes is the order they are restored in
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>(!ExportActivesOnly)) {
 
-				// for each game object, loop through all components
-				if (!_nodeIdByTransform.TryGetValue(t, out var key)) {
+				if (!_nodeIdByTransform.TryGetValue(t, out var id)) {
 					throw new InvalidOperationException(
 						$"No node id assigned for '{t.name}' — the hierarchy changed during export.");
 				}
-				var counters = new Dictionary<string, int>();
-				var itemData = getItemData?.Invoke(t.gameObject);
-
-				// rootName / -> nodeId <- / CompType / 0
-				IPackageFolder itemPathFolder = null;
+				var node = new PackagedItems.Node { Id = id };
+				var itemData = ItemPackable.Instantiate(t.gameObject).Pack();
 				if (itemData?.Length > 0) {
-					itemPathFolder = folder.AddFolder(key);
-
-					var itemFile = itemPathFolder.AddFile(PackageApi.ItemFile, PackageApi.Packer.FileExtension);
-					itemFile.SetData(itemData);
+					node.Item = ValidPayload(itemData, "game object state", t);
 				}
 
+				// for each game object, loop through all components
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
 					switch (component) {
 						case null:
@@ -945,25 +940,22 @@ namespace VisualPinball.Unity.Editor
 						case IPackable packageable: {
 
 							var packName = _refs.GetName(packageable.GetType());
-							counters.TryAdd(packName, 0);
-
-							var packableData = getPackableData(packageable);
-							var shouldWriteEmptyMarker = folderName == PackageApi.ItemFolder && (packableData == null || packableData.Length == 0);
-							if (packableData?.Length > 0 || shouldWriteEmptyMarker) {
-
-								// rootName / -> nodeId <- / CompType / 0
-								itemPathFolder ??= folder.AddFolder(key);
-
-								// rootName / nodeId / -> CompType <- / 0
-								if (!itemPathFolder.TryGetFolder(packName, out var itemComponentFolder)) {
-									itemComponentFolder = itemPathFolder.AddFolder(packName);
-								}
-
-								// rootName / nodeId / CompType / -> 0 <-
-								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++}", PackageApi.Packer.FileExtension);
-								itemComponentFile.SetData(packableData?.Length > 0 ? packableData : PackageApi.Packer.Empty);
-								_usedTypeNames.Add(packName);
+							if (packName == null) {
+								throw new InvalidOperationException(
+									$"Component {packageable.GetType().FullName} on '{t.name}' has no name to be packaged under.");
 							}
+
+							// Every component gets an entry, also one that packs no data: the entry is what
+							// creates the component on import, and its position among the entries of its type
+							// tells which one it is.
+							var data = packageable.Pack();
+							var entry = new PackagedItems.Entry {
+								Type = packName,
+								Data = data?.Length > 0 ? ValidPayload(data, $"data of {packName}", t) : null,
+							};
+							node.Components.Add(entry);
+							packed.Components.Add((packageable, entry, t));
+							_usedTypeNames.Add(packName);
 							break;
 						}
 
@@ -980,11 +972,38 @@ namespace VisualPinball.Unity.Editor
 							break;
 
 						default:
-							getNativeData?.Invoke(component);
+							PackNativeComponent(component);
 							break;
 					}
 				}
+
+				if (node.Item != null || node.Components.Count > 0) {
+					packed.Nodes.Add(node);
+				}
 			}
+			return packed;
+		}
+
+		/// <summary>Packs the references of the components into the entries their data went into.</summary>
+		private void PackItemReferences(PackedItems packed)
+		{
+			foreach (var (packageable, entry, t) in packed.Components) {
+				var references = packageable.PackReferences(_table.transform, _refs, _files);
+				if (references?.Length > 0) {
+					entry.Refs = ValidPayload(references, $"references of {entry.Type}", t);
+				}
+			}
+		}
+
+		// A payload goes into the items file as it is, so one that isn't JSON would break the file for every node.
+		private static byte[] ValidPayload(byte[] payload, string what, Transform node)
+		{
+			try {
+				PackagedItems.ValidatePayload(payload);
+			} catch (InvalidDataException e) {
+				throw new InvalidOperationException($"Cannot export the {what} on '{node.name}': {e.Message}", e);
+			}
+			return payload;
 		}
 
 		private byte[] PackNativeComponent(Component comp)
@@ -1082,7 +1101,10 @@ namespace VisualPinball.Unity.Editor
 				_capturedMaterialIds, _capturedTextureIds);
 			if (payload.Inserts.Length == 0) { return; }
 			_metaFolder.AddFile(PackageApi.InsertAuthoringFile, PackageApi.Packer.FileExtension)
-				.SetData(PackageApi.Packer.Pack(payload));
+				.SetData(payload.Pack(out var buffer));
+			if (buffer.Length > 0) {
+				_metaFolder.AddFile(PackageApi.InsertAuthoringBufferFile).SetData(buffer);
+			}
 			_wroteInsertAuthoring = true;
 			Logger.Info($"Packaged editor authoring data for {payload.Inserts.Length} insert(s).");
 		}
