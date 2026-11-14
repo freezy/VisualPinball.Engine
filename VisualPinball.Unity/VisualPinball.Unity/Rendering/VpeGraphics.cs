@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 		Low = 0,
 		/// <summary>A medium trace on opaque surfaces.</summary>
 		Medium = 1,
-		/// <summary>The trace the volume was set up with, on transparent surfaces too where the pipeline has that.</summary>
+		/// <summary>The longest trace, on transparent surfaces too where the pipeline has that.</summary>
 		High = 2,
 	}
 
