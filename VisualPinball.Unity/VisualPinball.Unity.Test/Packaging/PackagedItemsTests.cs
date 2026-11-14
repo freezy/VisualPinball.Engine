@@ -276,7 +276,10 @@ namespace VisualPinball.Unity.Test
 				// two children of the same name, which the glTF import makes unique, and one the instance renames
 				AddChild(prefabRoot, "Screw");
 				AddChild(prefabRoot, "Screw");
-				AddChild(AddChild(prefabRoot, "Lamp"), "Source");
+				// a light, which glTF exports and imports on a helper child
+				AddChild(AddChild(prefabRoot, "Lamp"), "Source").AddComponent<Light>();
+				// an inactive child, which the export leaves out
+				AddChild(prefabRoot, "Decal").SetActive(false);
 				var prefab = PrefabUtility.SaveAsPrefabAsset(prefabRoot, assetFolder + "/Assembly.prefab");
 
 				source.AddComponent<TableComponent>();
@@ -287,6 +290,8 @@ namespace VisualPinball.Unity.Test
 				var lamp = instance.transform.GetChild(2);
 				lamp.name = "Bumper 1 Lamp";
 				lamp.gameObject.AddComponent<InputActionSoundComponent>().ActionName = "Lamp";
+				// a light the instance adds, which the prefab doesn't have
+				instance.transform.GetChild(0).gameObject.AddComponent<Light>();
 				// an added game object with the name of the prefab's renamed one
 				AddChild(instance, "Lamp").AddComponent<InputActionSoundComponent>().ActionName = "Added";
 				// and an added instance of the same prefab, whose game objects have the same file ids as the outer's
@@ -321,15 +326,19 @@ namespace VisualPinball.Unity.Test
 				var bumper = imported.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Bumper 1").gameObject;
 				Assert.That(PrefabUtility.IsOutermostPrefabInstanceRoot(bumper), Is.True, "the instance is linked to its prefab");
 				Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(bumper), Is.SameAs(prefab));
-				Assert.That(PrefabUtility.GetAddedGameObjects(bumper).Select(added => added.instanceGameObject.name), Is.EquivalentTo(new[] { "Lamp", "Nested" }),
+				Assert.That(PrefabUtility.GetAddedGameObjects(bumper).Select(added => added.instanceGameObject.name).Where(name => !name.EndsWith("_Orientation")),
+					Is.EquivalentTo(new[] { "Lamp", "Nested" }),
 					"the game objects of the prefab were matched with the prefab's, the added ones stay added");
 				// the instances of the prefab's game objects, in its order (Unity keeps the added ones apart)
 				var linked = bumper.transform.Cast<Transform>().Where(t => !PrefabUtility.IsAddedGameObjectOverride(t.gameObject)).ToList();
-				Assert.That(linked.Select(t => t.name), Is.EqualTo(new[] { "Screw", "Screw", "Bumper 1 Lamp" }));
+				Assert.That(linked.Select(t => t.name), Is.EqualTo(new[] { "Screw", "Screw", "Bumper 1 Lamp", "Decal" }));
+				Assert.That(linked[3].gameObject.activeSelf, Is.False);
+				Assert.That(linked[0].GetComponentsInChildren<Light>(true), Has.Length.EqualTo(1), "the light the instance added");
 				Assert.That(linked[1].localPosition.x, Is.EqualTo(0.1f).Within(1e-5f));
 				var importedLamp = linked[2];
 				Assert.That(importedLamp.GetComponent<InputActionSoundComponent>()?.ActionName, Is.EqualTo("Lamp"));
 				Assert.That(importedLamp.Cast<Transform>().Select(t => t.name), Is.EqualTo(new[] { "Source" }));
+				Assert.That(importedLamp.GetComponentsInChildren<Light>(true), Has.Length.EqualTo(1), "the prefab's light, and not the glTF import's too");
 				var addedLamp = bumper.transform.Cast<Transform>().Single(t => t.name == "Lamp");
 				Assert.That(addedLamp.GetComponent<InputActionSoundComponent>()?.ActionName, Is.EqualTo("Added"));
 
@@ -337,7 +346,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(PrefabUtility.IsAnyPrefabInstanceRoot(importedNested), Is.True, "the added instance is linked to its prefab");
 				Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(importedNested), Is.SameAs(prefab));
 				Assert.That(PrefabUtility.GetAddedGameObjects(importedNested), Is.Empty);
-				Assert.That(importedNested.transform.Cast<Transform>().Select(t => t.name), Is.EqualTo(new[] { "Screw", "Screw", "Lamp" }));
+				Assert.That(PrefabUtility.GetRemovedGameObjects(importedNested), Is.Empty);
+				Assert.That(importedNested.transform.Cast<Transform>().Select(t => t.name), Is.EqualTo(new[] { "Screw", "Screw", "Lamp", "Decal" }));
 				Assert.That(importedNested.transform.GetChild(1).localPosition.x, Is.EqualTo(0.2f).Within(1e-5f));
 				Assert.That(linked[1].localPosition.x, Is.EqualTo(0.1f).Within(1e-5f), "the nested instance's moved screw is its own");
 
