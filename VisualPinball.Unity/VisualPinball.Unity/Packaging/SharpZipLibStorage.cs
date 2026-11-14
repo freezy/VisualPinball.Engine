@@ -59,6 +59,9 @@ namespace VisualPinball.Unity.Editor
 			_integrity.Entries.Add(new VpeIntegrity.Entry { Path = path, Length = length, Sha256 = hash });
 		}
 
+		/// <summary>The integrity manifest a package opened for reading was checked against. Shared, so not to be changed.</summary>
+		internal VpeIntegrity.Manifest Integrity { get; private set; }
+
 		private ZipOutputStream _zipOutputStream;
 		private ZipArchive _readArchive;
 		private readonly object _readGate = new object();
@@ -92,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 				// Build an in-memory tree of folders/files for quick lookup
 				_rootFolder = new ZipPackageFolder("", null, this, false);
 
-				try { VpeIntegrity.Verify(_readArchive, path, false, cancellationToken); BuildFolderTree(); }
+				try { Integrity = VpeIntegrity.Verify(_readArchive, path, false, cancellationToken); BuildFolderTree(); }
 				catch { _readArchive.Dispose(); throw; }
 			}
 		}
@@ -277,26 +280,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (!_subFolders.TryGetValue(name, out var folder)) {
 
+				// A folder exists through the files in it: no entry of its own is written. Each one would
+				// cost a zip header and a line of work whenever the package is opened, and a folder
+				// without files has nothing a reader could use.
 				folder = new ZipPackageFolder(name, this, _storage, _isWriteMode);
 				_subFolders[name] = folder;
-
-				// In a Zip, folders are typically represented by a trailing slash entry
-				// We can immediately add a placeholder entry if we want to ensure folder presence
-				if (_isWriteMode) {
-
-					var fullFolderPath = GetFullPathForFolder(name);
-					// Add an entry with trailing slash
-					var entryName = fullFolderPath + "/";
-
-					var zos = _storage.GetZipOutputStream();
-					var folderEntry = new ZipEntry(entryName)
-					{
-						DateTime = ZipPackageStorage.EntryTimestamp
-					};
-
-					zos.PutNextEntry(folderEntry);
-					zos.CloseEntry();
-				}
 			}
 
 			return folder;
@@ -380,22 +368,6 @@ namespace VisualPinball.Unity.Editor
 			foreach (var f in _files.Values) {
 				action(f);
 			}
-		}
-
-		private string GetFullPathForFolder(string childFolderName)
-		{
-			// Build the path from the root to this folder + childFolderName
-			// For the zip entry, we use forward slashes
-			var stack = new Stack<string>();
-			stack.Push(childFolderName);
-
-			var current = this;
-			while (current != null && !string.IsNullOrEmpty(current._folderName)) {
-				stack.Push(current._folderName);
-				current = current._parent;
-			}
-
-			return string.Join("/", stack);
 		}
 
 		internal string GetFullPathForFile(string fileName)

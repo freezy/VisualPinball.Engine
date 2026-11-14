@@ -66,12 +66,17 @@ namespace VisualPinball.Unity
 			var found = new HashSet<GameIdentity>();
 			using (var storage = PackageApi.StorageManager.OpenStorage(path)) {
 				var table = storage.GetFolder(PackageApi.TableFolder);
-				if (table.TryGetFolder("items", out var items)) items.VisitFolders(node => node.VisitFolders(component => {
+				byte[] empty = null;
+				foreach (var node in PackagedItems.Read(table)) {
 					cancellation.ThrowIfCancellationRequested();
-					var reader = PackagedGameIdentityReaders.Find(component.Name);
-					if (reader == null) return;
-					component.VisitFiles(payload => { var identity = reader.Read(payload.GetData()); if (identity.HasValue) found.Add(identity.Value); });
-				}));
+					foreach (var component in node.Components) {
+						var reader = PackagedGameIdentityReaders.Find(component.Type);
+						if (reader == null) continue;
+						// a component written without data is an empty object to its reader
+						var identity = reader.Read(component.Data ?? (empty ??= PackageApi.Packer.Empty));
+						if (identity.HasValue) found.Add(identity.Value);
+					}
+				}
 			}
 			if (found.Count > 1) throw new InvalidDataException("The table has multiple controller identities. Select a controller profile explicitly.");
 			GameIdentity result;

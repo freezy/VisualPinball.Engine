@@ -268,7 +268,8 @@ namespace VisualPinball.Unity.Test
 				var captured = InsertAuthoringPayload.Capture(source.transform,
 					new Dictionary<Transform, string> { [source.transform] = "custom" }, null, null);
 				Assert.That(captured.Inserts[0].GeneratorJson, Does.Not.Contain("_customMesh"));
-				var payload = PackageApi.Packer.Unpack<InsertAuthoringPayload>(PackageApi.Packer.Pack(captured));
+				var payload = InsertAuthoringPayload.Unpack(captured.Pack(out var buffer), buffer);
+				Assert.That(buffer, Is.Not.Empty, "the source mesh is in the buffer");
 				var imported = restored.AddComponent<InsertComponent>();
 				payload.Restore(_ => restored.transform, null, null, folder);
 				Assert.That(imported.Error, Is.Null);

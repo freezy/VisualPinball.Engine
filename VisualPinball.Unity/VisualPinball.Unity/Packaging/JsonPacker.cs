@@ -29,7 +29,9 @@ namespace VisualPinball.Unity.Editor
 
 		public byte[] Pack<T>(T obj)
 		{
-			return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.Indented, Settings));
+			// Not indented: nobody reads a package's JSON more often than a player parses it, and the
+			// white space is a third to two thirds of a payload.
+			return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.None, Settings));
 		}
 
 		public byte[] Empty => Pack(new object());

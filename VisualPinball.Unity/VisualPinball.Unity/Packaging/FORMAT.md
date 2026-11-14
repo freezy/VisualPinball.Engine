@@ -1,6 +1,6 @@
 # The .vpe Package Format
 
-This is the normative specification of the `.vpe` table package format (format version 1). It
+This is the normative specification of the `.vpe` table package format (format version 3). It
 describes what a conforming writer produces and what any reader — VPE or not — needs to know to
 unpack and load a table. The implementation notes live in [README.md](README.md).
 
@@ -22,12 +22,13 @@ forward slashes. Readers must reject entry names containing `..`, `\` or `:` seg
 
 ```
 manifest.json                ← format identification, versions, requirements
+integrity.json               ← length and SHA-256 of every other entry
 table/
 ├── table.glb                ← scene: hierarchy, meshes, lights, fallback materials (glTF 2.0 binary)
 ├── colliders.glb            ← physics-only meshes (glTF 2.0 binary, optional)
 ├── table.json               ← table metadata (title, authors, …)
-├── items/<nodeId>/…         ← per-node component data
-├── refs/<nodeId>/…          ← per-node cross-references (second restore pass)
+├── provenance.json          ← table identity and the credits of the tables it derives from
+├── items.json               ← state, component data and cross-references of every node
 ├── global/                  ← switch/coil/wire/lamp mappings
 │   ├── switches.json
 │   ├── coils.json
@@ -35,10 +36,12 @@ table/
 │   └── lamps.json
 ├── assets/<Type>/…          ← serialized shared assets + their meta
 ├── sounds/<file>            ← original audio files (wav/ogg/mp3/aiff)
+├── rolling/graph.json       ← rolling-sound materials and what they are bound to (optional)
 ├── textures/<file>          ← image sources (png/jpg; 16-bit PNGs normalized to 8-bit)
 └── meta/
     ├── materials.json       ← portable material payload and texture inventory
     ├── inserts.json         ← editor-only insert generator and bake state
+    ├── inserts.bin          ← per-vertex arrays of the insert bake state (optional)
     ├── lights.json          ← light-source payload
     ├── sounds.json          ← audio meta (ids, import intent)
     └── colliders.json       ← collider-mesh meta
@@ -47,8 +50,13 @@ screenshots/                 ← preview images (jpg) + crop bounds (json, optio
 ```
 
 Already-compressed payloads (the two GLBs, everything under `textures/`) are written as *stored*
-zip entries; JSON entries are deflated. Entry timestamps are fixed (DOS epoch) so identical
-content produces byte-identical packages.
+zip entries; JSON entries are deflated.
+
+The archive has no directory entries: a folder exists through the files in it, and an empty folder is not represented. Readers must not expect one and must accept archives that have them.
+
+Entry timestamps are fixed (DOS epoch), so the archive adds nothing of its own to what is stored. Two exports of the same table are still not byte-identical: node ids and collider mesh ids are generated at each export, and `table.json` carries the export date.
+
+JSON is written without indentation or line breaks, except that `items.json` has one node per line. No reader may depend on either.
 
 Every key in the package's JSON is camelCase (`formatVersion`, `isActive`, `nodeId`), and private serialized fields lose their leading underscore (`_deviceId` is written `deviceId`). Keys of maps keyed by data (node ids, file names, payload names) are that data and keep their spelling. Packages of `items` schema 2 and older used PascalCase.
 
@@ -63,21 +71,21 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
 
 ```json
 {
-  "formatVersion": 1,
+  "formatVersion": 3,
   "writtenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
   "rootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
-  "schemas": { "items": 3, "itemsReader": 3, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
+  "schemas": { "items": 4, "itemsReader": 4, "materials": 2, "inserts": 4, "lights": 1, "sounds": 1, "rolling": 1 },
   "componentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
 }
 ```
 
 | Field | Meaning |
 | --- | --- |
-| `formatVersion` | Container layout version. Readers must refuse versions greater than they implement. |
+| `formatVersion` | Container layout version. Readers must refuse versions other than the ones they implement. Version 3 moved the data of all nodes from one file per component (`items/`, `refs/`) into `items.json`. |
 | `writtenBy` | Free-form writer identification, diagnostics only. |
 | `rootNodeId` | Node id of the table root in `table.glb`. Readers anchor the restored component hierarchy here. |
 | `schemas` | Schema version per payload, keyed by payload name. Readers must check a payload's schema version before parsing it and skip (with a warning) versions they don't know. `itemsReader` is not a payload: it is the oldest `items` version a reader must implement to load the package (see below). |
-| `componentTypes` | All component/asset type names used by `items/`, `refs/` and `assets/`. Lets a reader warn about missing plugins up front. |
+| `componentTypes` | All component/asset type names used by `items.json` and `assets/`. Lets a reader warn about missing plugins up front. |
 
 **Versioning policy.** `formatVersion` changes only on incompatible container-layout changes
 (folder structure, node addressing). Payload schemas evolve independently via `Schemas`. Within a
@@ -86,7 +94,7 @@ version bump. Fields are never repurposed.
 
 ### Versioning the items schema
 
-The `items` schema covers `items/` and `refs/`: the component JSON, and what the runtime makes of
+The `items` schema covers `items.json`: the component JSON, and what the runtime makes of
 it. Three constants in `VpePackageSchemas` (`VpePackageManifest.cs`) govern it, and whoever changes
 how components are exported or restored keeps them right:
 
@@ -133,8 +141,8 @@ stable id in the standard glTF per-node extension point:
 ```
 
 - Ids are 32-char lowercase hex GUIDs, unique within the package, generated at export.
-- Everything else in the package references nodes **by this id**: item folders, cross-references,
-  mapping devices, renderer states, light profiles.
+- Everything else in the package references nodes **by this id**: the nodes of `items.json`,
+  cross-references, mapping devices, renderer states, light profiles.
 - The id of the table root is repeated in the manifest as `rootNodeId`.
 - glTF exporters/importers may add synthetic nodes (e.g. `*_Orientation` helpers for lights,
   per-primitive mesh children). These carry no `vpeId` and are not referenced by the package.
@@ -156,27 +164,31 @@ right-handed, meters.
   is applied on top.
 - Cameras and animations are not exported.
 
-## items/ and refs/
+## items.json
 
-Component data, keyed by node id:
+The state of every node and the data of its components, in one file:
 
+```json
+{"nodes":[
+{"id":"c0ffee00deadbeef0123456789abcdef","item":{"name":"LeftFlipper","isActive":true,"isStatic":false,"prefabGuid":"…"},"components":[{"type":"Flipper","data":{…},"refs":{…}},{"type":"FlipperCollider"},{"type":"CoilSound","data":{…}},{"type":"CoilSound","data":{…},"refs":{…}}]},
+{"id":"…","components":[{"type":"LightGroup","refs":{…}}]}
+]}
 ```
-table/items/<nodeId>/item.json            ← GameObject-level state
-table/items/<nodeId>/<TypeName>/0.json    ← one file per component instance (ordinal index)
-table/refs/<nodeId>/<TypeName>/0.json     ← cross-references, restored in a second pass
-```
 
-- `<TypeName>` is the component's registered pack name (PackAs attribute), decoupled from C#
-  type names.
-- `item.json`: `{ "name", "isActive", "isStatic", "prefabGuid" }`. `prefabGuid` is an editor hint
-  (asset-library re-link) and is meaningless outside Unity.
-- Component JSON shapes are owned by each component (schema `items` covers the folder layout and
-  `item.json`). Unknown fields must be ignored; unknown `<TypeName>` folders must be skipped with
-  a warning, not fail the import.
-- References inside component JSON use the shape `{ "id": "<nodeId>", "type": "<TypeName>" }`;
-  a null `id` means "no reference".
-- Only active objects are exported. The cabinet and backbox are authored inactive but force-
-  activated for export; a package always contains them active.
+A table has thousands of these records and most are under 200 bytes. As zip entries of their own, each cost more in zip headers than it held, and opening the package meant walking them all; in one file they are read and inflated once.
+
+- `nodes` lists the nodes the package has something to say about, in the order they are restored: a parent before its children. `id` is the node id and occurs once; a file that names a node twice is invalid.
+- `item` is the GameObject's state: `{ "name", "isActive", "isStatic", "prefabGuid" }`. `prefabGuid` is an editor hint (asset-library re-link) and is meaningless outside Unity. A node without `item` is active, not static and has no prefab.
+- `components` lists the node's components in the order they are created. `type` is the component's registered pack name (PackAs attribute), decoupled from C# type names. **The n-th entry of a type on a node is the n-th component of exactly that type**: this is how two components of one type are told apart, and why a component that stores nothing still has an entry.
+- `data` is what the component stores about itself. It is applied when the component is created, and stands for an empty object when left out.
+- `refs` is the component's cross-references to other nodes, components and assets. All of them are applied in a second pass, after every component of every node exists. `data` and `refs` of one entry belong to the same component.
+- `null` for `item`, `data` or `refs` means the same as leaving it out.
+- The file is strict JSON (RFC 8259): no comments, no single quotes, no trailing commas, also inside `data` and `refs`. The writer refuses a payload that isn't, because what a lenient parser accepts, a reader that goes by the brackets may cut differently.
+- The shapes of `data` and `refs` are owned by each component (schema `items` covers the file's structure and `item`). Unknown fields must be ignored. An entry of an unknown `type` must be skipped with a warning, not fail the import; it takes no place among the entries of the types the reader knows.
+- References inside component JSON use the shape `{ "id": "<nodeId>", "type": "<TypeName>" }`; a null `id` means "no reference".
+- Only active objects are exported. The cabinet and backbox are authored inactive but force-activated for export; a package always contains them active.
+
+A reader can cut `item`, `data` and `refs` out of the file by their brackets and hand each to its component unparsed, so reading the file costs one pass over its bytes however many components it holds. VPE's reader (`PackagedItems`) does; it refuses a file whose structure is broken, and a component then parses, and may refuse, only its own payload.
 
 ## global/
 
@@ -257,7 +269,11 @@ explicitly Unity-valued fields inside `Hdrp` blocks.
 
 ## meta/inserts.json
 
-This editor-only sidecar has `formatVersion: 1` and an `inserts` array keyed by `nodeId`. Each record stores the serialized generator fields as `generatorJson`, the pre-bake material profile id, and optional bake data: hash, owner, UVs, tangents, map texture ids, optical parameters, bake material profile id, packer, and UV fill. The editor imports these references as project assets and regenerates an editable insert mesh. Runtime readers never open this file; the player renders the finished insert meshes in `table.glb` and restores only runtime insert and lamp component state from `items/` and `refs/`.
+This editor-only sidecar has `formatVersion: 4` and an `inserts` array keyed by `nodeId`. Each record stores the serialized generator fields as `generatorJson`, the pre-bake material profile id, and optional bake data: hash, owner, UVs, tangents, map texture ids, optical parameters, bake material profile id, packer, and UV fill. A custom-shaped insert also stores its source mesh as `customMesh`: its name, its vertices, and the topology and indices of each submesh. The editor imports these references as project assets and regenerates an editable insert mesh. Runtime readers never open this file; the player renders the finished insert meshes in `table.glb` and restores only runtime insert and lamp component state from `items.json`.
+
+`generatorJson` is a string because it is what Unity's serializer wrote and reads back: its keys are the component's field names, which don't follow the naming of the package's JSON, and no other reader has a use for them.
+
+The per-vertex arrays are not in the JSON. `uvs`, `tangents`, `customMesh.vertices` and each submesh's `indices` are `{ "byteOffset", "count" }`, the way a glTF accessor points into its buffer: `count` elements starting `byteOffset` bytes into `meta/inserts.bin`. The numbers there are little-endian and 32 bits wide: two floats per UV, four per tangent, three per vertex, one integer per index. A field that is left out has no array, and a package whose inserts have no arrays has no `inserts.bin`. As JSON, these numbers were nine tenths of the sidecar and took twice the room in the package.
 
 ## table/textures/ — the source layer
 
@@ -278,12 +294,26 @@ shape, color, intensity, range, spot angles, area size, shadow parameters, plus 
 (volumetrics, dimmers, ray-traced shadows). This is the authored truth for lights; the GLB's
 `KHR_lights_punctual` is the portable approximation.
 
+## integrity.json
+
+`{ "version": 1, "entries": [ { "path", "length", "sha256" } ] }` lists every other entry of the archive, ordered by path, with its uncompressed length and the lowercase hexadecimal SHA-256 of its content. A package without it, or whose entries and their lengths don't match the archive's directory exactly, is refused when it is opened.
+
+Opening a package checks the directory only: paths, lengths and that nothing is listed twice or missing. The hashes are checked where content is used for something that outlives the load (the texture and content caches key on them), and for the whole package on request (`VpeIntegrity.VerifyFile`), since hashing every entry reads the whole file. They detect change; they are not signatures.
+
+## table/provenance.json
+
+`{ "schemaVersion": 1, "tableId", "kind", "sourceFingerprint", "metadataHash", "creditIndexHash", "rootHash", "sources": [ … ], "credits": [ … ] }` identifies the table across its versions (`tableId`, a GUID kept from export to export) and carries the credits of the tables it was derived from. `sources` are the root hashes of those tables; each entry of `credits` names one of them with its `tableId`, `version`, authors and `kind`. The hashes commit to the table's metadata and credits, so that a derived table can't drop or rewrite where it came from without changing its own identity. A package without valid provenance is refused.
+
 ## sounds/ and meta/sounds.json
 
 Original audio files plus a meta map keyed by file name:
 `{ "guid", "forceToMono", "ambisonic", "loadInBackground", "loadType", "compressionFormat",
 "quality" }`. `guid` is an opaque identity used to de-duplicate against existing project assets
 on editor re-import; the import-intent fields are editor hints.
+
+## rolling/graph.json
+
+`{ "schema": 1, "balls": [ … ], "surfaces": [ … ], "bindings": [ … ] }`: the materials that give a rolling ball its sound. `balls` and `surfaces` are named materials with ids local to this file; a surface lists its responses per ball material, each pointing at the sound assets it loops and plays on entering and leaving. `bindings` attach a surface to a physics material under `assets/`. The file is optional, and a reader that doesn't know its schema (manifest `schemas.rolling`) loads the table without rolling sounds.
 
 ## colliders.glb and meta/colliders.json
 
@@ -350,12 +380,12 @@ needs, cropping it with `table-bounds.json` itself.
 
 ## Reader requirements
 
-1. Parse `manifest.json`; refuse files without one, and refuse `FormatVersion` greater than
-   supported.
+1. Parse `manifest.json`; refuse files without one, and refuse a `formatVersion` other than the
+   ones implemented.
 2. Check each payload's schema version (manifest `Schemas` and the payload's own version field)
    before parsing; skip unknown versions with a warning. The runtime reader refuses a package whose
    `items` version is outside the range it loads, as described under *Versioning the items schema*.
-3. Skip unknown component-type folders and unknown profile types; never fail the import for them.
+3. Skip entries of unknown component types and unknown profile types; never fail the import for them.
 4. Ignore unknown JSON fields everywhere.
 5. Resolve all node references through the `vpeId` extras of `table.glb`.
 6. Sanitize zip entry names before writing anything to disk.

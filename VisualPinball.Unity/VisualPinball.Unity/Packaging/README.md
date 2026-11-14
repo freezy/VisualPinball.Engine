@@ -71,8 +71,13 @@ Decisions worth knowing the "why" of:
   original asset bytes (with collision detection on duplicate file stems). This covers materials
   that are *not* captured into the material payload — captured materials have their textures
   stripped from the GLB entirely.
-- **Reproducible exports**: fixed zip entry timestamps, so identical content produces
-  byte-identical packages.
+- **Nothing the archive adds**: fixed zip entry timestamps and no directory entries. Two exports
+  of a table still differ, because node ids, collider mesh ids and the export date are new each
+  time.
+- **One file for all nodes** (`table/items.json`): a table has thousands of component records of
+  under 200 bytes. As one zip entry each, they cost more in zip headers than they held and made
+  up nine tenths of the directory a reader walks to open the package. `PackagedItems` reads the
+  file in one pass and hands each component its own payload, unparsed.
 - **Robustness**: hostile zip entry names are rejected (zip-slip), unknown component types are
   skipped with a warning instead of failing the import.
 
@@ -88,8 +93,8 @@ The entry point is `PackageWriter`. Order of operations:
    author-disabled lights (so `KHR_lights_punctual` carries the full light topology), disable
    invalid renderers, and swap captured materials for texture-free clones
    (`PrepareGltfExport`) so the GLB carries no duplicate image data.
-4. **Write items and refs**, keyed by node id: `items/<id>/<Type>/<n>.json` via each component's
-   `IPackable`, refs in a second pass.
+4. **Pack items and refs**, keyed by node id, via each component's `IPackable`: the data of
+   every component first, the refs in a second pass, then both as one `items.json`.
 5. **Write globals**, table metadata, material profiles and texture sources, the editor-only insert generator/bake sidecar, and light profiles. The insert sidecar refers to material and texture ids assigned during material capture.
 6. **Write assets and sounds** (with audio import intent).
 7. **Finish the GLB**: glTFast writes to memory; the writer replaces re-encoded images with the
@@ -107,8 +112,9 @@ The entry point is `RuntimePackageReader`. Notable mechanics:
 - The scene GLB is imported from memory; a `GameObjectInstantiator` records the exact
   glTF-node-index → GameObject mapping (`NodeCreated`), which together with the parsed
   `extras.vpeId`s yields the id → transform map. The table root is `manifest.RootNodeId`.
-- Worker threads prefetch in parallel with the scene import: the material payload + source
-  textures (or the cooked cache), all item/ref bytes in bulk, and the PackAs type scan.
+- The package is opened once per load, since opening checks its whole directory. Worker threads
+  read from that storage in parallel with the scene import: the material payload + source
+  textures (or the cooked cache), `items.json` cut into its payloads, and the PackAs type scan.
 - Insert meshes come from the GLB and are never regenerated at runtime. The runtime reader does not open `meta/inserts.json`; it filters authoring-only textures before source loading and cooking.
 - **Texture cook**: on first load, source images are decoded in parallel (StbImageSharp on
   workers, Unity's native decoder for the few huge files), normals are AG-repacked, mips

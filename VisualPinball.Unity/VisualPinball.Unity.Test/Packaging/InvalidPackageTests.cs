@@ -90,6 +90,44 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[UnityTest]
+		public IEnumerator PackageInAnOlderLayoutIsRefusedWithWhatChanged()
+		{
+			// what a build from before the items moved into one file wrote
+			var path = Path.Combine(Path.GetTempPath(), $"vpe-old-layout-{Guid.NewGuid():N}.vpe");
+			using (var storage = PackageApi.StorageManager.CreateStorage(path)) {
+				var manifest = Manifest(3, "VPE 0.0.1-preview.248");
+				manifest.FormatVersion = 2;
+				VpePackageManifestIo.Write(storage, manifest);
+				storage.AddFolder(PackageApi.TableFolder).AddFolder("items").AddFolder("node").AddFile("item", PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Empty);
+			}
+			try {
+				yield return AssertInvalid(path, "VPE 0.0.1-preview.248", VpePackageSchemas.ItemsChanges[2], "Export the table again");
+			} finally {
+				File.Delete(path);
+			}
+		}
+
+		[Test]
+		public void FormatVersionDecidesBeforeTheItemsSchema()
+		{
+			var current = Manifest(VpePackageSchemas.ItemsVersion);
+			Assert.That(VpePackageSchemas.Incompatibility(current), Is.Null);
+
+			// a newer layout can't be read, whatever it says about its items
+			var newer = Manifest(VpePackageSchemas.ItemsVersion);
+			newer.FormatVersion = PackageApi.FormatVersion + 1;
+			Assert.That(VpePackageSchemas.Incompatibility(newer), Does.Contain("Update VPE"));
+
+			// an older layout is told what changed, or at least that it has to be exported again
+			var older = Manifest(VpePackageSchemas.MinItemsVersion - 1, "VPE 0.1");
+			older.FormatVersion = PackageApi.FormatVersion - 1;
+			Assert.That(VpePackageSchemas.Incompatibility(older), Does.Contain("VPE 0.1").And.Contain("Export the table again"));
+			var olderLayoutOnly = Manifest(VpePackageSchemas.ItemsVersion);
+			olderLayoutOnly.FormatVersion = PackageApi.FormatVersion - 1;
+			Assert.That(VpePackageSchemas.Incompatibility(olderLayoutOnly), Does.Contain($"format version {PackageApi.FormatVersion - 1}").And.Contain("Export the table again"));
+		}
+
 		[Test]
 		public void EveryItemsSchemaVersionHasItsReason()
 		{

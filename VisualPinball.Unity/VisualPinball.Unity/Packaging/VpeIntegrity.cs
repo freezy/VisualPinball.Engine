@@ -78,7 +78,12 @@ namespace VisualPinball.Unity
 			return BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant();
 		}
 
-		public static bool IsHash(string hash) => hash != null && hash.Length == 64 && hash.All(c => c >= '0' && c <= '9' || c >= 'a' && c <= 'f');
+		public static bool IsHash(string hash)
+		{
+			if (hash == null || hash.Length != 64) return false;
+			foreach (var c in hash) if (!(c >= '0' && c <= '9' || c >= 'a' && c <= 'f')) return false;
+			return true;
+		}
 		/// <summary>The SHA-256 of a cache key's parts.</summary>
 		public static string KeyHash(object parts) => Hash(Utf8.GetBytes(JsonConvert.SerializeObject(parts, Formatting.None, KeySettings)));
 		public static byte[] Json(object value) => Utf8.GetBytes(JsonConvert.SerializeObject(value, Formatting.None, Settings));
@@ -105,8 +110,25 @@ namespace VisualPinball.Unity
 
 		public static void ValidatePath(string path)
 		{
-			if (string.IsNullOrEmpty(path) || path.Length > 4096 || path.Split('/').Any(p => p.Length == 0 || p == "." || p == ".." || p.EndsWith(".") || p.EndsWith(" ") || p.Any(c => c < 32 || "\\:*?\"<>|".Contains(c))))
-				throw new InvalidDataException("Invalid package entry path.");
+			if (!IsValidPath(path)) throw new InvalidDataException("Invalid package entry path.");
+		}
+
+		// Runs for every entry each time a package is opened, so it walks the path once instead of splitting it.
+		private static bool IsValidPath(string path)
+		{
+			if (string.IsNullOrEmpty(path) || path.Length > 4096) return false;
+			var segment = 0;
+			for (var i = 0; i <= path.Length; i++) {
+				if (i < path.Length && path[i] != '/') {
+					var c = path[i];
+					if (c < 32 || c == '\\' || c == ':' || c == '*' || c == '?' || c == '"' || c == '<' || c == '>' || c == '|') return false;
+					continue;
+				}
+				// a segment ends here: not empty, and no trailing dot or space, which also rules out "." and ".."
+				if (i == segment || path[i - 1] == '.' || path[i - 1] == ' ') return false;
+				segment = i + 1;
+			}
+			return true;
 		}
 
 		/// <summary>
@@ -133,8 +155,7 @@ namespace VisualPinball.Unity
 				var directoryEntry = entry.FullName.EndsWith("/", StringComparison.Ordinal);
 				var name = directoryEntry ? entry.FullName.Substring(0, entry.FullName.Length - 1) : entry.FullName;
 				ValidatePath(name);
-				var parts = name.Split('/');
-				for (var i = 1; i < parts.Length; i++) Register(string.Join("/", parts.Take(i)), true);
+				for (var slash = name.IndexOf('/'); slash >= 0; slash = name.IndexOf('/', slash + 1)) Register(name.Substring(0, slash), true);
 				Register(name, directoryEntry);
 				if (directoryEntry) {
 					if (entry.Length != 0 || !names.Add(entry.FullName)) throw new InvalidDataException("Invalid directory entry.");
@@ -175,6 +196,8 @@ namespace VisualPinball.Unity
 
 		public static Manifest ReadManifest(IPackageStorage storage)
 		{
+			// opening the package already parsed it
+			if (storage is Editor.ZipPackageStorage { Integrity: { } verified }) return verified;
 			if (!storage.TryGetFile(ManifestName, out var file)) throw new InvalidDataException("Missing integrity manifest.");
 			using var stream = file.AsStream();
 			return Parse<Manifest>(ReadBounded(stream, MaxManifestBytes));

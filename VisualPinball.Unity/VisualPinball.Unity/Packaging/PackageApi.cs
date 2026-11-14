@@ -28,18 +28,18 @@ namespace VisualPinball.Unity
 	{
 		/// <summary>
 		/// Container format version written into the root manifest. Nodes are addressed by stable
-		/// ids carried in glTF node extras (see <see cref="VpeNodeIds"/>).
+		/// ids carried in glTF node extras (see <see cref="VpeNodeIds"/>), and since version 3 the
+		/// data of all nodes is in one file (see <see cref="PackagedItems"/>).
 		/// </summary>
-		public const int FormatVersion = 2;
+		public const int FormatVersion = 3;
 
 		/// <summary>Root-level manifest, see <see cref="VpePackageManifest"/>.</summary>
 		public const string ManifestFile = "manifest";
 
 		public const string TableFolder = "table";
 		public const string TableMetadataFile = "table";
-		public const string ItemFolder = "items";
-		public const string ItemFile = "item";
-		public const string ItemReferencesFolder = "refs";
+		/// <summary>The state and the component data of all nodes, see <see cref="PackagedItems"/>.</summary>
+		public const string ItemsFile = "items";
 		public const string SceneFile = "table.glb";
 		public const string ColliderMeshesFile = "colliders.glb";
 		public const string ColliderMeshesMeta = "colliders";
@@ -68,6 +68,9 @@ namespace VisualPinball.Unity
 		// other engines are free to ignore. See VpeMaterial.cs.
 		public const string MaterialsFile = "materials";
 		public const string InsertAuthoringFile = "inserts";
+		// The per-vertex data of the insert authoring records, as raw little-endian numbers the
+		// records point into.
+		public const string InsertAuthoringBufferFile = "inserts.bin";
 		public const string LightsFile = "lights";
 
 		public const float LightIntensityFactor = 100f;

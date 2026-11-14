@@ -5,7 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,9 +21,54 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public sealed class InsertAuthoringPayload
 	{
-		public const int Version = 3;
+		public const int Version = 4;
 		public int FormatVersion = Version;
 		public InsertAuthoringRecord[] Inserts = Array.Empty<InsertAuthoringRecord>();
+
+		/// <summary>
+		/// The sidecar as it is stored: its JSON, and next to it the buffer with the per-vertex arrays of the records
+		/// (<c>meta/inserts.bin</c>). As JSON those arrays were nine tenths of the file and half of what it took in the
+		/// package.
+		/// </summary>
+		public byte[] Pack(out byte[] buffer)
+		{
+			using var stream = new MemoryStream();
+			foreach (var record in Inserts ?? Array.Empty<InsertAuthoringRecord>()) {
+				if (record?.Bake != null) {
+					record.Bake.UvsView = InsertBufferView.Append(stream, record.Bake.Uvs);
+					record.Bake.TangentsView = InsertBufferView.Append(stream, record.Bake.Tangents);
+				}
+				if (record?.CustomMesh != null) {
+					record.CustomMesh.VerticesView = InsertBufferView.Append(stream, record.CustomMesh.Vertices);
+					foreach (var submesh in record.CustomMesh.Submeshes ?? Array.Empty<InsertCustomSubmeshAuthoringRecord>()) {
+						submesh.IndicesView = InsertBufferView.Append(stream, submesh.Indices);
+					}
+				}
+			}
+			buffer = stream.ToArray();
+			return PackageApi.Packer.Pack(this);
+		}
+
+		/// <summary>Reads the sidecar from its JSON and its buffer, which is null when the package has none.</summary>
+		/// <exception cref="InvalidDataException">A record points outside the buffer.</exception>
+		public static InsertAuthoringPayload Unpack(byte[] json, byte[] buffer)
+		{
+			var payload = PackageApi.Packer.Unpack<InsertAuthoringPayload>(json);
+			buffer ??= Array.Empty<byte>();
+			foreach (var record in payload.Inserts ?? Array.Empty<InsertAuthoringRecord>()) {
+				if (record?.Bake != null) {
+					record.Bake.Uvs = InsertBufferView.Read<Vector2>(buffer, record.Bake.UvsView);
+					record.Bake.Tangents = InsertBufferView.Read<Vector4>(buffer, record.Bake.TangentsView);
+				}
+				if (record?.CustomMesh != null) {
+					record.CustomMesh.Vertices = InsertBufferView.Read<Vector3>(buffer, record.CustomMesh.VerticesView);
+					foreach (var submesh in record.CustomMesh.Submeshes ?? Array.Empty<InsertCustomSubmeshAuthoringRecord>()) {
+						submesh.Indices = InsertBufferView.Read<int>(buffer, submesh.IndicesView);
+					}
+				}
+			}
+			return payload;
+		}
 
 		public static InsertAuthoringPayload Capture(Transform root,
 			IReadOnlyDictionary<Transform, string> nodeIds,
@@ -164,7 +212,9 @@ namespace VisualPinball.Unity.Editor
 	public sealed class InsertCustomMeshAuthoringRecord
 	{
 		public string Name;
-		public Vector3[] Vertices;
+		[JsonIgnore] public Vector3[] Vertices;
+		/// <summary>Three numbers per vertex.</summary>
+		[JsonProperty("vertices")] public InsertBufferView VerticesView;
 		public InsertCustomSubmeshAuthoringRecord[] Submeshes;
 
 		public static InsertCustomMeshAuthoringRecord Capture(Mesh mesh)
@@ -193,7 +243,41 @@ namespace VisualPinball.Unity.Editor
 	public sealed class InsertCustomSubmeshAuthoringRecord
 	{
 		public MeshTopology Topology;
-		public int[] Indices;
+		[JsonIgnore] public int[] Indices;
+		/// <summary>One integer per index.</summary>
+		[JsonProperty("indices")] public InsertBufferView IndicesView;
+	}
+
+	/// <summary>
+	/// Where an array of numbers is in <c>meta/inserts.bin</c>, the way a glTF accessor says it: by its offset in
+	/// bytes and its number of elements. The numbers are little-endian and 32 bits wide, floats unless the field
+	/// says otherwise, and the field says how many of them make an element.
+	/// </summary>
+	[Serializable]
+	public sealed class InsertBufferView
+	{
+		public int ByteOffset;
+		public int Count;
+
+		internal static InsertBufferView Append<T>(MemoryStream buffer, T[] values) where T : unmanaged
+		{
+			if (values == null) { return null; }
+			if (!BitConverter.IsLittleEndian) { throw new PlatformNotSupportedException("The insert authoring buffer is little-endian."); }
+			var view = new InsertBufferView { ByteOffset = checked((int)buffer.Length), Count = values.Length };
+			buffer.Write(MemoryMarshal.AsBytes(values.AsSpan()));
+			return view;
+		}
+
+		internal static T[] Read<T>(byte[] buffer, InsertBufferView view) where T : unmanaged
+		{
+			if (view == null) { return null; }
+			if (!BitConverter.IsLittleEndian) { throw new PlatformNotSupportedException("The insert authoring buffer is little-endian."); }
+			var size = UnsafeUtility.SizeOf<T>();
+			if (view.ByteOffset < 0 || view.Count < 0 || view.ByteOffset + (long)view.Count * size > buffer.Length) {
+				throw new InvalidDataException("An insert authoring record points outside the insert buffer.");
+			}
+			return MemoryMarshal.Cast<byte, T>(buffer.AsSpan(view.ByteOffset, view.Count * size)).ToArray();
+		}
 	}
 
 	[Serializable]
@@ -202,8 +286,12 @@ namespace VisualPinball.Unity.Editor
 		public string Hash;
 		public bool PlainStipple;
 		public string Owner;
-		public Vector2[] Uvs;
-		public Vector4[] Tangents;
+		[JsonIgnore] public Vector2[] Uvs;
+		[JsonIgnore] public Vector4[] Tangents;
+		/// <summary>Two numbers per vertex.</summary>
+		[JsonProperty("uvs")] public InsertBufferView UvsView;
+		/// <summary>Four numbers per vertex.</summary>
+		[JsonProperty("tangents")] public InsertBufferView TangentsView;
 		public string NormalMapId;
 		public string OpticalNormalMapId;
 		public string OpticalResponseMapId;

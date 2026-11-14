@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 		public Dictionary<string, int> Schemas = new();
 
 		/// <summary>
-		/// PackAs names of all component and asset types stored in items/, refs/ and assets/.
+		/// PackAs names of all component and asset types stored in items.json and assets/.
 		/// Readers compare this against their registered types and can warn up front about
 		/// missing plugins instead of failing mid-restore.
 		/// </summary>
@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 	public static class VpePackageSchemas
 	{
-		// How to change the items schema (the JSON in items/ and refs/, and what the runtime makes of it): see "Versioning
+		// How to change the items schema (the JSON in items.json, and what the runtime makes of it): see "Versioning
 		// the items schema" in FORMAT.md. In short, every change a reader has to know about raises ItemsVersion and adds a
 		// line to ItemsChanges; a change older players can't load raises ItemsReaderVersion to it too; and while VPE is in
 		// alpha and beta, a change older tables can't survive raises MinItemsVersion to it as well.
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 		/// The version of the items schema this build writes. It goes up by one with every change to the schema that
 		/// a reader has to know about, with a line added to <see cref="ItemsChanges"/>.
 		/// </summary>
-		public const int ItemsVersion = 3;
+		public const int ItemsVersion = 4;
 
 		/// <summary>
 		/// The oldest items schema version a reader must implement to load what this build writes, stored in the manifest
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 		/// older reader can ignore, so older players keep loading new tables; a change they would load wrongly raises it
 		/// to <see cref="ItemsVersion"/>.
 		/// </summary>
-		public const int ItemsReaderVersion = 3;
+		public const int ItemsReaderVersion = 4;
 
 		/// <summary>
 		/// The oldest items schema version this build still loads. The runtime reader takes every version from here
@@ -91,13 +91,32 @@ namespace VisualPinball.Unity
 		/// table is exported again instead of being migrated. Once older tables have to keep working, it stays
 		/// behind and the reader copes with the versions in between.
 		/// </remarks>
-		public const int MinItemsVersion = 3;
+		public const int MinItemsVersion = 4;
 
 		/// <summary>What each items schema version changed, in words a player can read. The first entry is version 2.</summary>
 		public static readonly string[] ItemsChanges = {
 			"switch mappings name the device they belong to, and tables from before load without working switches",
 			"the names in a table's files were made consistent, and tables from before would lose the settings stored under the old names",
+			"the settings of a table's objects moved from thousands of small files into one, and tables from before have them where this build no longer looks",
 		};
+
+		/// <summary>
+		/// Why this build can't load a package, by its container format and its items schema, or null when it can.
+		/// </summary>
+		public static string Incompatibility(VpePackageManifest manifest)
+		{
+			if (manifest.FormatVersion > PackageApi.FormatVersion) {
+				return $"This package uses format version {manifest.FormatVersion}, but this build only supports up " +
+					$"to version {PackageApi.FormatVersion}. Update VPE to load it.";
+			}
+			// says what changed since, which the format version alone can't
+			var items = ItemsIncompatibility(manifest);
+			if (items != null || manifest.FormatVersion == PackageApi.FormatVersion) {
+				return items;
+			}
+			return $"This package uses format version {manifest.FormatVersion}, which this build no longer loads (it loads " +
+				$"version {PackageApi.FormatVersion}). Export the table again with a current VPE, or get an updated one from its author.";
+		}
 
 		/// <summary>Why a package with another items schema version can't be loaded by this build, or null when it can.</summary>
 		public static string ItemsIncompatibility(VpePackageManifest manifest)
