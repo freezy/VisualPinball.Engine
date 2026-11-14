@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 		/// Only written to JSON when set. It isn't part of the metadata hash: releasing a table doesn't
 		/// make it another one.
 		/// </remarks>
-		[JsonProperty("private", DefaultValueHandling = DefaultValueHandling.Ignore)]
+		[JsonProperty("isPrivate", DefaultValueHandling = DefaultValueHandling.Ignore)]
 		[Tooltip("The table isn't released yet: this package is for its testers. Benchmark results measured with it are kept apart from the released table's and aren't shown publicly.")]
 		public bool IsPrivate;
 
