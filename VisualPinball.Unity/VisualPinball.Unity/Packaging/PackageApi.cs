@@ -63,6 +63,9 @@ namespace VisualPinball.Unity
 		// texture, referenced by file name from the materials payload. The zip central directory
 		// is the offset table — no custom blob indexing.
 		public const string TexturesFolder = "textures";
+		// What the export makes itself, like the baked ambient occlusion, is under table/textures/_generated/, so its
+		// names never collide with the authored textures'. A texture's file name is its path below table/textures/.
+		public const string GeneratedTexturesFolder = "_generated";
 		// The portable, SRP-agnostic material interchange. The portable intent lives at the top
 		// of each profile; pipeline-specific hints live in a nested "hdrp" (etc.) block that
 		// other engines are free to ignore. See VpeMaterial.cs.
@@ -79,6 +82,57 @@ namespace VisualPinball.Unity
 		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();
 
 		public static readonly IDataPacker Packer = new JsonPacker();
+
+		/// <summary>
+		/// The folders and the file name of a texture's file name, its path below table/textures/ ("wood.png",
+		/// "_generated/baked-occlusion.png"); null when it isn't a plain relative path.
+		/// </summary>
+		public static string[] TexturePath(string fileName)
+		{
+			if (string.IsNullOrWhiteSpace(fileName)) {
+				return null;
+			}
+			var parts = fileName.Split('/');
+			foreach (var part in parts) {
+				if (part.Length == 0 || part == "." || part == ".." || part.IndexOf('\\') >= 0) {
+					return null;
+				}
+			}
+			return parts;
+		}
+
+		/// <summary>
+		/// A texture's file in table/textures/, by its file name. False when the package doesn't have it, or the name
+		/// isn't a plain relative path.
+		/// </summary>
+		public static bool TryGetTextureFile(IPackageFolder texturesFolder, string fileName, out IPackageFile file)
+		{
+			file = null;
+			var parts = TexturePath(fileName);
+			if (parts == null || texturesFolder == null) {
+				return false;
+			}
+			var folder = texturesFolder;
+			for (var i = 0; i < parts.Length - 1; i++) {
+				if (!folder.TryGetFolder(parts[i], out folder)) {
+					return false;
+				}
+			}
+			return folder.TryGetFile(parts[parts.Length - 1], out file);
+		}
+
+		/// <summary>
+		/// Adds a texture's file to table/textures/, with the folders its file name goes through.
+		/// </summary>
+		public static IPackageFile AddTextureFile(IPackageFolder texturesFolder, string fileName)
+		{
+			var parts = TexturePath(fileName) ?? throw new ArgumentException($"'{fileName}' is not a texture's file name.", nameof(fileName));
+			var folder = texturesFolder;
+			for (var i = 0; i < parts.Length - 1; i++) {
+				folder = folder.AddFolder(parts[i]);
+			}
+			return folder.AddFile(parts[parts.Length - 1]);
+		}
 	}
 
 	/// <summary>

@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 				if (string.IsNullOrWhiteSpace(entry.FileName)) {
 					continue;
 				}
-				if (!texturesFolder.TryGetFile(entry.FileName, out var file)) {
+				if (!PackageApi.TryGetTextureFile(texturesFolder, entry.FileName, out var file)) {
 					Logger.Warn($"Source texture '{entry.FileName}' (id '{entry.Id}') is missing from {PackageApi.TableFolder}/{PackageApi.TexturesFolder}/.");
 					continue;
 				}

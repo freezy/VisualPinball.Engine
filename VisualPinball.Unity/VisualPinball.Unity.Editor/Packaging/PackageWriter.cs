@@ -1146,12 +1146,13 @@ namespace VisualPinball.Unity.Editor
 
 			var textures = _capturedMaterialPayload.Textures ?? Array.Empty<VpeTexture>();
 			var id = "baked-occlusion";
-			for (var i = 2; textures.Any(t => t != null && (t.Id == id || t.FileName == id + ".png")); i++) {
+			string FileName(string textureId) => $"{PackageApi.GeneratedTexturesFolder}/{textureId}.png";
+			for (var i = 2; textures.Any(t => t != null && (t.Id == id || t.FileName == FileName(id))); i++) {
 				id = $"baked-occlusion-{i}";
 			}
 			var texture = new VpeTexture {
 				Id = id,
-				FileName = id + ".png",
+				FileName = FileName(id),
 				MimeType = "image/png",
 				ColorSpace = VpeColorSpaces.Linear,
 				WrapMode = VpeWrapModes.Clamp,
@@ -1236,8 +1237,12 @@ namespace VisualPinball.Unity.Editor
 						|| data.Length == 0) {
 						continue;
 					}
-					texturesFolder ??= _tableFolder.AddFolder(PackageApi.TexturesFolder);
-					texturesFolder.AddFile(texture.FileName).SetData(data, PackageCompression.Stored);
+					if (PackageApi.TexturePath(texture.FileName) == null) {
+						// the materials reference it: a package without its file wouldn't load
+						throw new InvalidOperationException($"Cannot write texture '{texture.Id}': its file name '{texture.FileName}' is not a plain path below {PackageApi.TableFolder}/{PackageApi.TexturesFolder}/.");
+					}
+					texturesFolder ??=_tableFolder.AddFolder(PackageApi.TexturesFolder);
+					PackageApi.AddTextureFile(texturesFolder, texture.FileName).SetData(data, PackageCompression.Stored);
 					textureCount++;
 					textureBytes += data.LongLength;
 				}
