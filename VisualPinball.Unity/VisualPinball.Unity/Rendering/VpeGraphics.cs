@@ -139,6 +139,37 @@ namespace VisualPinball.Unity
 		public static System.Func<VpeUpscaler, bool> UpscalerSupport;
 
 		/// <summary>
+		/// Whether a supported upscaler also runs in this mode here. A pipeline rules out a mode that crashes
+		/// on this machine; without its check, every mode counts.
+		/// </summary>
+		public static bool IsUpscalerQualitySupported(VpeUpscaler upscaler, VpeUpscalerQuality quality)
+			=> IsUpscalerSupported(upscaler) && (UpscalerQualitySupport == null || UpscalerQualitySupport(upscaler, quality));
+
+		public static System.Func<VpeUpscaler, VpeUpscalerQuality, bool> UpscalerQualitySupport;
+
+		/// <summary>
+		/// The mode an upscaler runs in when this one is asked for: the same where it's supported, else the
+		/// nearest that renders more pixels, else the nearest with fewer.
+		/// </summary>
+		public static VpeUpscalerQuality SupportedUpscalerQuality(VpeUpscaler upscaler, VpeUpscalerQuality quality)
+		{
+			if (UpscalerQualitySupport == null || UpscalerQualitySupport(upscaler, quality)) {
+				return quality;
+			}
+			for (var mode = (int)quality - 1; mode >= (int)VpeUpscalerQuality.Quality; mode--) {
+				if (UpscalerQualitySupport(upscaler, (VpeUpscalerQuality)mode)) {
+					return (VpeUpscalerQuality)mode;
+				}
+			}
+			for (var mode = (int)quality + 1; mode <= (int)VpeUpscalerQuality.UltraPerformance; mode++) {
+				if (UpscalerQualitySupport(upscaler, (VpeUpscalerQuality)mode)) {
+					return (VpeUpscalerQuality)mode;
+				}
+			}
+			return quality;
+		}
+
+		/// <summary>
 		/// Whether the active pipeline, with the render tier (pipeline asset) in use right now, renders an
 		/// effect at all: a tier can leave one out, and its switch then does nothing. Without a pipeline to
 		/// ask, everything counts as supported.
