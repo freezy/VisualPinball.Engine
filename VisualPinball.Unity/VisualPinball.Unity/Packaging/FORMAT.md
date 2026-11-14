@@ -238,6 +238,7 @@ added later) that readers are free to ignore.
 - Mask: `maskMap` + `maskPacking` (`hdrpMaskMap`: R=metal G=AO B=detail A=smooth, or
   `gltfMetallicRoughness`: R=occlusion G=roughness B=metal) + `metallicRemap`/`smoothnessRemap`/
   `aoRemap`/`alphaRemap` (vec2 min/max).
+- `occlusionMap` (≈ glTF `occlusionTexture`, optional): ambient occlusion the writer baked for this table, a grayscale texture whose red channel is the occlusion, in the material's UV space (UV channel `uvBase`, after the base map's tiling and offset, covering the unit square once). Readers multiply it into the mask's occlusion channel; a profile without a mask takes it as its occlusion, with metallic and smoothness still from the scalars. It is derived data, made again by every export: editor imports drop it, so the authored mask stays editable.
 - `normalMap`: texture ref + `strength` + `packing` (`rgb` | `rg` | `dxt5nm`) — packages always
   ship `rgb` sources.
 - `emissive`: HDR color, optional LDR color, texture, `useIntensity` + `intensity` +

@@ -37,11 +37,14 @@ namespace VisualPinball.Unity.Editor
 		private bool _packageFoldout;
 		private bool _runtimeCompressSideChannelTextures = true;
 		private bool _runtimeCompressNormalMaps = true;
+		private bool _bakeOcclusion = true;
 
 		private const string RuntimeCompressSideChannelTexturesKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressSideChannelTextures";
 		private const string RuntimeCompressNormalMapsKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressNormalMaps";
+		private const string BakeOcclusionKey =
+			"VisualPinball.Unity.Editor.TableInspector.BakeOcclusion";
 
 		protected override void OnEnable()
 		{
@@ -52,6 +55,7 @@ namespace VisualPinball.Unity.Editor
 			_metadataProperty = serializedObject.FindProperty(nameof(TableComponent.Metadata));
 			_runtimeCompressSideChannelTextures = EditorPrefs.GetBool(RuntimeCompressSideChannelTexturesKey, true);
 			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
+			_bakeOcclusion = EditorPrefs.GetBool(BakeOcclusionKey, true);
 		}
 
 		public override void OnInspectorGUI()
@@ -93,6 +97,14 @@ namespace VisualPinball.Unity.Editor
 					_runtimeCompressNormalMaps);
 				if (EditorGUI.EndChangeCheck()) {
 					EditorPrefs.SetBool(RuntimeCompressNormalMapsKey, _runtimeCompressNormalMaps);
+				}
+				EditorGUI.BeginChangeCheck();
+				_bakeOcclusion = EditorGUILayout.ToggleLeft(
+					new GUIContent("Bake playfield ambient occlusion",
+						"Shades the playfield where posts, plastics, ramps and walls block the light from the room."),
+					_bakeOcclusion);
+				if (EditorGUI.EndChangeCheck()) {
+					EditorPrefs.SetBool(BakeOcclusionKey, _bakeOcclusion);
 				}
 				if (GUILayout.Button("Generate Screenshot")) {
 					// Run the capture *outside* OnInspectorGUI. Rendering
@@ -141,8 +153,9 @@ namespace VisualPinball.Unity.Editor
 						var tableGo = tableComponent.gameObject;
 						var compSide = _runtimeCompressSideChannelTextures;
 						var compNormal = _runtimeCompressNormalMaps;
+						var occlusion = _bakeOcclusion ? new VpeOcclusionBakeSettings() : null;
 						EditorApplication.delayCall += async () => {
-							var writer = new PackageWriter(tableGo, compSide, compNormal, @"Assets/Screenshots");
+							var writer = new PackageWriter(tableGo, compSide, compNormal, @"Assets/Screenshots", occlusion);
 							await VpeExportRunner.RunAsync(writer, path, $"Saving {Path.GetFileName(path)}");
 						};
 					}

@@ -194,7 +194,7 @@ namespace VisualPinball.Unity.Editor
 		// payload) and hands material construction to the registered pipeline importer.
 		private void ImportMaterials()
 		{
-			if (!VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out var payload, out var sources)) {
+			if (!VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out var payload, out var sources, stripBakedOcclusion: true)) {
 				return;
 			}
 
