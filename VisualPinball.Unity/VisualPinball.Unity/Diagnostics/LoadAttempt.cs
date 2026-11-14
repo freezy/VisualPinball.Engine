@@ -113,8 +113,8 @@ namespace VisualPinball.Unity
 		public string TableId { get; private set; }
 		public string TableVersion { get; private set; }
 
-		/// <summary>Whether the package says the table isn't released (see <see cref="TableMetadata.Private"/>).</summary>
-		public bool TablePrivate { get; private set; }
+		/// <summary>Whether the package says the table isn't released (see <see cref="TableMetadata.IsPrivate"/>).</summary>
+		public bool IsTablePrivate { get; private set; }
 
 		/// <summary>
 		/// Where the load's time went: the phases and the reader's steps, plus facts like
@@ -250,7 +250,7 @@ namespace VisualPinball.Unity
 		{
 			TableId = string.IsNullOrEmpty(tableId) ? null : tableId;
 			TableVersion = string.IsNullOrEmpty(version) ? null : version;
-			TablePrivate = isPrivate;
+			IsTablePrivate = isPrivate;
 			Publish(log: false);
 		}
 
@@ -508,7 +508,7 @@ namespace VisualPinball.Unity
 			if (TableVersion != null) {
 				w.Add("version", TableVersion);
 			}
-			if (TablePrivate) {
+			if (IsTablePrivate) {
 				w.Add("private", true);
 			}
 			w.Add("phase", Phase);

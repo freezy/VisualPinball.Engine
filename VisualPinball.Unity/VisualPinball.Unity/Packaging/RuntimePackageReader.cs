@@ -813,7 +813,7 @@ namespace VisualPinball.Unity
 			if (_tableFolder.TryGetFile(PackageApi.TableMetadataFile, out var tableMetadataFile, PackageApi.Packer.FileExtension)) {
 				tableComponent.Metadata = PackageApi.Packer.Unpack<TableMetadata>(tableMetadataFile.GetData()) ?? new TableMetadata();
 				tableComponent.RestoreProvenance(_provenance);
-				LoadAttempt.Current?.SetIdentity(_provenance?.TableId, tableComponent.Metadata.Version, tableComponent.Metadata.Private);
+				LoadAttempt.Current?.SetIdentity(_provenance?.TableId, tableComponent.Metadata.Version, tableComponent.Metadata.IsPrivate);
 			}
 		}
 
