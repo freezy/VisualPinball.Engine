@@ -258,6 +258,9 @@ namespace VisualPinball.Unity
 
 			BallManager = new BallManager(GetComponentInChildren<PhysicsEngine>(), this, Playfield.transform);
 			_inputManager = new InputManager();
+			if (_slowMotionKeyReleased) {
+				_inputManager.DisableKeyboardBindings(InputConstants.MapDebug, InputConstants.ActionSlowMotion);
+			}
 			EnsureSimulationThreadComponent();
 
 			// a table without a gamelogic engine still has its wires (keys to flippers) and devices
@@ -764,8 +767,12 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void ReleaseSlowMotionKey()
 		{
+			// a host may ask before the table is active, when there is no input manager yet: Awake applies it then
+			_slowMotionKeyReleased = true;
 			_inputManager?.DisableKeyboardBindings(InputConstants.MapDebug, InputConstants.ActionSlowMotion);
 		}
+
+		private bool _slowMotionKeyReleased;
 
 		private void HandleInput(object obj, InputActionChange change)
 		{
