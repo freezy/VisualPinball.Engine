@@ -52,6 +52,41 @@ namespace VisualPinball.Unity.Test
 			Assert.That(source.Snapshot(metadata).RootHash, Is.Not.EqualTo(snapshot.RootHash));
 		}
 
+		[Test] public void APrivatePackageIsTheSameTableAndOnlySaysSoWhenItIs()
+		{
+			var metadata = new TableMetadata { TableName = "Fixture" };
+			var source = TableProvenance.New();
+			var released = source.Snapshot(metadata);
+			Assert.That(Encoding.UTF8.GetString(PackageApi.Packer.Pack(metadata)), Does.Not.Contain("isPrivate"), "a released table's metadata is written as before");
+
+			metadata.IsPrivate = true;
+			var json = PackageApi.Packer.Pack(metadata);
+			Assert.That(Encoding.UTF8.GetString(json), Does.Contain("\"isPrivate\": true"));
+			Assert.That(PackageApi.Packer.Unpack<TableMetadata>(json).IsPrivate, Is.True);
+			Assert.That(TableProvenance.CopyMetadata(metadata).IsPrivate, Is.True);
+			var snapshot = source.Snapshot(metadata);
+			Assert.That(snapshot.MetadataHash, Is.EqualTo(released.MetadataHash));
+			Assert.That(snapshot.RootHash, Is.EqualTo(released.RootHash));
+		}
+
+		[Test] public void TheExportDateIsThePackagesAndNotPartOfTheTable()
+		{
+			var metadata = new TableMetadata { TableName = "Fixture" };
+			var source = TableProvenance.New();
+			var before = source.Snapshot(metadata);
+			Assert.That(Encoding.UTF8.GetString(PackageApi.Packer.Pack(metadata)), Does.Not.Contain("exportDate"), "a table that wasn't exported has none");
+
+			metadata.ExportDate = "2026-11-14T09:30:00Z";
+			var json = PackageApi.Packer.Pack(metadata);
+			Assert.That(Encoding.UTF8.GetString(json), Does.Contain("\"exportDate\": \"2026-11-14T09:30:00Z\""));
+			Assert.That(PackageApi.Packer.Unpack<TableMetadata>(json).ExportDate, Is.EqualTo("2026-11-14T09:30:00Z"));
+			Assert.That(TableProvenance.CopyMetadata(metadata).ExportDate, Is.EqualTo("2026-11-14T09:30:00Z"));
+			// exported again later, the table is the same one
+			var after = source.Snapshot(metadata);
+			Assert.That(after.MetadataHash, Is.EqualTo(before.MetadataHash));
+			Assert.That(after.RootHash, Is.EqualTo(before.RootHash));
+		}
+
 		[Test] public void ThreeGenerationsKeepCreditsButOnlyDirectEdges()
 		{
 			var aMeta = new TableMetadata { PrimaryAuthors = new() { new TableAuthor { Name = "Alice" } }, Version = "1.2.0" };

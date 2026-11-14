@@ -49,6 +49,34 @@ namespace VisualPinball.Unity
 		public string Manufacturer;
 
 		/// <summary>
+		/// The table isn't released: this package is for its testers. What they measure with it (the
+		/// player's benchmark) is kept apart from the released table's results and isn't shown publicly.
+		/// </summary>
+		///
+		/// <remarks>
+		/// Only written to JSON when set. It isn't part of the metadata hash: releasing a table doesn't
+		/// make it another one.
+		/// </remarks>
+		[JsonProperty("isPrivate", DefaultValueHandling = DefaultValueHandling.Ignore)]
+		[Tooltip("The table isn't released yet: this package is for its testers. Benchmark results measured with it are kept apart from the released table's and aren't shown publicly.")]
+		public bool IsPrivate;
+
+		/// <summary>
+		/// When the package was written, in UTC as <c>yyyy-MM-ddTHH:mm:ssZ</c>. The exporter sets it; null for a
+		/// table that comes from a scene, and in packages written before it existed.
+		/// </summary>
+		///
+		/// <remarks>
+		/// A property, so Unity doesn't keep it in the scene: it describes a .vpe file, not the table. It isn't
+		/// part of the metadata hash either: exporting a table again doesn't make it another one.
+		/// </remarks>
+		[JsonProperty("exportDate", DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public string ExportDate { get; set; }
+
+		/// <summary>The format of <see cref="ExportDate"/>.</summary>
+		public const string ExportDateFormat = "yyyy-MM-ddTHH:mm:ssZ";
+
+		/// <summary>
 		/// User-supplied backglass image. Not written to JSON; the PackageWriter encodes it to
 		/// screenshots/backglass.jpg when packing the table.
 		/// </summary>

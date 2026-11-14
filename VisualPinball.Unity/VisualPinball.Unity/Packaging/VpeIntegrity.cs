@@ -26,7 +26,9 @@ namespace VisualPinball.Unity
 		public static string CacheRoot { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VisualPinball", "VPE");
 		public static Action<long> BytesHashed;
 		private static readonly UTF8Encoding Utf8 = new(false, true);
-		private static readonly JsonSerializerSettings Settings = new() { MissingMemberHandling = MissingMemberHandling.Error, TypeNameHandling = TypeNameHandling.None };
+		private static readonly JsonSerializerSettings Settings = VpeJson.Settings(new() { MissingMemberHandling = MissingMemberHandling.Error, TypeNameHandling = TypeNameHandling.None });
+		// a cache key's input is never stored, so it keeps the naming the keys of existing caches were made with
+		private static readonly JsonSerializerSettings KeySettings = new() { TypeNameHandling = TypeNameHandling.None };
 
 		[Serializable]
 		public sealed class Entry
@@ -77,6 +79,8 @@ namespace VisualPinball.Unity
 		}
 
 		public static bool IsHash(string hash) => hash != null && hash.Length == 64 && hash.All(c => c >= '0' && c <= '9' || c >= 'a' && c <= 'f');
+		/// <summary>The SHA-256 of a cache key's parts.</summary>
+		public static string KeyHash(object parts) => Hash(Utf8.GetBytes(JsonConvert.SerializeObject(parts, Formatting.None, KeySettings)));
 		public static byte[] Json(object value) => Utf8.GetBytes(JsonConvert.SerializeObject(value, Formatting.None, Settings));
 		public static T Parse<T>(byte[] bytes, int limit = MaxManifestBytes)
 		{
