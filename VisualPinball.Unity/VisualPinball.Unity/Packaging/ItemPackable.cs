@@ -27,9 +27,18 @@ namespace VisualPinball.Unity
 		public string Name; // useful for debugging, but can be removed at some point.
 		public bool IsActive;
 		public bool IsStatic;
+		/// <summary>
+		/// The prefab this game object is an instance of, set on the root of the instance only: the editor import
+		/// links the game object to it again.
+		/// </summary>
 		public string PrefabGuid;
+		/// <summary>
+		/// The local file id, in the prefab of the instance this game object is part of, of the game object it is the
+		/// instance of. The editor import matches it with the prefab's by this id, since names can be overridden.
+		/// </summary>
+		public long PrefabObject;
 
-		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && IsActive && !IsStatic;
+		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && PrefabObject == 0 && IsActive && !IsStatic;
 
 		public void ApplyRuntime(GameObject go)
 		{
@@ -53,14 +62,45 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		public static ItemPackable Instantiate(GameObject go)
 		{
-			return new ItemPackable {
+			var item = new ItemPackable {
 				Name = go.name,
-				PrefabGuid = UnityEditor.PrefabUtility.IsPartOfAnyPrefab(go)
-					? UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(go)))
-					: null,
 				IsActive = go.activeInHierarchy,
 				IsStatic = go.isStatic
 			};
+			var root = LinkedRoot(go);
+			if (root == null) {
+				return item;
+			}
+			var prefabPath = UnityEditor.AssetDatabase.GetAssetPath(UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(root));
+			if (root == go) {
+				item.PrefabGuid = UnityEditor.AssetDatabase.AssetPathToGUID(prefabPath);
+			} else {
+				var source = UnityEditor.PrefabUtility.GetCorrespondingObjectFromSourceAtPath(go, prefabPath);
+				if (source && UnityEditor.AssetDatabase.TryGetGUIDAndLocalFileIdentifier(source, out _, out long fileId)) {
+					item.PrefabObject = fileId;
+				}
+			}
+			return item;
+		}
+
+		/// <summary>
+		/// The root of the prefab instance the import links a game object of an instance to: the outermost root, or
+		/// the root of an instance added to another. Null for a game object that is not part of an instance, like one
+		/// added to it.
+		/// </summary>
+		public static GameObject LinkedRoot(GameObject go)
+		{
+			if (!UnityEditor.PrefabUtility.IsPartOfPrefabInstance(go)) {
+				return null;
+			}
+			for (var t = go.transform; t; t = t.parent) {
+				var candidate = t.gameObject;
+				if (UnityEditor.PrefabUtility.IsAnyPrefabInstanceRoot(candidate)
+					&& (UnityEditor.PrefabUtility.IsOutermostPrefabInstanceRoot(candidate) || UnityEditor.PrefabUtility.IsAddedGameObjectOverride(candidate))) {
+					return candidate;
+				}
+			}
+			return null;
 		}
 
 		public void Apply(GameObject go)

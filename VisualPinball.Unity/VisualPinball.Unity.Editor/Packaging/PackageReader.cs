@@ -397,21 +397,25 @@ namespace VisualPinball.Unity.Editor
 		/// with their data. Returns the components that carry references, for <see cref="ReadReferences"/>.
 		/// </summary>
 		/// <exception cref="Exception">When there are nodes in the package that don't correspond to the instantiated scene.</exception>
-		private List<(GameObject Item, Type Type, int Index, Component Component, PackagedItems.Entry Entry)> ReadItems()
+		private List<(string NodeId, Type Type, int Index, Component Component, PackagedItems.Entry Entry)> ReadItems()
 		{
-			var references = new List<(GameObject, Type, int, Component, PackagedItems.Entry)>();
+			var references = new List<(string, Type, int, Component, PackagedItems.Entry)>();
 			var empty = PackageApi.Packer.Empty;
 			// how many components of a type the current node has been given so far
 			var created = new Dictionary<Type, int>();
 
-			foreach (var node in PackagedItems.Read(_tableFolder)) {
+			var nodes = PackagedItems.Read(_tableFolder);
+			// linking a game object to its prefab needs the state of the nodes below it
+			var items = nodes.Where(node => node.Item != null).ToDictionary(node => node.Id, node => ItemPackable.Unpack(node.Item), StringComparer.Ordinal);
+
+			foreach (var node in nodes) {
 				var item = ResolveItemNode(node.Id);
 				if (item == null) {
 					throw new Exception($"Cannot find item '{node.Id}' on node {_table.name}.");
 				}
 				var go = item.gameObject;
-				if (node.Item != null) {
-					ItemPackable.Unpack(node.Item).Apply(go);
+				if (items.TryGetValue(node.Id, out var state)) {
+					ApplyItem(state, go, items);
 					// The table node can itself carry an ItemPackable that reactivates it.
 					if (go == _table) { _table.SetActive(false); }
 				}
@@ -444,7 +448,7 @@ namespace VisualPinball.Unity.Editor
 						PackageApi.Packer.Unpack(data, comp);
 					}
 					if (entry.Refs != null) {
-						references.Add((go, type, index, comp, entry));
+						references.Add((node.Id, type, index, comp, entry));
 					}
 				}
 			}
@@ -452,17 +456,139 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
+		/// Applies a node's game object state, which can link it to its prefab again.
+		/// </summary>
+		///
+		/// <remarks>
+		/// The link matches the game objects below with the prefab's by their path of names, but the imported names
+		/// can differ from the prefab's: the instance can override them, and the glTF import makes the names of
+		/// siblings unique. So the game objects of this instance (their node says which of the prefab's they are, see
+		/// <see cref="ItemPackable.PrefabObject"/>) get the names and order of the prefab's before, and all others a
+		/// name nothing in the prefab has. The link replaces the game objects below, so after it, the node ids are
+		/// bound again: to the instance of their prefab's game object, or to the game object with their temporary
+		/// name. The game objects then get their names back, and the poses the link took from the prefab.
+		/// </remarks>
+		private void ApplyItem(ItemPackable item, GameObject go, IReadOnlyDictionary<string, ItemPackable> items)
+		{
+			var prefabPath = !string.IsNullOrEmpty(item.PrefabGuid) && !PrefabUtility.IsPartOfAnyPrefab(go)
+				? AssetDatabase.GUIDToAssetPath(item.PrefabGuid)
+				: null;
+			var prefab = string.IsNullOrEmpty(prefabPath) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+			if (!prefab) {
+				// Apply says why when it can't link
+				item.Apply(go);
+				return;
+			}
+
+			// the game objects of the prefab, by their local file id
+			var prefabObjects = new Dictionary<long, Transform>();
+			foreach (var t in prefab.GetComponentsInChildren<Transform>(true)) {
+				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(t.gameObject, out _, out long fileId)) {
+					prefabObjects[fileId] = t;
+				}
+			}
+			var nodeIds = new Dictionary<Transform, string>();
+			foreach (var (id, transform) in _transformByNodeId) {
+				if (transform && transform != go.transform && transform.IsChildOf(go.transform)) {
+					nodeIds[transform] = id;
+				}
+			}
+
+			// the game objects of this instance get the names of the prefab's, all others a temporary one
+			var matched = new Dictionary<string, Transform>(StringComparer.Ordinal);
+			var names = new Dictionary<string, string>(StringComparer.Ordinal);
+			var poses = new Dictionary<string, (Vector3 Position, Quaternion Rotation, Vector3 Scale)>(StringComparer.Ordinal);
+			var others = new List<(Transform Transform, string Name)>();
+			foreach (var transform in go.GetComponentsInChildren<Transform>(true)) {
+				if (transform == go.transform) {
+					continue;
+				}
+				if (nodeIds.TryGetValue(transform, out var id) && IsPartOfLinkedInstance(transform, go.transform, nodeIds, items)
+					&& items.TryGetValue(id, out var state) && state.PrefabObject != 0
+					&& prefabObjects.TryGetValue(state.PrefabObject, out var prefabObject)) {
+					matched[id] = prefabObject;
+					// the name it was exported with, not the one the glTF import made unique
+					names[id] = string.IsNullOrEmpty(state.Name) ? transform.name : state.Name;
+					poses[id] = (transform.localPosition, transform.localRotation, transform.localScale);
+					transform.name = prefabObject.name;
+				} else {
+					others.Add((transform, transform.name));
+				}
+			}
+			for (var i = 0; i < others.Count; i++) {
+				others[i].Transform.name = UnlinkedName + i;
+			}
+			foreach (var (id, _) in matched.OrderBy(pair => pair.Value.GetSiblingIndex())) {
+				_transformByNodeId[id].SetAsLastSibling();
+			}
+
+			item.Apply(go);
+
+			// bind the node ids again, and give the game objects their names back
+			var instances = new Dictionary<Transform, Transform>();
+			if (PrefabUtility.IsPartOfPrefabInstance(go)) {
+				foreach (var t in go.GetComponentsInChildren<Transform>(true)) {
+					var source = PrefabUtility.GetCorrespondingObjectFromSourceAtPath(t, prefabPath);
+					if (source) {
+						instances[source] = t;
+					}
+				}
+			}
+			foreach (var t in go.GetComponentsInChildren<Transform>(true)) {
+				if (t.name.StartsWith(UnlinkedName, StringComparison.Ordinal)
+					&& int.TryParse(t.name.Substring(UnlinkedName.Length), out var i) && i >= 0 && i < others.Count) {
+					// the dictionary finds the game object the link replaced by its instance id
+					if (nodeIds.TryGetValue(others[i].Transform, out var id)) {
+						_transformByNodeId[id] = t;
+					}
+					t.name = others[i].Name;
+				}
+			}
+			foreach (var (id, prefabObject) in matched) {
+				if (!instances.TryGetValue(prefabObject, out var transform)) {
+					Logger.Warn($"Node {id} under '{go.name}' is gone after linking it to its prefab.");
+					continue;
+				}
+				_transformByNodeId[id] = transform;
+				var pose = poses[id];
+				transform.name = names[id];
+				transform.localPosition = pose.Position;
+				transform.localRotation = pose.Rotation;
+				transform.localScale = pose.Scale;
+				PrefabUtility.RecordPrefabInstancePropertyModifications(transform.gameObject);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(transform);
+			}
+		}
+
+		// a name no prefab has, followed by an index into the game objects it was given to
+		private const string UnlinkedName = "\u001Fvpe-unlinked-";
+
+		// Whether a game object below a root that is linked to its prefab is part of that instance, and not of an
+		// instance below it that is linked on its own.
+		private static bool IsPartOfLinkedInstance(Transform transform, Transform root, IReadOnlyDictionary<Transform, string> nodeIds,
+			IReadOnlyDictionary<string, ItemPackable> items)
+		{
+			for (var t = transform; t && t != root; t = t.parent) {
+				if (nodeIds.TryGetValue(t, out var id) && items.TryGetValue(id, out var state) && !string.IsNullOrEmpty(state.PrefabGuid)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		/// <summary>
 		/// Second pass: hands each component the references it was written with, now that every component exists.
 		/// </summary>
-		private void ReadReferences(List<(GameObject Item, Type Type, int Index, Component Component, PackagedItems.Entry Entry)> references)
+		private void ReadReferences(List<(string NodeId, Type Type, int Index, Component Component, PackagedItems.Entry Entry)> references)
 		{
-			foreach (var (go, type, index, created, entry) in references) {
-				// relinking a later node to its prefab can have replaced the component
-				var comp = created ? created : PackagedItems.FindComponent(go, type, index);
+			foreach (var (nodeId, type, index, created, entry) in references) {
+				// relinking a later node to its prefab can have replaced the component, or its game object
+				var go = created ? created.gameObject : ResolveItemNode(nodeId)?.gameObject;
+				var comp = created ? created : go ? PackagedItems.FindComponent(go, type, index) : null;
 				if (comp is IPackable packable) {
 					packable.UnpackReferences(entry.Refs, _tableRoot, _refs, _files);
 				} else {
-					Logger.Warn($"Cannot restore the references of {entry.Type} on '{go.name}': the component is gone or can't be packaged.");
+					Logger.Warn($"Cannot restore the references of {entry.Type} on node {nodeId}: the component is gone or can't be packaged.");
 				}
 			}
 		}

@@ -261,6 +261,106 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[UnityTest]
+		public IEnumerator PrefabInstancesAreLinkedToTheirPrefabAgain()
+		{
+			var name = "PackagedItemsTest-" + Guid.NewGuid().ToString("N");
+			var assetFolder = "Assets/__" + name;
+			var package = Path.Combine(Path.GetTempPath(), name + ".vpe");
+			var exportedAgain = Path.Combine(Path.GetTempPath(), name + "-again.vpe");
+			var source = new GameObject(name);
+			var prefabRoot = new GameObject("Assembly");
+			GameObject imported = null;
+			try {
+				AssetDatabase.CreateFolder("Assets", "__" + name);
+				// two children of the same name, which the glTF import makes unique, and one the instance renames
+				AddChild(prefabRoot, "Screw");
+				AddChild(prefabRoot, "Screw");
+				AddChild(AddChild(prefabRoot, "Lamp"), "Source");
+				var prefab = PrefabUtility.SaveAsPrefabAsset(prefabRoot, assetFolder + "/Assembly.prefab");
+
+				source.AddComponent<TableComponent>();
+				var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, source.transform);
+				instance.name = "Bumper 1";
+				var secondScrew = instance.transform.GetChild(1);
+				secondScrew.localPosition = new Vector3(0.1f, 0, 0);
+				var lamp = instance.transform.GetChild(2);
+				lamp.name = "Bumper 1 Lamp";
+				lamp.gameObject.AddComponent<InputActionSoundComponent>().ActionName = "Lamp";
+				// an added game object with the name of the prefab's renamed one
+				AddChild(instance, "Lamp").AddComponent<InputActionSoundComponent>().ActionName = "Added";
+				// and an added instance of the same prefab, whose game objects have the same file ids as the outer's
+				var nested = (GameObject)PrefabUtility.InstantiatePrefab(prefab, instance.transform);
+				nested.name = "Nested";
+				nested.transform.GetChild(1).localPosition = new Vector3(0.2f, 0, 0);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(nested);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(nested.transform.GetChild(1));
+				PrefabUtility.RecordPrefabInstancePropertyModifications(instance);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(secondScrew);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(lamp.gameObject);
+
+				new PackageWriter(source).WritePackageSync(package);
+
+				// only the root of the instance names the prefab, the game objects below say which of its game objects they are
+				using (var storage = PackageApi.StorageManager.OpenStorage(package)) {
+					var items = PackagedItems.Read(storage.GetFolder(PackageApi.TableFolder))
+						.Where(node => node.Item != null)
+						.Select(node => ItemPackable.Unpack(node.Item))
+						.ToList();
+					Assert.That(items.Where(item => !string.IsNullOrEmpty(item.PrefabGuid)).Select(item => item.Name), Is.EqualTo(new[] { "Bumper 1", "Nested" }));
+					Assert.That(items.Where(item => item.PrefabObject != 0).Select(item => item.Name),
+						Is.EquivalentTo(new[] { "Screw", "Screw", "Bumper 1 Lamp", "Source", "Screw", "Screw", "Lamp", "Source" }));
+				}
+
+				var import = new PackageReader(package).ImportIntoScene(name);
+				while (!import.IsCompleted) yield return null;
+				import.GetAwaiter().GetResult();
+				imported = Object.FindObjectsByType<TableComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+					.Single(table => table.gameObject != source).gameObject;
+
+				var bumper = imported.GetComponentsInChildren<Transform>(true).Single(t => t.name == "Bumper 1").gameObject;
+				Assert.That(PrefabUtility.IsOutermostPrefabInstanceRoot(bumper), Is.True, "the instance is linked to its prefab");
+				Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(bumper), Is.SameAs(prefab));
+				Assert.That(PrefabUtility.GetAddedGameObjects(bumper).Select(added => added.instanceGameObject.name), Is.EquivalentTo(new[] { "Lamp", "Nested" }),
+					"the game objects of the prefab were matched with the prefab's, the added ones stay added");
+				// the instances of the prefab's game objects, in its order (Unity keeps the added ones apart)
+				var linked = bumper.transform.Cast<Transform>().Where(t => !PrefabUtility.IsAddedGameObjectOverride(t.gameObject)).ToList();
+				Assert.That(linked.Select(t => t.name), Is.EqualTo(new[] { "Screw", "Screw", "Bumper 1 Lamp" }));
+				Assert.That(linked[1].localPosition.x, Is.EqualTo(0.1f).Within(1e-5f));
+				var importedLamp = linked[2];
+				Assert.That(importedLamp.GetComponent<InputActionSoundComponent>()?.ActionName, Is.EqualTo("Lamp"));
+				Assert.That(importedLamp.Cast<Transform>().Select(t => t.name), Is.EqualTo(new[] { "Source" }));
+				var addedLamp = bumper.transform.Cast<Transform>().Single(t => t.name == "Lamp");
+				Assert.That(addedLamp.GetComponent<InputActionSoundComponent>()?.ActionName, Is.EqualTo("Added"));
+
+				var importedNested = bumper.transform.Cast<Transform>().Single(t => t.name == "Nested").gameObject;
+				Assert.That(PrefabUtility.IsAnyPrefabInstanceRoot(importedNested), Is.True, "the added instance is linked to its prefab");
+				Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(importedNested), Is.SameAs(prefab));
+				Assert.That(PrefabUtility.GetAddedGameObjects(importedNested), Is.Empty);
+				Assert.That(importedNested.transform.Cast<Transform>().Select(t => t.name), Is.EqualTo(new[] { "Screw", "Screw", "Lamp" }));
+				Assert.That(importedNested.transform.GetChild(1).localPosition.x, Is.EqualTo(0.2f).Within(1e-5f));
+				Assert.That(linked[1].localPosition.x, Is.EqualTo(0.1f).Within(1e-5f), "the nested instance's moved screw is its own");
+
+				// and the imported table exports again
+				new PackageWriter(imported).WritePackageSync(exportedAgain);
+			} finally {
+				if (imported) Object.DestroyImmediate(imported);
+				Object.DestroyImmediate(source);
+				Object.DestroyImmediate(prefabRoot);
+				AssetDatabase.DeleteAsset(assetFolder);
+				AssetDatabase.DeleteAsset("Assets/Resources/" + name);
+				if (File.Exists(package)) File.Delete(package);
+				if (File.Exists(exportedAgain)) File.Delete(exportedAgain);
+			}
+		}
+
+		private static GameObject AddChild(GameObject parent, string name)
+		{
+			var child = new GameObject(name);
+			child.transform.SetParent(parent.transform, false);
+			return child;
+		}
+
 		private static void AssertRestored(GameObject table, string reader)
 		{
 			var sounds = table.GetComponentsInChildren<InputActionSoundComponent>(true);
