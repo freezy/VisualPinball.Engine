@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -43,6 +43,7 @@ namespace VisualPinball.Unity.Editor
 						break;
 				}
 				_isSelected = value;
+				UpdateIcon();
 			}
 		}
 
@@ -52,8 +53,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _label;
 		private readonly Image _lockIcon;
 		private readonly LibraryCategoryRenameElement _renameElement;
+		private readonly IReadOnlyDictionary<AssetCategory, int> _assetCounts;
 
-		private int NumAssets => Categories.Select(c => c.Item1.NumAssetsWithCategory(c.Item2)).Sum();
+		private int NumAssets => Categories.Sum(category => _assetCounts.TryGetValue(category.Item2, out var count) ? count : 0);
 		private bool AllLibrariesLocked => Categories.Count(c => !c.Item1.IsLocked) == 0;
 		public bool HasLockedLibraries => Categories.Any(c => c.Item1.IsLocked);
 		public AssetLibrary[] UnlockedLibraries => Categories.Where(c => !c.Item1.IsLocked).Select(c => c.Item1).ToArray();
@@ -69,10 +71,12 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		/// <param name="libraryCategoryView">Reference to parent</param>
 		/// <param name="categories">Category of each library</param>
-		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, AssetCategory)> categories)
+		public LibraryCategoryElement(LibraryCategoryView libraryCategoryView, IEnumerable<(AssetLibrary, AssetCategory)> categories,
+			IReadOnlyDictionary<AssetCategory, int> assetCounts = null)
 		{
 			_libraryCategoryView = libraryCategoryView;
 			Categories = categories.ToArray();
+			_assetCounts = assetCounts ?? new Dictionary<AssetCategory, int>();
 
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryCategoryElement.uxml");
 			var ui = visualTree.CloneTree();

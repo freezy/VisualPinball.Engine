@@ -32,7 +32,7 @@
 			<ui:VisualElement>
 
 				<!-- CONTENT -->
-				<ui:ScrollView name="gridContent" focusable="true"/>
+				<ui:ListView name="gridContent" focusable="true"/>
 
 				<!-- ERROR PANEL -->
 				<ui:VisualElement name="dragErrorContainer" class="hidden">
