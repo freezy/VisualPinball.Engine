@@ -197,8 +197,10 @@ namespace VisualPinball.Unity
 				var merge = occlusionMerges.TryGetValue(source.Id, out var m) && m.Mask != null ? m : null;
 				if (merge != null) {
 					hash = VpeIntegrity.KeyHash(new {
-						Domain = "VPE-BAKED-OCCLUSION", Version = 2, Source = digest.Sha256,
+						Domain = "VPE-BAKED-OCCLUSION", Version = 3, Source = digest.Sha256,
 						Sampled = DigestOf(merge.CooksFromOcclusion ? merge.Mask : merge.Occlusion).Sha256,
+						// the size the sampled mask is scaled down to
+						MaskWidth = merge.CooksFromOcclusion ? merge.Mask.Width : 0, MaskHeight = merge.CooksFromOcclusion ? merge.Mask.Height : 0,
 						merge.CooksFromOcclusion, AoMin = merge.AoRemap.x, AoMax = merge.AoRemap.y,
 						// How ComposeInto samples the mask.
 						MaskRepeats = merge.CooksFromOcclusion && merge.Mask.WrapMode == VpeWrapModes.Repeat,
@@ -248,8 +250,10 @@ namespace VisualPinball.Unity
 						if (merge != null && cookSupported) {
 							var sampledBytes = await ReadSourceAsync(merge.CooksFromOcclusion ? merge.Mask : merge.Occlusion);
 							var other = await Task.Run(() => {
+								// the mask as the cook would make it: at its authored size, not the source file's
 								var pixels = merge.CooksFromOcclusion
-									? VpeBakedOcclusion.DecodeMask(sampledBytes, out var width, out var height)
+									? VpeBakedOcclusion.Downsample(VpeBakedOcclusion.DecodeMask(sampledBytes, out var width, out var height),
+										width, height, merge.Mask.Width, merge.Mask.Height, out width, out height)
 									: VpeBakedOcclusion.DecodeOcclusion(sampledBytes, out width, out height);
 								return (Pixels: pixels, Width: width, Height: height);
 							}, ct);

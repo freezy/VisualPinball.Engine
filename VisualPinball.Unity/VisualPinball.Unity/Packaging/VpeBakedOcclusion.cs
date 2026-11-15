@@ -85,6 +85,8 @@ namespace VisualPinball.Unity
 						continue;
 					}
 				}
+				// The merge puts the occlusion's texels where the mask's are. Both are in the base map's UV space: HDRP
+				// and URP Lit sample the mask with the base map's tiling and offset, never with its own.
 
 				// HDRP and URP remap the occlusion channel after sampling it: the merge applies the authored
 				// remap to the mask's channel before the multiply, so the remap can't mute the baked occlusion.
@@ -244,6 +246,67 @@ namespace VisualPinball.Unity
 					rgba[i + 3] = ToByte(Sample(mask, maskWidth, maskHeight, 4, 3, x, y, width, height, maskRepeats, maskPointFiltered));
 				}
 			});
+		}
+
+		/// <summary>
+		/// RGBA32 pixels scaled down to at most the given size, each texel the area-weighted average of the ones it
+		/// covers: what the cook makes of a source file larger than its texture's authored size. The pixels
+		/// themselves when they are no larger.
+		/// </summary>
+		public static byte[] Downsample(byte[] rgba, int width, int height, int maxWidth, int maxHeight, out int newWidth, out int newHeight)
+		{
+			newWidth = maxWidth > 0 ? System.Math.Min(width, maxWidth) : width;
+			newHeight = maxHeight > 0 ? System.Math.Min(height, maxHeight) : height;
+			if (newWidth == width && newHeight == height) {
+				return rgba;
+			}
+			if (rgba == null || rgba.Length < (long)width * height * 4) {
+				throw new ArgumentException("Pixel buffer doesn't match its size.");
+			}
+			var tw = newWidth;
+			var th = newHeight;
+			var columns = Footprints(width, tw);
+			var rows = Footprints(height, th);
+			var result = new byte[(long)tw * th * 4];
+			Parallel.For(0, th, y => {
+				var sum = new double[4];
+				for (var x = 0; x < tw; x++) {
+					System.Array.Clear(sum, 0, 4);
+					foreach (var (sy, wy) in rows[y]) {
+						foreach (var (sx, wx) in columns[x]) {
+							var w = wy * wx;
+							var i = ((long)sy * width + sx) * 4;
+							sum[0] += rgba[i] * w; sum[1] += rgba[i + 1] * w; sum[2] += rgba[i + 2] * w; sum[3] += rgba[i + 3] * w;
+						}
+					}
+					var o = ((long)y * tw + x) * 4;
+					for (var c = 0; c < 4; c++) {
+						result[o + c] = (byte)System.Math.Clamp((int)System.Math.Round(sum[c], MidpointRounding.AwayFromZero), 0, 255);
+					}
+				}
+			});
+			return result;
+		}
+
+		// For each texel of a row of the given size, the source texels it covers and how much of it each covers
+		// (the weights add up to one).
+		private static (int Index, double Weight)[][] Footprints(int source, int target)
+		{
+			var footprints = new (int, double)[target][];
+			var step = (double)source / target;
+			for (var t = 0; t < target; t++) {
+				var from = t * step;
+				var to = (t + 1) * step;
+				var texels = new List<(int, double)>();
+				for (var s = (int)System.Math.Floor(from); s < System.Math.Min(source, (int)System.Math.Ceiling(to)); s++) {
+					var covered = System.Math.Min(to, s + 1) - System.Math.Max(from, s);
+					if (covered > 0) {
+						texels.Add((s, covered / step));
+					}
+				}
+				footprints[t] = texels.ToArray();
+			}
+			return footprints;
 		}
 
 		private static byte ToByte(float value) => (byte)Mathf.Clamp(value + 0.5f, 0f, 255f);
