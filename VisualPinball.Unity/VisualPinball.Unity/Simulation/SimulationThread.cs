@@ -79,6 +79,7 @@ namespace VisualPinball.Unity.Simulation
 		// Timing (Stopwatch ticks - avoids high-frequency P/Invoke)
 		private readonly long _tickIntervalTicks;
 		private readonly long _busyWaitThresholdTicks;
+		private readonly long _preciseSleepThresholdTicks;
 		private readonly long _maxBacklogTicks;
 		private long _lastTickTicks;
 		private long _simulationTimeUsec;
@@ -166,6 +167,7 @@ namespace VisualPinball.Unity.Simulation
 			// Precompute timing constants
 			_tickIntervalTicks = (Stopwatch.Frequency * TickIntervalUsec) / 1_000_000;
 			_busyWaitThresholdTicks = (Stopwatch.Frequency * BusyWaitThresholdUsec) / 1_000_000;
+			_preciseSleepThresholdTicks = (Stopwatch.Frequency * (SimulationSleep.MarginUsec + BusyWaitThresholdUsec)) / 1_000_000;
 			_maxBacklogTicks = (Stopwatch.Frequency * MaxBacklogUsec) / 1_000_000;
 			if (_tickIntervalTicks <= 0) {
 				_tickIntervalTicks = 1;
@@ -527,6 +529,15 @@ namespace VisualPinball.Unity.Simulation
 				// Build input mappings once (not on hot path)
 				BuildInputMappingsIfNeeded();
 
+				// Where the system sleeps for less than a millisecond, the wait for a tick sleeps
+				// instead of spinning (not in the editor, which doesn't spin either).
+				#if UNITY_EDITOR
+				const bool preciseSleep = false;
+				#else
+				SimulationSleep.SetUpThread();
+				var preciseSleep = SimulationSleep.IsSupported;
+				#endif
+
 				// The initialization wait above may have taken a while; start the
 				// timetable now so it does not begin with a backlog.
 				_lastTickTicks = Stopwatch.GetTimestamp();
@@ -578,7 +589,15 @@ namespace VisualPinball.Unity.Simulation
 						}
 					}
 
-					if (sleepTicks > _busyWaitThresholdTicks)
+					if (preciseSleep && sleepTicks > _preciseSleepThresholdTicks)
+					{
+						// under a millisecond, which Thread.Sleep can't do: sleep until just before the tick
+						SimulationSleep.Sleep(targetTicks);
+						if (tracing) {
+							SimulationTrace.Tick.WaitMode = 2;
+						}
+					}
+					else if (sleepTicks > _busyWaitThresholdTicks)
 					{
 						var sleepMs = (int)(((sleepTicks - _busyWaitThresholdTicks) * 1000) / Stopwatch.Frequency);
 						if (sleepMs > 0) {
