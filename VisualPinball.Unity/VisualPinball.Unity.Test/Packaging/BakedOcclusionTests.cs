@@ -67,6 +67,31 @@ namespace VisualPinball.Unity.Test
 			Assert.That(lit.AoRemap, Is.EqualTo(new Vector2(0f, 1f)));
 		}
 
+		[Test] public void AMaskSourceLargerThanItsTextureIsScaledDownToItsAuthoredSize()
+		{
+			// 4x2 texels, the left half 0 and 100, the right half 200 and 255
+			var rgba = new byte[4 * 2 * 4];
+			for (var y = 0; y < 2; y++) {
+				for (var x = 0; x < 4; x++) {
+					var value = (byte)(x < 2 ? (y == 0 ? 0 : 100) : (y == 0 ? 200 : 255));
+					for (var c = 0; c < 4; c++) {
+						rgba[(y * 4 + x) * 4 + c] = value;
+					}
+				}
+			}
+
+			var scaled = VpeBakedOcclusion.Downsample(rgba, 4, 2, 2, 1, out var width, out var height);
+
+			Assert.That((width, height), Is.EqualTo((2, 1)));
+			Assert.That(scaled, Is.EqualTo(new byte[] { 50, 50, 50, 50, 228, 228, 228, 228 }));
+			Assert.That(VpeBakedOcclusion.Downsample(rgba, 4, 2, 8, 8, out width, out height), Is.SameAs(rgba));
+			Assert.That((width, height), Is.EqualTo((4, 2)));
+
+			// a reduction by a fraction of a texel weighs the texels by how much of the target texel they cover
+			var row = new byte[] { 0, 0, 0, 0, 255, 255, 255, 255, 0, 0, 0, 0 };
+			Assert.That(VpeBakedOcclusion.Downsample(row, 3, 1, 2, 1, out _, out _), Is.EqualTo(new byte[] { 85, 85, 85, 85, 85, 85, 85, 85 }));
+		}
+
 		[Test] public void AMaskWithFewerTexelsCooksAtTheOcclusionsResolution()
 		{
 			var payload = new VpeMaterialsPayload {
