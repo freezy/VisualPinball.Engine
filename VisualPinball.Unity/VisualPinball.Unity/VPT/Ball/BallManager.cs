@@ -95,6 +95,20 @@ namespace VisualPinball.Unity
 			Object.DestroyImmediate(ballComponent.gameObject);
 		}
 
+		/// <summary>
+		/// Destroys the ball unless it's inside a trigger, a kicker or another item that tracks what's in it:
+		/// one destroyed there leaves the item's switch closed. Returns whether it was destroyed.
+		/// </summary>
+		public bool TryDestroyBallOutsideItems(int ballId)
+		{
+			if (!_physicsEngine.TryUnregisterRuntimeBallOutsideItems(ballId, out var ballComponent)) {
+				return false;
+			}
+			_player.BallDestroyed(ballId, ballComponent.gameObject);
+			Object.DestroyImmediate(ballComponent.gameObject);
+			return true;
+		}
+
 		public bool FindBall(out BallState ball)
 		{
 			var ballFound = false;

@@ -73,6 +73,21 @@ namespace VisualPinball.Unity
 
 		internal bool IsOutsideOf(int itemId, int ballId) => !IsInsideOf(itemId, ballId);
 
+		/// <summary>Whether the ball is inside any item, such as a trigger or a kicker.</summary>
+		internal bool IsInsideOfAny(int ballId)
+		{
+			if (!_bitLookup.TryGetValue(ballId, out var bitIndex)) {
+				return false;
+			}
+			using var enumerator = _insideOfs.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				if (enumerator.Current.Value.IsSet(bitIndex)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		internal int GetOrCreateBitIndex(int ballId) => GetBitIndex(ballId);
 
 		internal bool TryGetBitIndex(int ballId, out int bitIndex) => _bitLookup.TryGetValue(ballId, out bitIndex);

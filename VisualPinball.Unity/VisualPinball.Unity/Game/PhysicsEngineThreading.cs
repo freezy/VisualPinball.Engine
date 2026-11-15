@@ -1241,6 +1241,7 @@ namespace VisualPinball.Unity
 			}
 
 			Interlocked.Add(ref _ctx.PhysicsBusyTotalUsec, elapsedUsec);
+			Interlocked.Increment(ref _ctx.PhysicsBusyCount);
 		}
 
 		private static long ElapsedUsec(long startTicks, long endTicks)

@@ -1176,6 +1176,34 @@ namespace VisualPinball.Unity
 			physicsBusyTotalUsec = Interlocked.Read(ref _ctx.PhysicsBusyTotalUsec);
 		}
 
+		/// <summary>
+		/// The physics' busy time in microseconds and the number of updates it was spent on, both since the
+		/// start. <b>Thread:</b> Any.
+		/// </summary>
+		public void GetPhysicsBusy(out long busyTotalUsec, out long updates)
+		{
+			busyTotalUsec = Interlocked.Read(ref _ctx.PhysicsBusyTotalUsec);
+			updates = Interlocked.Read(ref _ctx.PhysicsBusyCount);
+		}
+
+		/// <summary>
+		/// Unregisters the ball like <see cref="UnregisterRuntimeBall"/>, unless it's inside an item that tracks
+		/// what's in it, such as a trigger or a kicker, whose switch would stay closed. The check and the
+		/// removal hold the physics lock together, so the ball can't enter an item in between.
+		/// </summary>
+		internal bool TryUnregisterRuntimeBallOutsideItems(int ballId, out BallComponent ball)
+		{
+			// the lock is reentrant: UnregisterRuntimeBall takes it again
+			lock (_ctx.PhysicsLock) {
+				if (_ctx.InsideOfs.IsInsideOfAny(ballId)) {
+					ball = null;
+					return false;
+				}
+				ball = UnregisterRuntimeBall(ballId);
+				return true;
+			}
+		}
+
 		public void VisitBallStates(BallStateVisitor visitor)
 		{
 			if (visitor == null) {

@@ -329,6 +329,8 @@ namespace VisualPinball.Unity
 		/// from any thread.
 		/// </summary>
 		public long PhysicsBusyTotalUsec;
+		/// <summary>How many physics updates <see cref="PhysicsBusyTotalUsec"/> was spent on.</summary>
+		public long PhysicsBusyCount;
 		public long PublishedPhysicsFrameTimeUsec;
 		public long LastKinematicScanUsec;
 		public long LastEventDrainUsec;
