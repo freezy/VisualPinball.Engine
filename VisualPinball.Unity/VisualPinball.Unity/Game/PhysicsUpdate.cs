@@ -79,8 +79,29 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Advances physics until simulated time catches up to the requested time.
 		/// </summary>
+		/// <remarks>
+		/// The Burst code is entered with pointers. Called from Mono, a Burst method goes through a
+		/// marshalling wrapper made from its signature, and <see cref="PhysicsState"/> isn't blittable to
+		/// it (its <c>bool</c>s): every call copied the whole state out and back, a few hundred
+		/// microseconds of each millisecond tick on the simulation thread. A pointer is passed as it is.
+		/// </remarks>
+		public static unsafe void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
+		{
+			fixed (PhysicsState* statePtr = &state)
+			fixed (PhysicsEnv* envPtr = &env)
+			fixed (NativeParallelHashSet<int>* overlappingCollidersPtr = &overlappingColliders)
+			fixed (NativeOctree<int>* kinematicOctreePtr = &kinematicOctree)
+			fixed (NativeOctree<int>* ballOctreePtr = &ballOctree)
+			fixed (PhysicsCycle* cyclePtr = &cycle) {
+				ExecuteBurst(statePtr, envPtr, overlappingCollidersPtr, kinematicOctreePtr, ballOctreePtr, cyclePtr, initialTimeUsec);
+			}
+		}
+
 		[BurstCompile]
-		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
+		public static unsafe void ExecuteBurst(PhysicsState* state, PhysicsEnv* env, NativeParallelHashSet<int>* overlappingColliders, NativeOctree<int>* kinematicOctree, NativeOctree<int>* ballOctree, PhysicsCycle* cycle, ulong initialTimeUsec)
+			=> Advance(ref *state, ref *env, ref *overlappingColliders, ref *kinematicOctree, ref *ballOctree, ref *cycle, initialTimeUsec);
+
+		private static void Advance(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
 		{
 			// ref var state = ref UnsafeUtility.AsRef<PhysicsState>(statePtr.ToPointer());
 			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
@@ -194,11 +215,18 @@ namespace VisualPinball.Unity
 		/// collider of the table, and as managed code it costs milliseconds per call, which
 		/// starves the 1 kHz simulation thread whenever a kinematic item moves.
 		/// </summary>
-		[BurstCompile]
-		public static void RebuildKinematicOctree(ref NativeOctree<int> octree, ref PhysicsState state)
+		public static unsafe void RebuildKinematicOctree(ref NativeOctree<int> octree, ref PhysicsState state)
 		{
-			PhysicsKinematics.RebuildOctree(ref octree, ref state);
+			// with pointers, for the reason Execute has them
+			fixed (NativeOctree<int>* octreePtr = &octree)
+			fixed (PhysicsState* statePtr = &state) {
+				RebuildKinematicOctreeBurst(octreePtr, statePtr);
+			}
 		}
+
+		[BurstCompile]
+		public static unsafe void RebuildKinematicOctreeBurst(NativeOctree<int>* octree, PhysicsState* state)
+			=> PhysicsKinematics.RebuildOctree(ref *octree, ref *state);
 
 		internal static void UpdateSpringHingeVelocities(ref PhysicsState state, in float3 gravity,
 			in float2 cabinetAcceleration, float step)
