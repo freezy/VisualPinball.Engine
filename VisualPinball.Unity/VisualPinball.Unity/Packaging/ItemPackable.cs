@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 		{
 			if (!string.IsNullOrEmpty(PrefabGuid) && !UnityEditor.PrefabUtility.IsPartOfAnyPrefab(go)) {
 				var path = UnityEditor.AssetDatabase.GUIDToAssetPath(PrefabGuid);
-				if (path != null) {
+				if (!string.IsNullOrEmpty(path)) {
 					var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
 					if (prefab != null) {
 						UnityEditor.PrefabUtility.ConvertToPrefabInstance(go, prefab, new UnityEditor.ConvertToPrefabInstanceSettings {

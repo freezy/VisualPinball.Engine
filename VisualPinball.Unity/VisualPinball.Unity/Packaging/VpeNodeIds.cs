@@ -325,7 +325,7 @@ namespace VisualPinball.Unity
 				throw new InvalidOperationException("Cannot bind node ids: glTF tree has no scene root.");
 			}
 
-			var anchor = FindAnchor(tree.Root, instantiatedRoot);
+			var anchor = FindAnchor(tree, tree.Root, instantiatedRoot);
 			if (anchor == null) {
 				throw new InvalidOperationException(
 					$"Cannot bind node ids: no instantiated transform matches scene root node '{tree.Root.UniqueName}'.");
@@ -338,7 +338,7 @@ namespace VisualPinball.Unity
 
 		// The asset importer may wrap the scene root in a file-level prefab root; accept the
 		// given transform itself or a (grand-)child whose name matches the scene root node.
-		private static Transform FindAnchor(GltfNode sceneRoot, Transform instantiatedRoot)
+		private static Transform FindAnchor(GltfNodeTree tree, GltfNode sceneRoot, Transform instantiatedRoot)
 		{
 			if (string.Equals(instantiatedRoot.name, sceneRoot.UniqueName, StringComparison.Ordinal)) {
 				return instantiatedRoot;
@@ -355,7 +355,28 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-			return null;
+			return ChildrenMatch(tree, sceneRoot, instantiatedRoot) ? instantiatedRoot : null;
+		}
+
+		private static bool ChildrenMatch(GltfNodeTree tree, GltfNode gltfNode, Transform transform)
+		{
+			if (gltfNode.Children.Length == 0) {
+				return false;
+			}
+			foreach (var childIndex in gltfNode.Children) {
+				var childName = tree.Nodes[childIndex].UniqueName;
+				var found = false;
+				for (var i = 0; i < transform.childCount; i++) {
+					if (string.Equals(transform.GetChild(i).name, childName, StringComparison.Ordinal)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		private static void BindImport(GltfNodeTree tree, GltfNode gltfNode, Transform transform, Dictionary<string, Transform> map)
