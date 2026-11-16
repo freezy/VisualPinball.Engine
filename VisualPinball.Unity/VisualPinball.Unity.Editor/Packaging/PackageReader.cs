@@ -376,6 +376,9 @@ namespace VisualPinball.Unity.Editor
 				|| !_tableRoot) {
 				throw new Exception("Could not resolve the manifest's root node id in the imported scene.");
 			}
+			if (_tableRoot == _table.transform && !string.IsNullOrWhiteSpace(nodeTree.Root.Name)) {
+				_table.name = nodeTree.Root.Name;
+			}
 			Logger.Info($"Bound {_transformByNodeId.Count} node id(s) to the imported hierarchy.");
 		}
 

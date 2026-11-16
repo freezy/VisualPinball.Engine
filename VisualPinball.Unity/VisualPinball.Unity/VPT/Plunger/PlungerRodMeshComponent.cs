@@ -73,6 +73,9 @@ namespace VisualPinball.Unity
 		{
 			var plungerComp = GetComponentInParent<PlungerComponent>();
 			var smr = GetComponent<SkinnedMeshRenderer>();
+			if (!smr) {
+				return;
+			}
 			var bounds = smr.localBounds;
 			var ringOffset = (RingGap + RingWidth) / 2f;
 			var radius = math.max(RodDiam, RingDiam) * plungerComp.Width / 2;
