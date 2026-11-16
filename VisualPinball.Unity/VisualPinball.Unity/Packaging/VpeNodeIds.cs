@@ -336,11 +336,11 @@ namespace VisualPinball.Unity
 			return map;
 		}
 
-		// The asset importer may wrap the scene root in a file-level prefab root; accept the
-		// given transform itself or a (grand-)child whose name matches the scene root node.
+		// glTFast can expose the scene node directly, with Unity replacing its name with
+		// the file name. Check its children before searching for a named root under a wrapper.
 		private static Transform FindAnchor(GltfNodeTree tree, GltfNode sceneRoot, Transform instantiatedRoot)
 		{
-			if (string.Equals(instantiatedRoot.name, sceneRoot.UniqueName, StringComparison.Ordinal)) {
+			if (ChildrenMatch(tree, sceneRoot, instantiatedRoot)) {
 				return instantiatedRoot;
 			}
 			for (var i = 0; i < instantiatedRoot.childCount; i++) {
@@ -355,24 +355,23 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-			return ChildrenMatch(tree, sceneRoot, instantiatedRoot) ? instantiatedRoot : null;
+			// A leaf scene node may still have importer-generated primitive children.
+			return sceneRoot.Children.Length == 0 || string.Equals(instantiatedRoot.name, sceneRoot.UniqueName, StringComparison.Ordinal)
+				? instantiatedRoot : null;
 		}
 
 		private static bool ChildrenMatch(GltfNodeTree tree, GltfNode gltfNode, Transform transform)
 		{
 			if (gltfNode.Children.Length == 0) {
+				return transform.childCount == 0;
+			}
+			if (gltfNode.Children.Length > transform.childCount) {
 				return false;
 			}
-			foreach (var childIndex in gltfNode.Children) {
-				var childName = tree.Nodes[childIndex].UniqueName;
-				var found = false;
-				for (var i = 0; i < transform.childCount; i++) {
-					if (string.Equals(transform.GetChild(i).name, childName, StringComparison.Ordinal)) {
-						found = true;
-						break;
-					}
-				}
-				if (!found) {
+			// As in BindImport, glTFast creates hierarchy children before mesh primitives.
+			for (var i = 0; i < gltfNode.Children.Length; i++) {
+				var childName = tree.Nodes[gltfNode.Children[i]].UniqueName;
+				if (!string.Equals(transform.GetChild(i).name, childName, StringComparison.Ordinal)) {
 					return false;
 				}
 			}
