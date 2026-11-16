@@ -88,6 +88,7 @@ namespace VisualPinball.Unity.Editor
 
 				// create components and update game objects, then add the references between them
 				ReadReferences(ReadItems());
+				PlungerMeshComponent.RestorePackagedMeshes(_tableRoot);
 				insertGenerationScope.Dispose();
 				var slingshots = _tableRoot.GetComponentsInChildren<RubberSlingshotComponent>(true);
 				foreach (var slingshot in slingshots) {

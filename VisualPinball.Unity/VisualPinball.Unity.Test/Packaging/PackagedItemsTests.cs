@@ -183,7 +183,7 @@ namespace VisualPinball.Unity.Test
 			var name = "PackagedItemsTest-" + Guid.NewGuid().ToString("N");
 			var assetFolder = "Assets/__" + name;
 			var package = Path.Combine(Path.GetTempPath(), name + ".vpe");
-			var source = new GameObject(name);
+			var source = new GameObject("Table");
 			GameObject runtime = null;
 			GameObject imported = null;
 			try {
@@ -211,7 +211,8 @@ namespace VisualPinball.Unity.Test
 				AssetDatabase.CreateAsset(bank, assetFolder + "/bank.asset");
 
 				var table = source.AddComponent<TableComponent>();
-				var child = new GameObject("Start button");
+				// The GLB asset's file name differs from the table name, which a descendant also uses.
+				var child = new GameObject(source.name);
 				child.transform.SetParent(source.transform, false);
 				// Two components of one type. Only the second one has a reference, which a count of the references
 				// written would hand to the first.
@@ -250,6 +251,7 @@ namespace VisualPinball.Unity.Test
 				import.GetAwaiter().GetResult();
 				imported = Object.FindObjectsByType<TableComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)
 					.Single(t => t != table && t.gameObject != runtime).gameObject;
+				Assert.That(imported.name, Is.EqualTo(source.name));
 				AssertRestored(imported, "editor");
 			} finally {
 				if (runtime) Object.DestroyImmediate(runtime);

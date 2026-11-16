@@ -236,6 +236,7 @@ namespace VisualPinball.Unity
 
 					var readRefsStopwatch = Stopwatch.StartNew();
 					await RestoreReferencesAsync(references, progress, cancellationToken);
+					PlungerMeshComponent.RestorePackagedMeshes(_table.transform);
 					var slingshots = _table.GetComponentsInChildren<RubberSlingshotComponent>(true);
 					foreach (var slingshot in slingshots) {
 						slingshot.ValidateAfterUnpack();

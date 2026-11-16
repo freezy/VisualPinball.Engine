@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Plunger;
@@ -62,26 +61,5 @@ namespace VisualPinball.Unity
 
 		protected override PbrMaterial GetMaterial(PlungerData data, Table table)
 			=> new PlungerMeshGenerator(data).GetMaterial(table);
-
-		public override void RebuildMeshes()
-		{
-			base.RebuildMeshes();
-			CalculateBoundingBox();
-		}
-
-		public void CalculateBoundingBox()
-		{
-			var plungerComp = GetComponentInParent<PlungerComponent>();
-			var smr = GetComponent<SkinnedMeshRenderer>();
-			if (!smr) {
-				return;
-			}
-			var bounds = smr.localBounds;
-			var ringOffset = (RingGap + RingWidth) / 2f;
-			var radius = math.max(RodDiam, RingDiam) * plungerComp.Width / 2;
-			bounds.center = new Vector3(0, 25, -(ringOffset - 40)) * Physics.ScaleInv;
-			bounds.extents = new Vector3(radius, radius, -(125f + ringOffset)) * Physics.ScaleInv;
-			smr.localBounds = bounds;
-		}
 	}
 }
