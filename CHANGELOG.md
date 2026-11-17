@@ -183,6 +183,7 @@ Built with Unity 6.5
 
 ### Changed
 
+- Table versions accept an optional `v` prefix and prerelease/build suffixes, such as `v1.0.0-alpha1+build.1`. Removed the inspector's patch version bump button.
 - The items schema version of `.vpe` packages goes up with every breaking change. The player refuses a table with a version outside the range it loads and says what changed, instead of loading it half-working; during alpha and beta such tables are exported again rather than migrated. A package also records the oldest items schema a player needs to load it, so an older player keeps loading tables from newer builds unless they changed something it would load wrongly.
 - Opening a `.vpe` package checks its structure but no longer hashes its whole payload, which held up the first load after each export for tens of seconds. The editor's "Verify VPE package…" menu still runs the full check.
 - Upgraded from Unity 2022.3 to Unity 6, and later to Unity 6.5 with HDRP 17. New dependencies: Unity Splines and NativeTrees.

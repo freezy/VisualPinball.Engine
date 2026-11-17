@@ -53,7 +53,7 @@ namespace VisualPinball.Unity
 
 		public TableProvenance Snapshot(TableMetadata metadata)
 		{
-			if (metadata == null || !ValidVersion(metadata.Version)) throw new InvalidDataException("Table version must have three decimal components (for example 1.0.0).");
+			if (metadata == null || !ValidVersion(metadata.Version)) throw new InvalidDataException("Table version must be major.minor.patch, with an optional v prefix, -prerelease and +build suffixes (for example v1.0.0-alpha1+build.1).");
 			var value = Copy();
 			value.ValidateRecords();
 			value.Sources.Sort(StringComparer.Ordinal);
@@ -147,7 +147,10 @@ namespace VisualPinball.Unity
 
 		private static string CreditDigest(Credit c) => Digest("VPE-CREDIT-RECORD", w => { Hash(w, c.RootHash); Text(w, c.TableId); Text(w, c.Version); Authors(w, c.PrimaryAuthors); Authors(w, c.SecondaryAuthors); Text(w, c.Kind); Text(w, c.SourceFingerprint); });
 
-		private static bool ValidVersion(string version) => version != null && version.Length <= 128 && Regex.IsMatch(version, @"\A(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z");
+		private static bool ValidVersion(string version) => version != null && version.Length <= 128 && Regex.IsMatch(version,
+			@"\Av?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)" +
+			@"(?:-(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?" +
+			@"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z");
 		private static bool ValidId(string id) => Guid.TryParseExact(id, "D", out var guid) && guid != Guid.Empty && id == guid.ToString("D");
 		private static List<TableAuthor> CloneAuthors(List<TableAuthor> authors) => (authors ?? new()).Select(a => a == null ? throw new InvalidDataException("Null author.") : new TableAuthor { Name = a.Name ?? "", VpuHandle = a.VpuHandle ?? "" }).ToList();
 		private static string LegacyHash(Credit c) => Digest("VPE-LEGACY-SOURCE", w => { Text(w, c.Kind); Text(w, c.SourceFingerprint); Text(w, c.Version); Authors(w, c.PrimaryAuthors); Authors(w, c.SecondaryAuthors); });

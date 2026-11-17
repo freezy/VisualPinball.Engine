@@ -104,6 +104,64 @@ namespace VisualPinball.Unity.Test
 			Assert.That(c.VerifyParent(b, bMeta), Is.False);
 		}
 
+		[TestCase("1.0.0")]
+		[TestCase("v1.0.0")]
+		[TestCase("1.0.0-alpha1")]
+		[TestCase("v1.0.0-alpha.1")]
+		[TestCase("1.0.0+build.001")]
+		[TestCase("v1.0.0-alpha1+build.1")]
+		[TestCase("0.0.0-0+0")]
+		[TestCase("1.0.0-01a.0-a+build-1")]
+		public void ReleaseVersionsArePreservedInMetadataAndAncestry(string version)
+		{
+			var metadata = new TableMetadata { Version = version };
+			var source = TableProvenance.New().Snapshot(metadata);
+			var derivedMetadata = new TableMetadata { Version = version };
+			var derived = TableProvenance.Derive(source, metadata).Snapshot(derivedMetadata);
+			Assert.That(TableProvenance.CopyMetadata(metadata).Version, Is.EqualTo(version));
+			Assert.That(derived.Credits.Single().Version, Is.EqualTo(version));
+			Assert.That(derived.VerifyParent(source, metadata), Is.True);
+			Assert.DoesNotThrow(() => derived.Validate(derivedMetadata));
+			var path = Path.Combine(_folder, "version.vpe");
+			using (var storage = PackageApi.StorageManager.CreateStorage(path)) {
+				var table = storage.AddFolder(PackageApi.TableFolder);
+				table.AddFile(PackageApi.TableMetadataFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(derivedMetadata));
+				table.AddFile(TableProvenance.FileName).SetData(VpeIntegrity.Json(derived));
+			}
+			using var package = PackageApi.StorageManager.OpenStorage(path);
+			var restored = TableProvenance.Read(package.GetFolder(PackageApi.TableFolder), out var restoredMetadata);
+			Assert.That(restoredMetadata.Version, Is.EqualTo(version));
+			Assert.That(restored.VerifyParent(source, metadata), Is.True);
+		}
+
+		[TestCase(null)]
+		[TestCase("")]
+		[TestCase("1.0")]
+		[TestCase("1.0.0.0")]
+		[TestCase("01.0.0")]
+		[TestCase("1.01.0")]
+		[TestCase("v1.0.01")]
+		[TestCase("vv1.0.0")]
+		[TestCase("1.0.0-")]
+		[TestCase("1.0.0+")]
+		[TestCase("1.0.0-alpha..1")]
+		[TestCase("1.0.0-alpha.01")]
+		[TestCase("1.0.0-01")]
+		[TestCase("1.0.0+build..1")]
+		[TestCase("1.0.0-alpha_1")]
+		[TestCase("1.0.0+build_1")]
+		[TestCase(" 1.0.0")]
+		[TestCase("1.0.0\n")]
+		public void MalformedReleaseVersionsAreRejected(string version)
+		{
+			Assert.Throws<InvalidDataException>(() => TableProvenance.New().Snapshot(new TableMetadata { Version = version }));
+			var metadata = new TableMetadata();
+			var source = TableProvenance.New().Snapshot(metadata);
+			var derived = TableProvenance.Derive(source, metadata);
+			derived.Credits.Single().Version = version;
+			Assert.Throws<InvalidDataException>(() => derived.Snapshot(metadata));
+		}
+
 		[Test] public void MalformedAndConflictingProvenanceFails()
 		{
 			Assert.Throws<InvalidDataException>(() => TableProvenance.New().Snapshot(new TableMetadata { Version = "01.0.0" }));

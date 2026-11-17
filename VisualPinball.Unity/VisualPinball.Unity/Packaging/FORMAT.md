@@ -306,6 +306,8 @@ Opening a package checks the directory only: paths, lengths and that nothing is 
 
 `{ "schemaVersion": 1, "tableId", "kind", "sourceFingerprint", "metadataHash", "creditIndexHash", "rootHash", "sources": [ … ], "credits": [ … ] }` identifies the table across its versions (`tableId`, a GUID kept from export to export) and carries the credits of the tables it was derived from. `sources` are the root hashes of those tables; each entry of `credits` names one of them with its `tableId`, `version`, authors and `kind`. The hashes commit to the table's metadata and credits, so that a derived table can't drop or rewrite where it came from without changing its own identity. A package without valid provenance is refused.
 
+Table versions use `major.minor.patch` with an optional lowercase `v` prefix, SemVer prerelease identifiers after `-`, and build identifiers after `+` (for example `v1.0.0-alpha1+build.1`). Versions are limited to 128 characters and preserved exactly in metadata, ancestor credits and hashes; prefixes and suffixes are not normalized.
+
 ## sounds/ and meta/sounds.json
 
 Original audio files plus a meta map keyed by file name:
