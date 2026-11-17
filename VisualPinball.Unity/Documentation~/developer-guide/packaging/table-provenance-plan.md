@@ -58,7 +58,7 @@ Paths are relative to `VisualPinball.Engine/VisualPinball.Unity/` unless stated 
 
 ### Identity and version lifecycle
 
-Add `TableMetadata.Version`, serialized as `version`. Native/newly derived tables start at `1.0.0`; provide a Bump patch action and manual editing. Newly authored versions use three nonnegative decimal components without leading zeros. Historical VPX labels remain verbatim and explicitly legacy; unknown historical versions are empty. A derivative starts its own sequence, while its source record keeps the original version.
+Add `TableMetadata.Version`, serialized as `version`. Native/newly derived tables start at `1.0.0`; versions are edited manually. Newly authored versions use three nonnegative decimal components without leading zeros, with an optional lowercase `v` prefix and SemVer prerelease/build suffixes (for example `v1.0.0-alpha1+build.1`). Preserve the exact version string in metadata and source credits. Historical VPX labels remain verbatim and explicitly legacy; unknown historical versions are empty. A derivative starts its own sequence, while its source record keeps the original version.
 
 Bump versions for every released update, including asset-only/gameplay changes. Do not silently increment on saves, refreshes, retries, or repeated development exports. Store a local last-exported `(UUID, version, rootHash)` receipt outside hashed metadata and warn/offer a bump when changed metadata reuses a version. This detects local metadata changes, not asset-only edits or releases made elsewhere. Global release uniqueness requires a publishing registry, outside scope. The metadata hash cannot enforce all version bumps.
 

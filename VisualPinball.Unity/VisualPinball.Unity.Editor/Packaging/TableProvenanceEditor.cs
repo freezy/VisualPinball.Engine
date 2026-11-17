@@ -49,12 +49,6 @@ namespace VisualPinball.Unity.Editor
 					EditorGUILayout.TextField("Secondary credits", string.Join(", ", (source.SecondaryAuthors ?? new()).Select(a => a.Name + (string.IsNullOrEmpty(a.VpuHandle) ? "" : " (@" + a.VpuHandle + ")"))));
 				}
 			}
-			if (GUILayout.Button("Bump patch version")) {
-				var parts = table.Metadata.Version.Split('.');
-				if (ulong.TryParse(parts[2], out var patch) && patch < ulong.MaxValue) {
-					Undo.RecordObject(table, "Bump table version"); table.Metadata.Version = parts[0] + "." + parts[1] + "." + (patch + 1); Dirty(table);
-				}
-			}
 			if (snapshot.Kind != "diagnostic" && GUILayout.Button("Create derivative")) {
 				var provenance = TableProvenance.Derive(snapshot, table.Metadata);
 				var copy = UnityEngine.Object.Instantiate(table.gameObject, table.transform.parent);
