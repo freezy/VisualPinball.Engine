@@ -39,3 +39,14 @@ EXPORTS
  VpePcmOutputSetPaused
  VpePcmOutputLastError
  VpePcmOutputMetrics
+ VpePcmRoutingAbi
+ VpePcmSetRouting
+ VpePcmOutputChannels
+ VpePcmTapAttach
+ VpePcmTapRender
+ VpePcmTapMetrics
+ VpePcmOutputOpen
+ VpePcmDeviceList
+ VpePcmPlayAt
+ VpePcmUpdateAt
+ VpePcmSetSurround

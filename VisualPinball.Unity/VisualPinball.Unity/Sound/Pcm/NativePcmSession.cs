@@ -1,6 +1,7 @@
 // Visual Pinball Engine. Copyright (C) 2026 freezy and VPE Team.
 // SPDX-License-Identifier: MIT
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -44,6 +45,40 @@ namespace VisualPinball.Unity
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmOutputCreate(IntPtr context, int rate, int paused);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmOutputCreateEx(IntPtr context, int rate, int paused, int mode, int bufferFrames);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmOutputDestroy(IntPtr output);
+		// Output routing extension: zones on channel pairs, more devices, and the device list.
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmRoutingAbi();
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmSetRouting(IntPtr context, int[] busZone, int[] zonePair, int[] zoneTap, int[] zoneReserved);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmOutputOpen(IntPtr context, int rate, int paused, int mode, int bufferFrames, byte[] deviceId, int tap);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmDeviceList([Out] byte[] buffer, int length);
+		// Four speakers for the mechanical buses: voices with a depth, and the zone of the pair near the backbox.
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern ulong VpePcmPlayAt(IntPtr context, int clip, int bus, float gain, float pitch, float pan, float depth, int loop);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmUpdateAt(IntPtr context, ulong voice, float gain, float pitch, float pan, float depth, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmSetSurround(IntPtr context, int bus, int enabled, int backZone);
+		private bool _depthUnsupported;
+		/// <summary>Starts a voice; <paramref name="depth"/> is 0 at the player's end of the playfield and 1 at the backbox.</summary>
+		internal ulong PlayVoice(int clip, int bus, float gain, float pitch, float pan, float depth, bool loop)
+		{
+			if (!_depthUnsupported) {
+				try { return VpePcmPlayAt(Context, clip, bus, gain, pitch, pan, depth, loop ? 1 : 0); }
+				catch (EntryPointNotFoundException) { _depthUnsupported = true; }
+			}
+			return VpePcmPlay(Context, clip, bus, gain, pitch, pan, loop ? 1 : 0);
+		}
+		internal void UpdateVoice(ulong voice, float gain, float pitch, float pan, float depth, bool paused)
+		{
+			if (!_depthUnsupported) {
+				try { VpePcmUpdateAt(Context, voice, gain, pitch, pan, depth, paused ? 1 : 0); return; }
+				catch (EntryPointNotFoundException) { _depthUnsupported = true; }
+			}
+			VpePcmUpdate(Context, voice, gain, pitch, pan, paused ? 1 : 0);
+		}
+		/// <summary>Splits a mechanical bus (0 or 1) over its own zone (near the player) and <paramref name="backZone"/> (near the backbox).</summary>
+		internal bool SetSurround(int bus, bool enabled, int backZone)
+		{
+			if (!RoutingSupported || Context == IntPtr.Zero) return false;
+			try { return VpePcmSetSurround(Context, bus, enabled ? 1 : 0, backZone) != 0; }
+			catch (EntryPointNotFoundException) { return false; }
+		}
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmOutputSetPaused(IntPtr output, int paused);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern uint VpePcmOutputLastError();
 		/// <summary>HRESULT of the last device stream that failed to open, for diagnostics.</summary>
@@ -61,6 +96,7 @@ namespace VisualPinball.Unity
 		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern void VpeAsioCloseControlPanel();
 		internal const int OutputMetricCount = 13;
 		private IntPtr _context, _output;
+		private readonly IntPtr[] _tapOutputs = new IntPtr[PcmOutputRouting.MaxExtraOutputs]; // main thread only
 		private bool _asio; // written before _output is published, only by the main thread
 		private int _readers, _blocks, _renderClosed;
 		internal IntPtr Context => Volatile.Read(ref _context);
@@ -74,7 +110,57 @@ namespace VisualPinball.Unity
 			VpePcmEnableStream(_context, 0);
 			try { ProcessingSupported = VpePcmDspAbi() == 1; }
 			catch (EntryPointNotFoundException) { ProcessingSupported = false; }
+			try { RoutingSupported = VpePcmRoutingAbi() == 1; }
+			catch (EntryPointNotFoundException) { RoutingSupported = false; }
 		}
+		/// <summary>Whether the native library routes buses to channel pairs and to more devices.</summary>
+		internal bool RoutingSupported { get; }
+		/// <summary>
+		/// Publishes where the buses play: a zone per bus (7), and per zone (5) its stereo pair, its tap (0 for the
+		/// rendering output, 1..4 for a device opened with <see cref="StartTapOutput"/>) and whether its channels stay
+		/// open while no bus plays in it. Outputs read the channels they need from it when they open.
+		/// </summary>
+		internal bool SetRouting(int[] busZone, int[] zonePair, int[] zoneTap, int[] zoneReserved)
+			=> RoutingSupported && Context != IntPtr.Zero && VpePcmSetRouting(Context, busZone, zonePair, zoneTap, zoneReserved) != 0;
+		private static byte[] Utf8(string text) => string.IsNullOrEmpty(text) ? null : Encoding.UTF8.GetBytes(text + "\0");
+
+		/// <summary>The system's playback devices; empty where the mixer has no device output of its own.</summary>
+		internal static List<PcmOutputDevice> Devices()
+		{
+			var devices = new List<PcmOutputDevice>();
+			try {
+				int length = VpePcmDeviceList(null, 0);
+				if (length <= 1) return devices;
+				var buffer = new byte[length];
+				if (VpePcmDeviceList(buffer, buffer.Length) > buffer.Length) return devices; // a device arrived in between
+				foreach (var line in Encoding.UTF8.GetString(buffer).TrimEnd('\0').Split('\n')) {
+					var fields = line.Split('\t');
+					if (fields.Length >= 4 && fields[0].Length > 0 && int.TryParse(fields[2], out int channels)) devices.Add(new PcmOutputDevice(fields[0], fields[1], channels, fields[3] == "1"));
+				}
+			} catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { }
+			return devices;
+		}
+
+		/// <summary>
+		/// Opens one more device that plays the zones of tap <paramref name="tap"/> (0..3), in shared mode. It never
+		/// renders the graph: the main output feeds it.
+		/// </summary>
+		internal bool StartTapOutput(int tap, string device, int rate, bool paused)
+		{
+			if (!RoutingSupported || tap < 0 || tap >= _tapOutputs.Length || string.IsNullOrEmpty(device)) return false;
+			if (_tapOutputs[tap] != IntPtr.Zero) { VpePcmOutputDestroy(_tapOutputs[tap]); _tapOutputs[tap] = IntPtr.Zero; }
+			_tapOutputs[tap] = VpePcmOutputOpen(Context, rate, paused ? 1 : 0, 0, 0, Utf8(device), tap);
+			return _tapOutputs[tap] != IntPtr.Zero;
+		}
+		internal void StopTapOutputs()
+		{
+			for (int tap = 0; tap < _tapOutputs.Length; ++tap) {
+				if (_tapOutputs[tap] == IntPtr.Zero) continue;
+				VpePcmOutputDestroy(_tapOutputs[tap]); _tapOutputs[tap] = IntPtr.Zero;
+			}
+		}
+		internal bool TapOutputMetrics(int tap, float[] values)
+			=> tap >= 0 && tap < _tapOutputs.Length && _tapOutputs[tap] != IntPtr.Zero && VpePcmOutputMetrics(_tapOutputs[tap], values, values.Length) != 0;
 		internal bool PrepareProcessing(int rate) => ProcessingSupported && VpePcmPrepareDsp(Context, rate) != 0;
 		internal bool SetProcessing(float[] values) => ProcessingSupported && VpePcmSetProcessing(Context, values, values.Length) != 0;
 		internal void ProcessingMeters(float[] values) { if (ProcessingSupported) VpePcmProcessingMeters(Context, values, values.Length); }
@@ -92,14 +178,18 @@ namespace VisualPinball.Unity
 		internal bool HasAsioOutput => HasDeviceOutput && _asio;
 
 		/// <summary>
-		/// Opens the native device stream (Windows WASAPI). While it runs, it is the graph's only renderer, so
-		/// <see cref="Render"/> must not be fed by a Unity callback. False when unsupported or no device opened.
+		/// Opens the native device stream (Windows WASAPI), on <paramref name="device"/> or the default device. While it
+		/// runs, it is the graph's only renderer, so <see cref="Render"/> must not be fed by a Unity callback. False when
+		/// unsupported or no device opened.
 		/// </summary>
-		internal bool StartDeviceOutput(int rate, bool paused, bool exclusive = false, int bufferFrames = 0)
+		internal bool StartDeviceOutput(int rate, bool paused, bool exclusive = false, int bufferFrames = 0, string device = null)
 		{
 			StopDeviceOutput();
 			IntPtr output;
-			try { output = VpePcmOutputCreateEx(Context, rate, paused ? 1 : 0, exclusive ? 1 : 0, bufferFrames); }
+			try {
+				output = RoutingSupported ? VpePcmOutputOpen(Context, rate, paused ? 1 : 0, exclusive ? 1 : 0, bufferFrames, Utf8(device), -1)
+					: VpePcmOutputCreateEx(Context, rate, paused ? 1 : 0, exclusive ? 1 : 0, bufferFrames);
+			}
 			catch (EntryPointNotFoundException) {
 				if (exclusive) return false;
 				try { output = VpePcmOutputCreate(Context, rate, paused ? 1 : 0); }
@@ -279,6 +369,7 @@ namespace VisualPinball.Unity
 		}
 		public void Dispose()
 		{
+			StopTapOutputs(); // they read the graph's taps
 			StopDeviceOutput(); // joins the device thread, the graph's other renderer
 			var context = Interlocked.Exchange(ref _context, IntPtr.Zero);
 			if (context == IntPtr.Zero) return;

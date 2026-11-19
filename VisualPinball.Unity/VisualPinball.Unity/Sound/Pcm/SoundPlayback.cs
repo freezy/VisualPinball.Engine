@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		private static void Start(AudioSource source, PcmAudioRenderer renderer, int bus, bool listener)
 		{
 			if (!renderer || !renderer.IsReady || !renderer.TryClip(source, out int clip, listener) || source.pitch < .01f) { source.Play(); return; }
-			var id = NativePcmSession.VpePcmPlay(renderer.Session.Context, clip, bus, renderer.Gain(source, bus, listener), source.pitch, renderer.Pan(source, bus, listener), source.loop ? 1 : 0);
+			var id = renderer.Session.PlayVoice(clip, bus, renderer.Gain(source, bus, listener), source.pitch, renderer.Pan(source, bus, listener), renderer.Depth(source, bus), source.loop);
 			if (id == 0) { renderer.Diagnose("Central voice capacity exhausted; using Reference playback."); source.Play(); return; }
 			Voices[source] = new Voice { Owner = renderer, Id = id, Bus = bus, Listener = listener };
 		}
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 			foreach (var pair in Voices) {
 				var source = pair.Key; var voice = pair.Value; if (voice.Owner != owner) continue;
 				if (!source || !source.isActiveAndEnabled) { NativePcmSession.VpePcmStop(owner.Session.Context, voice.Id); Removed.Add(source); continue; }
-				NativePcmSession.VpePcmUpdate(owner.Session.Context, voice.Id, owner.Gain(source, voice.Bus, voice.Listener), Mathf.Clamp(source.pitch, .01f, 3), owner.Pan(source, voice.Bus, voice.Listener), voice.Paused ? 1 : 0);
+				owner.Session.UpdateVoice(voice.Id, owner.Gain(source, voice.Bus, voice.Listener), Mathf.Clamp(source.pitch, .01f, 3), owner.Pan(source, voice.Bus, voice.Listener), owner.Depth(source, voice.Bus), voice.Paused);
 			}
 			foreach (var source in Removed) Voices.Remove(source); Removed.Clear();
 		}

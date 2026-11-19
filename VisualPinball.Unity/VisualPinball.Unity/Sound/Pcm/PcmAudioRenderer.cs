@@ -38,6 +38,14 @@ namespace VisualPinball.Unity
 		private int _rate, _paused;
 		private long _clipSamples;
 		private bool _applicationPaused, _romAttempted;
+		private int _extraDevices; // devices playing besides the main output
+		private OutputPlan _plan; // what the outputs opened with; null on Unity's carrier
+		private readonly bool[] _split = new bool[2]; // the mechanical buses that play on two pairs right now
+		private readonly List<string> _startProblems = new();
+		private readonly bool[] _tapDown = new bool[PcmOutputRouting.MaxExtraOutputs];
+		private readonly float[] _tapMetrics = new float[NativePcmSession.OutputMetricCount];
+		private float _tapCheck;
+		private string _loggedStatus;
 		public bool IsReady => _session != null && _session.Context != IntPtr.Zero && _session.RenderedBlocks > 0;
 		public string Status { get; private set; } = "Reference playback";
 		public string RomStatus { get; private set; } = "Waiting for the renderer";
@@ -58,7 +66,7 @@ namespace VisualPinball.Unity
 		/// Unity's callback remains the fallback when no device stream opens.
 		/// </summary>
 		public static bool PreferDeviceOutput { get; set; } = true;
-		/// <summary>How the device stream reaches the hardware (Windows). Falls back to Shared, then to Unity.</summary>
+		/// <summary>How the device stream reaches the hardware (Windows). ASIO falls back to Exclusive, that to Shared, and that to Unity.</summary>
 		public static PcmOutputMode OutputMode { get; set; } = PcmOutputMode.Shared;
 		/// <summary>
 		/// ASIO driver for <see cref="PcmOutputMode.Asio"/> (needs the optional VpeAsio library). ASIO skips the
@@ -67,6 +75,15 @@ namespace VisualPinball.Unity
 		public static string AsioDriver { get; set; } = string.Empty;
 		/// <summary>Buffer size in frames for exclusive and ASIO output, or 0 for the device's or driver's default.</summary>
 		public static int OutputBufferFrames { get; set; }
+		/// <summary>
+		/// Which device and channels each sound bus plays on. Applies when an output opens: call
+		/// <see cref="ReopenOutput"/> on the playing mixer after changing it.
+		/// </summary>
+		public static PcmOutputRouting Routing { get; set; } = new();
+		/// <summary>The system's playback devices, empty where the mixer plays through Unity only.</summary>
+		public static IReadOnlyList<PcmOutputDevice> OutputDevices() => NativePcmSession.Devices();
+		/// <summary>What became of <see cref="Routing"/> when the outputs opened; empty when every bus plays where it was sent.</summary>
+		public string RoutingStatus { get; private set; } = string.Empty;
 		public static string[] AsioDrivers() => NativePcmSession.AsioDrivers();
 		/// <summary>Whether this build ships the optional ASIO library (Windows x64).</summary>
 		public static bool AsioAvailable => NativePcmSession.AsioAvailable;
@@ -136,6 +153,11 @@ namespace VisualPinball.Unity
 			foreach (var renderer in Active) renderer._pendingProcessing = GlobalProcessing.ToNative();
 		}
 		public void PreviewProcessing(int bus, bool enabled) { if (bus >= 0 && bus < 7) _session?.Preview(bus, enabled); }
+		/// <summary>
+		/// Three seconds of quiet noise bursts, left then right, on the pair near the backbox of a mechanical bus (0 or
+		/// 1) that plays on four speakers. While it isn't split, its one pair plays them.
+		/// </summary>
+		public void PreviewBackSpeakers(int bus) { if (bus >= 0 && bus < _split.Length) _session?.Preview(_split[bus] ? 7 + bus : bus, true); }
 		public bool PreviewProcessing(AudioClip clip, int bus)
 		{
 			if (_pendingProcessing != null && ProcessingReady && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
@@ -221,24 +243,203 @@ namespace VisualPinball.Unity
 			return _listener;
 		}
 
-		/// <summary>Opens ASIO when configured, else the WASAPI stream. False leaves the graph to Unity's carrier.</summary>
+		/// <summary>
+		/// Opens the output that renders the graph (ASIO, exclusive or shared) and the devices besides it. False leaves
+		/// the graph to Unity's carrier.
+		/// </summary>
 		private bool StartDeviceOutput(bool paused)
 		{
 			ActiveOutputMode = PcmOutputMode.Shared;
-			if (!PreferDeviceOutput) return false;
+			_session.StopTapOutputs();
+			RoutingStatus = string.Empty; _extraDevices = 0; _plan = null; _startProblems.Clear();
+			Array.Clear(_tapDown, 0, _tapDown.Length);
+			var everythingOnMain = new OutputPlan();
+			if (!PreferDeviceOutput) { Publish(everythingOnMain); return false; }
 			// a device renders as soon as it starts: give it the master the listener applied so far, and the caller sets
 			// the levels for the output that actually opened
 			ApplyOutputGain(0, true);
-			if (OutputMode == PcmOutputMode.Asio) {
-				if (string.IsNullOrEmpty(AsioDriver)) Diagnose("ASIO output has no driver selected; using shared output.");
-				else if (_session.StartAsioOutput(AsioDriver, _rate, OutputBufferFrames, paused, out var error)) { ActiveOutputMode = PcmOutputMode.Asio; return true; }
-				else Diagnose("ASIO driver '" + AsioDriver + "' did not start (" + error + "); using shared output.");
+			var routing = Routing ?? new PcmOutputRouting();
+			var devices = _session.RoutingSupported ? NativePcmSession.Devices() : new List<PcmOutputDevice>();
+			if (!OpenMainOutput(paused, routing, devices, out var plan)) { Publish(everythingOnMain); return false; }
+			for (int tap = 0; tap < plan.TapDevices.Count; ++tap) {
+				if (_session.StartTapOutput(tap, plan.TapDevices[tap], _rate, paused)) { ++_extraDevices; continue; }
+				plan.FoldTap(tap); // the main output has the channels for it: every zone of the plan is reserved
+				_startProblems.Add(DeviceName(devices, plan.TapDevices[tap], plan.TapNames[tap]) + " is not available; its sounds play on the main output.");
 			}
-			if (OutputMode == PcmOutputMode.Exclusive) {
-				if (_session.StartDeviceOutput(_rate, paused, true, OutputBufferFrames)) { ActiveOutputMode = PcmOutputMode.Exclusive; return true; }
+			Publish(plan);
+			_plan = plan;
+			RoutingStatus = string.Join(" ", _startProblems);
+			foreach (var problem in _startProblems) Diagnose(problem);
+			return true;
+		}
+
+		private void Publish(OutputPlan plan)
+		{
+			plan.Publish(_session);
+			for (int bus = 0; bus < _split.Length; ++bus) _split[bus] = plan.Split(bus);
+		}
+
+		private static string DeviceName(List<PcmOutputDevice> devices, string id, string saved)
+		{
+			foreach (var device in devices) if (device.Id == id) return device.Name;
+			return string.IsNullOrEmpty(saved) ? "An output device" : saved;
+		}
+
+		/// <summary>
+		/// Opens the output that renders the graph. Each candidate gets its own plan published before it opens, since an
+		/// output reads the channels it needs from the routing: an ASIO driver shares its other outputs with the extra
+		/// outputs, a Windows device its own channels, and the default device may have fewer than the chosen one.
+		/// </summary>
+		private bool OpenMainOutput(bool paused, PcmOutputRouting routing, List<PcmOutputDevice> devices, out OutputPlan plan)
+		{
+			if (OutputMode == PcmOutputMode.Asio) {
+				if (string.IsNullOrEmpty(AsioDriver)) Diagnose("ASIO output has no driver selected; using exclusive output.");
+				else {
+					plan = OutputPlan.From(routing, devices, OutputPlan.Main.Asio);
+					Publish(plan);
+					if (_session.StartAsioOutput(AsioDriver, _rate, OutputBufferFrames, paused, out var error)) { ActiveOutputMode = PcmOutputMode.Asio; return true; }
+					Diagnose("ASIO driver '" + AsioDriver + "' did not start (" + error + "); using exclusive output.");
+				}
+			}
+			plan = OutputPlan.From(routing, devices, OutputPlan.Main.Chosen);
+			Publish(plan);
+			var device = _session.RoutingSupported ? routing.MainDevice : null;
+			if (OpenDeviceOutput(paused, device)) return true;
+			if (string.IsNullOrEmpty(device)) return false;
+			Diagnose(DeviceName(devices, device, routing.MainDeviceName) + " is not available; playing on the default device.");
+			plan = OutputPlan.From(routing, devices, OutputPlan.Main.Default);
+			Publish(plan);
+			return OpenDeviceOutput(paused, null);
+		}
+
+		/// <summary>Opens the Windows device stream: exclusive when asked for (or when ASIO was), else shared.</summary>
+		private bool OpenDeviceOutput(bool paused, string device)
+		{
+			// Who asks for ASIO wants the shortest way to the device: without the driver, exclusive output is the next best.
+			if (OutputMode != PcmOutputMode.Shared) {
+				if (_session.StartDeviceOutput(_rate, paused, true, OutputBufferFrames, device)) { ActiveOutputMode = PcmOutputMode.Exclusive; return true; }
 				Diagnose("Exclusive output is not available (the device is in use or the format is unsupported, 0x" + NativePcmSession.LastDeviceOutputError.ToString("X8") + "); using shared output.");
 			}
-			return _session.StartDeviceOutput(_rate, paused);
+			ActiveOutputMode = PcmOutputMode.Shared;
+			return _session.StartDeviceOutput(_rate, paused, false, 0, device);
+		}
+
+		/// <summary>
+		/// Follows the devices besides the main one: while one is disconnected its sounds play on the main output, and
+		/// they go back when it returns.
+		/// </summary>
+		private void WatchTapOutputs()
+		{
+			if (_plan == null || _plan.TapDevices.Count == 0 || Time.unscaledTime < _tapCheck) return;
+			_tapCheck = Time.unscaledTime + .5f;
+			bool changed = false;
+			for (int tap = 0; tap < _plan.TapDevices.Count; ++tap) {
+				// state 2: the stream lost its device and waits for it
+				bool down = _session.TapOutputMetrics(tap, _tapMetrics) && _tapMetrics[0] == 2;
+				changed |= down != _tapDown[tap];
+				_tapDown[tap] = down;
+			}
+			if (!changed) return;
+			var live = _plan.Copy();
+			var problems = new List<string>(_startProblems);
+			for (int tap = 0; tap < _plan.TapDevices.Count; ++tap) {
+				if (!_tapDown[tap]) continue;
+				live.FoldTap(tap);
+				problems.Add((string.IsNullOrEmpty(_plan.TapNames[tap]) ? "An output device" : _plan.TapNames[tap]) + " is not connected; its sounds play on the main output.");
+			}
+			Publish(live);
+			RoutingStatus = string.Join(" ", problems);
+		}
+
+		/// <summary>
+		/// A <see cref="PcmOutputRouting"/> turned into what the native graph takes: a zone per output in use, and per
+		/// zone its stereo pair and the tap (device) it plays on.
+		/// </summary>
+		private sealed class OutputPlan
+		{
+			/// <summary>What renders the graph: an ASIO driver, the chosen Windows device, or the default one in its place.</summary>
+			internal enum Main { Asio, Chosen, Default }
+
+			internal int[] BusZone = new int[7], ZonePair = new int[5], ZoneTap = new int[5];
+			/// <summary>The zones of the plan: their channels stay open on their output while their buses play elsewhere.</summary>
+			internal int[] Reserved = new int[5];
+			/// <summary>Per mechanical bus: whether it plays on four speakers, and the zone of the pair near the backbox.</summary>
+			internal bool[] Surround = new bool[2];
+			internal int[] BackZone = new int[2];
+			/// <summary>The devices besides the main one, in the order of their taps.</summary>
+			internal readonly List<string> TapDevices = new(), TapNames = new();
+
+			internal OutputPlan Copy()
+			{
+				var copy = new OutputPlan {
+					BusZone = (int[])BusZone.Clone(), ZonePair = (int[])ZonePair.Clone(), ZoneTap = (int[])ZoneTap.Clone(), Reserved = (int[])Reserved.Clone(),
+					Surround = (bool[])Surround.Clone(), BackZone = (int[])BackZone.Clone()
+				};
+				copy.TapDevices.AddRange(TapDevices); copy.TapNames.AddRange(TapNames);
+				return copy;
+			}
+
+			/// <summary>Whether a mechanical bus really plays on two pairs: two outputs on the same channels are one pair.</summary>
+			internal bool Split(int bus) => Surround[bus] && BackZone[bus] != BusZone[bus];
+
+			internal static OutputPlan From(PcmOutputRouting routing, List<PcmOutputDevice> devices, Main mainOutput)
+			{
+				var plan = new OutputPlan();
+				bool asio = mainOutput == Main.Asio;
+				string defaultDevice = string.Empty;
+				foreach (var device in devices) if (device.IsDefault) defaultDevice = device.Id;
+				// The stereo pairs a device has; a pair it lacks would play on its first one, on top of what is there.
+				int Pairs(string id) { foreach (var device in devices) if (device.Id == id) return Mathf.Max(1, device.Channels / 2); return 1; }
+				// an ASIO driver is no Windows device: only an output without a device shares it, and its outputs aren't known here
+				string main = asio ? null : mainOutput == Main.Default || string.IsNullOrEmpty(routing.MainDevice) ? defaultDevice : routing.MainDevice;
+				int mainPairs = asio ? 8 : Pairs(main);
+				int Pair(int pair, int pairs) => pair >= 0 && pair < pairs ? pair : 0;
+				plan.ZonePair[0] = Pair(routing.MainPair, mainPairs);
+				plan.Reserved[0] = 1;
+				// the outputs in use: where a bus plays, and the back pair of a mechanical bus on four speakers
+				bool Used(int output)
+				{
+					if (Array.IndexOf(routing.BusOutput, output) >= 0) return true;
+					for (int bus = 0; bus < routing.BusSurround.Length; ++bus) if (routing.BusSurround[bus] && routing.BusBackOutput[bus] == output) return true;
+					return false;
+				}
+				var zoneOfOutput = new int[PcmOutputRouting.MaxExtraOutputs + 1];
+				int zones = 1;
+				for (int output = 1; output <= PcmOutputRouting.MaxExtraOutputs && output <= routing.Extra.Count; ++output) {
+					if (!Used(output)) continue;
+					var extra = routing.Extra[output - 1];
+					int tap = 0, pair;
+					if (!string.IsNullOrEmpty(extra.Device) && extra.Device != main) {
+						tap = plan.TapDevices.IndexOf(extra.Device) + 1;
+						if (tap == 0) { plan.TapDevices.Add(extra.Device); plan.TapNames.Add(extra.Name); tap = plan.TapDevices.Count; }
+						pair = Pair(extra.Pair, Pairs(extra.Device));
+					} else pair = Pair(extra.Pair, mainPairs);
+					// two outputs on the same channels are one zone, so they share one limiter
+					int zone = -1;
+					for (int existing = 0; existing < zones; ++existing) if (plan.ZoneTap[existing] == tap && plan.ZonePair[existing] == pair) zone = existing;
+					if (zone < 0) { zone = zones++; plan.ZonePair[zone] = pair; plan.ZoneTap[zone] = tap; plan.Reserved[zone] = 1; }
+					zoneOfOutput[output] = zone;
+				}
+				int Zone(int output) => output > 0 && output < zoneOfOutput.Length ? zoneOfOutput[output] : 0;
+				for (int bus = 0; bus < plan.BusZone.Length; ++bus) plan.BusZone[bus] = Zone(routing.BusOutput[bus]);
+				for (int bus = 0; bus < plan.Surround.Length; ++bus) {
+					plan.Surround[bus] = routing.BusSurround[bus];
+					plan.BackZone[bus] = plan.Surround[bus] ? Zone(routing.BusBackOutput[bus]) : 0;
+				}
+				return plan;
+			}
+
+			/// <summary>Moves the buses of a device that isn't there to the main output.</summary>
+			internal void FoldTap(int tap)
+			{
+				for (int bus = 0; bus < BusZone.Length; ++bus) if (ZoneTap[BusZone[bus]] == tap + 1) BusZone[bus] = 0;
+				for (int bus = 0; bus < BackZone.Length; ++bus) if (ZoneTap[BackZone[bus]] == tap + 1) BackZone[bus] = 0;
+			}
+			internal void Publish(NativePcmSession session)
+			{
+				session.SetRouting(BusZone, ZonePair, ZoneTap, Reserved);
+				for (int bus = 0; bus < Surround.Length; ++bus) session.SetSurround(bus, Surround[bus], BackZone[bus]);
+			}
 		}
 
 		/// <summary>
@@ -248,6 +449,7 @@ namespace VisualPinball.Unity
 		public void ReopenOutput()
 		{
 			if (_session == null || _session.Context == IntPtr.Zero) return;
+			_session.StopTapOutputs();
 			_session.StopDeviceOutput();
 			DestroyCarrier();
 			if (!StartDeviceOutput(Paused)) CreateCarrier();
@@ -263,7 +465,9 @@ namespace VisualPinball.Unity
 			// Exclusive can't take a device that Unity's own output is using during play; it usually can when a table loads.
 			var requested = OutputMode != PcmOutputMode.Shared && ActiveOutputMode != OutputMode
 				? " (" + (OutputMode == PcmOutputMode.Asio ? "ASIO" : "exclusive") + " output unavailable, retried when the next table loads)" : "";
+			if (_extraDevices > 0) output += " and " + _extraDevices + (_extraDevices == 1 ? " more device" : " more devices");
 			Status = "Central stereo PCM, " + output + requested + (_session.ProcessingSupported ? "; stereo DSP available" : " (dry); update native plugin to enable effects");
+			if (Status != _loggedStatus) Logger.Info("Audio mixer: {Status:l}", _loggedStatus = Status);
 		}
 
 		/// <summary>Removes Unity's carrier and waits until its callback left the graph, so a device stream can render alone.</summary>
@@ -299,6 +503,7 @@ namespace VisualPinball.Unity
 			if (_callback) Volatile.Write(ref _callback.Paused, paused ? 1 : 0);
 			if (_output && !_output.isPlaying) _output.Play(); // AudioSettings.Reset can stop the carrier; it ignores the listener's pause, the graph pauses game voices itself
 			_session.DeviceOutputMetrics(_outputMetrics);
+			WatchTapOutputs();
 			if (!_romAttempted && _session.RenderedBlocks > 0) {
 				_romAttempted = true;
 				var player = GetComponentInChildren<Player>(true);
@@ -355,6 +560,15 @@ namespace VisualPinball.Unity
 			clips.Add(asset, clip);
 			if (clip < 0) { BypassedVoices++; Diagnose("An unreadable, oversized or unsupported clip remains on Reference playback."); }
 			return clip >= 0;
+		}
+		/// <summary>Where a mechanical voice is along the playfield: 0 at the player's end, 1 at the backbox; the middle for everything else.</summary>
+		internal float Depth(AudioSource source, int bus)
+		{
+			if ((bus != 0 && bus != 1) || !_playfield || source.spatialBlend <= 0) return .5f;
+			var position = source.transform.position.TranslateToVpx(_playfield.transform);
+			// the playfield's top edge is the backbox end
+			float depth = 1 - Mathf.Clamp01((position.y - _playfield.Top) / Mathf.Max(1, _playfield.Bottom - _playfield.Top));
+			return Mathf.Lerp(.5f, depth, source.spatialBlend);
 		}
 		internal float Pan(AudioSource source, int bus, bool listener = false)
 		{

@@ -91,8 +91,8 @@ int main(int argc, char** argv) {
 		Check(Near(VpePcmPosition(s.c,id),4000.f/48000),"large blocks preserve loop cursor for output-change fallback");
 		VpePcmRender(s.c,out.data(),1000,2,48000,1);
 		Check(Near(VpePcmPosition(s.c,id),4000.f/48000),"global pause preserves fallback position");
-		Check(!VpePcmRender(s.c,out.data(),100,8,48000,0),"unproven discrete output fails closed");
-		for(int i=0;i<800;++i)Check(out[i]==0,"unsupported channels are silent");
+		Check(!VpePcmRender(s.c,out.data(),100,17,48000,0) && !VpePcmRender(s.c,out.data(),100,1,48000,0),"outputs have 2 to 16 channels");
+		for(int i=0;i<1700;++i)Check(out[i]==0,"unsupported channels are silent");
 	}
 	{
 		Session s; std::vector<float> data(16384,.125f); std::array<float,2048> out{}, meters{};
@@ -347,6 +347,186 @@ int main(int argc, char** argv) {
 		Check(block[4798*2] > 0, "a rate change mid-fade doesn't shorten the remaining fade");
 		VpePcmRender(s.c, sample.data(), 1, 2, 96000, 0);
 		Check(sample[0] == 0, "a rate change mid-fade reaches the target after the remaining time");
+	}
+	{
+		// Output routing: buses play in zones, zones on stereo pairs of the rendering output.
+		Session s; const std::array<float, 2> a{{.4f, .2f}}, b{{.1f, .3f}};
+		const int clipA = VpePcmRegisterClip(s.c, a.data(), 1, 2, 48000), clipB = VpePcmRegisterClip(s.c, b.data(), 1, 2, 48000);
+		VpePcmPlay(s.c, clipA, 0, 1, 1, 0, 1); VpePcmPlay(s.c, clipB, 2, 1, 1, 0, 1);
+		Check(VpePcmRoutingAbi() == 1, "routing extension");
+		const int busZone[7] = {0, 0, 1, 1, 1, 0, 0}, zonePair[5] = {0, 2, 0, 0}, none[5] = {0, 0, 0, 0};
+		Check(VpePcmSetRouting(s.c, busZone, zonePair, none, nullptr) == 1, "routing accepted");
+		Check(VpePcmOutputChannels(s.c, -1) == 6 && VpePcmOutputChannels(s.c, 0) == 2, "an output needs the channels of its furthest pair");
+		std::array<float, 8 * 4> wide{}; Check(VpePcmRender(s.c, wide.data(), 4, 8, 48000, 0) == 1, "eight-channel render");
+		for (int f = 0; f < 4; ++f) {
+			const float* frame = wide.data() + f * 8;
+			Check(Near(frame[0], .4f) && Near(frame[1], .2f) && Near(frame[4], .1f) && Near(frame[5], .3f), "each zone plays on its own pair");
+			Check(frame[2] == 0 && frame[3] == 0 && frame[6] == 0 && frame[7] == 0, "pairs without a zone stay silent");
+		}
+		std::array<float, 4 * 4> quad{}; VpePcmRender(s.c, quad.data(), 4, 4, 48000, 0);
+		Check(Near(quad[0], .5f) && Near(quad[1], .5f) && quad[2] == 0, "a pair the output doesn't have plays on the first one");
+		std::array<float, 12> meters{}; VpePcmMetrics(s.c, meters.data(), 12);
+		Check(Near(meters[0], .4f) && Near(meters[2], .3f), "bus meters are independent of the routing");
+		const int badZone[7] = {0, 0, 5, 0, 0, 0, 0}, badPair[5] = {0, 8, 0, 0}, badTap[5] = {0, 5, 0, 0};
+		Check(!VpePcmSetRouting(s.c, badZone, zonePair, none, nullptr) && !VpePcmSetRouting(s.c, busZone, badPair, none, nullptr) && !VpePcmSetRouting(s.c, busZone, zonePair, badTap, nullptr)
+			&& !VpePcmSetRouting(s.c, nullptr, zonePair, none, nullptr), "invalid routing is refused");
+		VpePcmRender(s.c, wide.data(), 4, 8, 48000, 0);
+		Check(Near(wide[4], .1f), "a refused routing leaves the last one in place");
+		// With the DSP graph, every zone has its own chain; a dry chain passes the zone unchanged after its delay.
+		Check(VpePcmPrepareDsp(s.c, 48000) == 1, "DSP prepared");
+		std::vector<float> block(1024 * 8); VpePcmRender(s.c, block.data(), 1024, 8, 48000, 0);
+		const float* last = block.data() + 1023 * 8;
+		Check(Near(last[0], .4f) && Near(last[1], .2f) && Near(last[4], .1f) && Near(last[5], .3f) && last[2] == 0, "zones keep their pairs through the processing chains");
+	}
+	{
+		// A zone on another device: the renderer feeds a tap, that device's thread pulls it.
+		Session s; const std::array<float, 2> a{{.4f, .2f}}, b{{.1f, .3f}};
+		const int clipA = VpePcmRegisterClip(s.c, a.data(), 1, 2, 48000), clipB = VpePcmRegisterClip(s.c, b.data(), 1, 2, 48000);
+		VpePcmPlay(s.c, clipA, 0, 1, 1, 0, 1); VpePcmPlay(s.c, clipB, 2, 1, 1, 0, 1);
+		const int busZone[7] = {0, 0, 1, 0, 0, 0, 0}, zonePair[5] = {0, 1, 0, 0}, zoneTap[5] = {0, 1, 0, 0};
+		VpePcmSetRouting(s.c, busZone, zonePair, zoneTap, nullptr);
+		Check(VpePcmOutputChannels(s.c, -1) == 2 && VpePcmOutputChannels(s.c, 0) == 4 && VpePcmOutputChannels(s.c, 1) == 2, "a tap's device needs the channels of the tap's zones");
+		std::array<float, 480 * 2> out{}; std::array<float, 480 * 4> other{}; std::array<float, 5> m{};
+		VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		Check(Near(out[0], .4f) && Near(out[1], .2f), "a tapped zone leaves the rendering output");
+		Check(VpePcmTapRender(s.c, 0, other.data(), 480, 4) == 1 && other[2] == 0, "a tap nobody attached to carries nothing");
+		Check(VpePcmTapMetrics(s.c, 0, m.data(), 5) == 1 && m[0] == 0, "an unattached tap queues nothing");
+		Check(VpePcmTapAttach(s.c, 0, 1) == 1 && !VpePcmTapAttach(s.c, 4, 1), "tap attach");
+		VpePcmRender(s.c, out.data(), 480, 2, 48000, 0); VpePcmTapRender(s.c, 0, other.data(), 480, 4);
+		Check(other[2] == 0, "a tap waits for its jitter buffer");
+		for (int i = 0; i < 4; ++i) VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		VpePcmTapRender(s.c, 0, other.data(), 480, 4);
+		Check(Near(other[2], .1f) && Near(other[3], .3f) && Near(other[479 * 4 + 2], .1f) && other[0] == 0 && other[1] == 0, "a tap plays its zone on the zone's pair");
+		std::array<float, 480 * 2> narrow{}; VpePcmRender(s.c, out.data(), 480, 2, 48000, 0); VpePcmTapRender(s.c, 0, narrow.data(), 480, 2);
+		Check(Near(narrow[0], .1f) && Near(narrow[1], .3f), "a stereo device plays the tap's zone on its only pair");
+		for (int i = 0; i < 8; ++i) VpePcmTapRender(s.c, 0, other.data(), 480, 4);
+		VpePcmTapMetrics(s.c, 0, m.data(), 5); Check(m[2] >= 1, "a tap running dry counts an underflow");
+		for (int i = 0; i < 40; ++i) VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		VpePcmTapMetrics(s.c, 0, m.data(), 5); Check(m[3] >= 1 && m[0] <= 8192, "a stalled reader drops blocks instead of growing the queue");
+		VpePcmTapRender(s.c, 0, other.data(), 480, 4); VpePcmTapRender(s.c, 0, other.data(), 480, 4);
+		VpePcmTapMetrics(s.c, 0, m.data(), 5); Check(m[4] >= 1 && m[0] <= m[1] * 2 + 256, "a reader far behind skips to the newest audio");
+		VpePcmTapAttach(s.c, 0, 0); VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		const int back[7] = {0, 0, 0, 0, 0, 0, 0}, none[5] = {0, 0, 0, 0};
+		VpePcmSetRouting(s.c, back, none, none, nullptr); VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		Check(Near(out[0], .5f) && Near(out[1], .5f), "routing a bus back plays it on the rendering output again");
+	}
+	{
+		// Four speakers: a mechanical voice fades between the pair near the player and the pair near the backbox.
+		Session s; const std::array<float, 1> one{{1.f}};
+		const int clip = VpePcmRegisterClip(s.c, one.data(), 1, 1, 48000);
+		const int busZone[7] = {0, 0, 0, 0, 0, 0, 0}, zonePair[5] = {0, 1, 0, 0}, none[5] = {0, 0, 0, 0};
+		VpePcmSetRouting(s.c, busZone, zonePair, none, nullptr);
+		Check(VpePcmSetSurround(s.c, 0, 1, 1) == 1 && VpePcmSetSurround(s.c, 1, 1, 1) == 1 && !VpePcmSetSurround(s.c, 0, 1, 5) && !VpePcmSetSurround(s.c, 2, 1, 1) && !VpePcmSetSurround(nullptr, 0, 1, 1), "surround setting");
+		Check(VpePcmOutputChannels(s.c, -1) == 4, "the back pair counts as channels of its output");
+		const auto front = VpePcmPlayAt(s.c, clip, 0, 1, 1, -1, 0, 1);
+		std::array<float, 4> q{}; VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		Check(Near(q[0], 1) && q[1] == 0 && q[2] == 0 && q[3] == 0, "a voice at the player's end plays on the front pair only");
+		VpePcmStop(s.c, front); VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		const auto back = VpePcmPlayAt(s.c, clip, 1, 1, 1, 1, 1, 1);
+		VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		Check(q[0] == 0 && q[1] == 0 && q[2] == 0 && Near(q[3], 1), "a rolling voice at the backbox plays on the back pair only");
+		std::array<float, 12> meters{}; VpePcmMetrics(s.c, meters.data(), 12);
+		Check(Near(meters[1], 1), "a split bus meters both of its pairs");
+		Check(VpePcmUpdateAt(s.c, back, 1, 1, 0, .5f, 0) == 1, "depth update");
+		std::vector<float> block(480 * 4); VpePcmRender(s.c, block.data(), 480, 4, 48000, 0);
+		const float* last = block.data() + 479 * 4;
+		Check(Near(last[0], .5f) && Near(last[1], .5f) && Near(last[2], .5f) && Near(last[3], .5f), "the middle of the playfield plays on all four with constant power");
+		Check(block[4 + 3] < 1 && block[4 + 3] > .5f && block[4] > 0 && block[4] < .5f, "moving over the playfield ramps without a jump");
+		Check(!VpePcmPlayAt(s.c, clip, 0, 1, 1, 0, 1.5f, 0) && !VpePcmUpdateAt(s.c, back, 1, 1, 0, -.1f, 0), "depth outside the playfield is refused");
+		VpePcmStop(s.c, back); VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		const auto music = VpePcmPlayAt(s.c, clip, 3, 1, 1, 0, 1, 1); VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		Check(q[0] > .7f && q[2] == 0, "other buses stay in their zone whatever their depth");
+		VpePcmStop(s.c, music); VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1); VpePcmRender(s.c, q.data(), 1, 4, 48000, 0);
+		Check(Near(q[0], .5f) && Near(q[2], .5f), "a voice without a depth plays in the middle");
+		VpePcmSetRouting(s.c, busZone, zonePair, none, nullptr); VpePcmRender(s.c, block.data(), 480, 4, 48000, 0);
+		Check(Near(block[479 * 4 + 2], .5f), "new routing keeps the surround setting");
+		VpePcmSetSurround(s.c, 0, 1, 0); VpePcmRender(s.c, block.data(), 480, 4, 48000, 0);
+		Check(Near(block[479 * 4], std::sqrt(.5f)) && block[479 * 4 + 2] == 0, "front and back on the same output play as one pair");
+		VpePcmSetSurround(s.c, 0, 0, 1); VpePcmRender(s.c, block.data(), 480, 4, 48000, 0);
+		Check(Near(block[479 * 4], std::sqrt(.5f)) && block[479 * 4 + 2] == 0, "without surround the depth doesn't matter");
+		// The back pair on another device, with the processing chains: a tap carries it.
+		const int zoneTap[5] = {0, 1, 0, 0};
+		VpePcmSetRouting(s.c, busZone, zonePair, zoneTap, nullptr); VpePcmSetSurround(s.c, 0, 1, 1); VpePcmTapAttach(s.c, 0, 1);
+		{
+			// A reserved zone keeps its channels on its output while its buses play elsewhere, and only rolling splits here.
+			const int reserved[5] = {0, 0, 1, 0, 0}, pairs[5] = {0, 1, 3, 0, 0};
+			VpePcmSetRouting(s.c, busZone, pairs, none, reserved);
+			Check(VpePcmOutputChannels(s.c, -1) == 8, "a reserved zone counts as channels of its output");
+			VpePcmSetRouting(s.c, busZone, pairs, none, nullptr);
+			Check(VpePcmOutputChannels(s.c, -1) == 4, "an unreserved zone without buses doesn't");
+			VpePcmSetRouting(s.c, busZone, zonePair, zoneTap, nullptr);
+		}
+		Check(VpePcmPrepareDsp(s.c, 48000) == 1 && VpePcmOutputChannels(s.c, -1) == 2 && VpePcmOutputChannels(s.c, 0) == 4, "back pair on a tap");
+		std::array<float, 480 * 2> out{}; std::array<float, 480 * 4> other{};
+		for (int i = 0; i < 6; ++i) VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		VpePcmTapRender(s.c, 0, other.data(), 480, 4);
+		Check(Near(out[959], .5f) && Near(other[479 * 4 + 2], .5f) && Near(other[479 * 4 + 3], .5f) && other[479 * 4] == 0, "the back pair plays through its own chain on the other device");
+		VpePcmPreview(s.c, 7, 1);
+		bool heard = false, quiet = true;
+		for (int i = 0; i < 100; ++i) {
+			VpePcmRender(s.c, out.data(), 480, 2, 48000, 1); VpePcmTapRender(s.c, 0, other.data(), 480, 4);
+			for (float value : other) heard = heard || value != 0;
+			if (i > 0) for (float value : out) quiet = quiet && value == 0; // the first paused block still holds the limiter's 1 ms of delay
+		}
+		Check(heard && quiet, "the back pair's test noise plays on the back pair only");
+	}
+	for (double drift : {1.001, .999}) {
+		// Two devices whose clocks differ by 0.1% for a minute: the tap's drift compensation holds the queue.
+		Session s; const std::array<float, 2> b{{.1f, .3f}};
+		VpePcmPlay(s.c, VpePcmRegisterClip(s.c, b.data(), 1, 2, 48000), 2, 1, 1, 0, 1);
+		const int busZone[7] = {0, 0, 1, 0, 0, 0, 0}, zonePair[5] = {0, 0, 0, 0}, zoneTap[5] = {0, 1, 0, 0};
+		VpePcmSetRouting(s.c, busZone, zonePair, zoneTap, nullptr); VpePcmTapAttach(s.c, 0, 1);
+		std::array<float, 480 * 2> out{}, other{}; std::array<float, 5> m{};
+		double due = 0; bool steady = true;
+		for (int period = 0; period < 6000; ++period) {
+			for (due += drift; due >= 1; due -= 1) VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+			VpePcmTapRender(s.c, 0, other.data(), 480, 2);
+			if (period > 100) steady = steady && Near(other[0], .1f) && Near(other[959], .3f);
+		}
+		VpePcmTapMetrics(s.c, 0, m.data(), 5);
+		Check(m[2] == 0 && m[3] == 0 && m[4] == 0, "tap drift compensation runs without underflows, overflows or drops");
+		Check(steady, "tap drift compensation never interrupts the signal");
+	}
+	{
+		Check(VpePcmOutputOpen(nullptr, 48000, 0, 0, 0, nullptr, -1) == nullptr, "an output on a device needs a graph");
+		Session s; Check(VpePcmOutputOpen(s.c, 48000, 0, 0, 0, nullptr, 4) == nullptr, "an output plays tap 0 to 3 or renders");
+		// Needs real playback devices: --live-routing [part of a second device's name] [its pair] [seconds] [part of the
+		// rendering device's name, which then plays a higher tone on that pair too]. Without a name it lists them.
+		if (argc > 1 && std::string(argv[1]) == "--live-routing") {
+			std::vector<char> list(static_cast<size_t>(VpePcmDeviceList(nullptr, 0)));
+			Check(!list.empty() && VpePcmDeviceList(list.data(), static_cast<int>(list.size())) == static_cast<int>(list.size()), "device list");
+			std::printf("playback devices (id, name, channels, default):\n%s", list.data());
+			std::string second, main;
+			for (std::string rest = list.data(); argc > 2 && !rest.empty();) {
+				const auto end = rest.find('\n'); const auto line = rest.substr(0, end); rest = end == std::string::npos ? "" : rest.substr(end + 1);
+				if (line.find(argv[2]) != std::string::npos) second = line.substr(0, line.find('\t'));
+				if (argc > 5 && line.find(argv[5]) != std::string::npos) main = line.substr(0, line.find('\t'));
+			}
+			if (!second.empty()) {
+				std::vector<float> tone(48000 * 2); for (int i = 0; i < 48000; ++i) tone[i * 2] = tone[i * 2 + 1] = .05f * std::sin(i * 6.2831853f * 440 / 48000);
+				const int clip = VpePcmRegisterClip(s.c, tone.data(), 48000, 2, 48000);
+				const int pair = argc > 3 ? std::atoi(argv[3]) : 0;
+				const int busZone[7] = {0, 0, 1, 0, 0, 0, 0}, zonePair[5] = {main.empty() ? 0 : pair, pair, 0, 0}, zoneTap[5] = {0, 1, 0, 0};
+				VpePcmSetRouting(s.c, busZone, zonePair, zoneTap, nullptr);
+				void* first = VpePcmOutputOpen(s.c, 48000, 0, 0, 0, main.empty() ? nullptr : main.c_str(), -1);
+				if (!main.empty()) VpePcmPlay(s.c, clip, 0, 1, 1.5f, 0, 1);
+				void* other = VpePcmOutputOpen(s.c, 48000, 0, 0, 0, second.c_str(), 0);
+				Check(first != nullptr && other != nullptr, "live outputs open on two devices");
+				VpePcmPlay(s.c, clip, 2, 1, 1, 0, 1);
+				// New streams underrun while the Windows engine settles: judge the tap after that.
+				std::array<float, 13> a{}, b{}; std::array<float, 5> t{}, settled{};
+				std::this_thread::sleep_for(std::chrono::seconds(2)); VpePcmTapMetrics(s.c, 0, settled.data(), 5);
+				std::this_thread::sleep_for(std::chrono::seconds(argc > 4 ? std::atoi(argv[4]) : 3));
+				VpePcmOutputMetrics(first, a.data(), 13); VpePcmOutputMetrics(other, b.data(), 13); VpePcmTapMetrics(s.c, 0, t.data(), 5);
+				std::printf("rendering output: state %.0f, callbacks %.0f, period %.2f ms, underruns %.0f\n", a[0], a[1], a[2], a[6]);
+				std::printf("second output:    state %.0f, callbacks %.0f, period %.2f ms, queued %.2f ms, underruns %.0f\n", b[0], b[1], b[2], b[4], b[6]);
+				std::printf("tap: queued %.0f frames (%.1f ms), steered to %.0f, underflows %.0f, overflows %.0f, drops %.0f\n", t[0], t[0] / 48, t[1], t[2], t[3], t[4]);
+				Check(a[0] == 1 && b[0] == 1 && b[1] > 10, "both live outputs keep playing");
+				Check(t[2] == settled[2] && t[3] == settled[3] && t[4] == settled[4], "the live tap holds its buffer once the streams settled");
+				VpePcmOutputDestroy(other); VpePcmOutputDestroy(first);
+			}
+		}
 	}
 	std::printf("Passed %d PCM renderer checks\n",checks);
 }

@@ -1,12 +1,13 @@
 // Visual Pinball Engine. Copyright (C) 2026 freezy and VPE Team.
 // SPDX-License-Identifier: GPL-3.0-or-later
 // This library links the Steinberg ASIO SDK under its GPLv3 option, so it is kept apart from the
-// MIT-licensed VpePcm graph and only calls VpePcmRender through the already loaded VpePcm module.
+// MIT-licensed VpePcm graph and only calls VpePcmRender and VpePcmOutputChannels through the already loaded VpePcm module.
 
 // ASIO output for the central PCM graph. One dedicated thread owns the driver (COM, load, init, start,
 // stop and exit all happen there, with a message pump, as drivers expect), and the driver's buffer
 // callback renders the graph straight into the driver's buffers. ASIO's C callbacks carry no user
-// data, and the SDK host layer keeps one driver per process, so there is at most one stream.
+// data, and the SDK host layer keeps one driver per process, so there is at most one stream. It opens as many
+// of the driver's outputs as the graph's routing uses: each output zone plays on one stereo pair of them.
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -31,20 +32,24 @@ bool loadAsioDriver(char* name);
 
 namespace {
 using RenderFn = int (*)(void* context, float* output, int frames, int channels, int rate, int paused);
+using ChannelsFn = int (*)(void* context, int tap);
+constexpr int MaxOutputs = 16;
 // Same layout as VpePcmOutputMetrics so the managed side reads both alike.
 enum Metric { State, Callbacks, PeriodMs, BufferMs, QueuedMs, MarginMs, Glitches, Reopens, LastError, Rate, FirstUnderrunS, LastUnderrunS, MaxWakeGapMs, MetricCount };
 
 struct Stream {
 	void* context = nullptr;
 	RenderFn render = nullptr;
+	ChannelsFn outputChannels = nullptr; // missing in a VpePcm from before output routing: stereo
+	int outputs = 2; // the driver outputs in use, which the graph renders interleaved
 	std::string driver;
 	int rate = 0;
 	long requestedFrames = 0, frames = 0;
 	std::atomic<int> paused{0}, opened{0}, reset{0}, panel{0};
 	bool panelOnly = false; // keeps the driver loaded only to show its control panel
 	std::array<std::atomic<float>, MetricCount> metrics{};
-	ASIOBufferInfo buffers[3]{};
-	ASIOChannelInfo channels[3]{};
+	ASIOBufferInfo buffers[MaxOutputs + 1]{};
+	ASIOChannelInfo channels[MaxOutputs + 1]{};
 	int bufferCount = 0;
 	std::vector<float> scratch, capture;
 	HANDLE stop = nullptr, ready = nullptr;
@@ -95,7 +100,7 @@ void Switch(long index)
 		float(1000.0 * (now.QuadPart - s->lastSwitch.QuadPart) / s->frequency.QuadPart)), std::memory_order_relaxed);
 	s->lastSwitch = now;
 	const long frames = s->frames;
-	s->render(s->context, s->scratch.data(), static_cast<int>(frames), 2, s->rate, s->paused.load(std::memory_order_relaxed));
+	s->render(s->context, s->scratch.data(), static_cast<int>(frames), s->outputs, s->rate, s->paused.load(std::memory_order_relaxed));
 	for (int c = 0; c < s->bufferCount; ++c) {
 		const auto& info = s->buffers[c]; const auto type = s->channels[c].type;
 		if (info.isInput) {
@@ -105,7 +110,7 @@ void Switch(long index)
 			std::fwrite(header, sizeof header, 1, s->captureFile); std::fwrite(&count, 4, 1, s->captureFile); std::fwrite(s->capture.data(), 4, frames, s->captureFile);
 			continue;
 		}
-		for (long i = 0; i < frames; ++i) Write(info.buffers[index], type, i, s->scratch[static_cast<size_t>(i) * 2 + info.channelNum]);
+		for (long i = 0; i < frames; ++i) Write(info.buffers[index], type, i, s->scratch[static_cast<size_t>(i) * s->outputs + info.channelNum]);
 	}
 	s->samples += frames;
 	s->Add(Callbacks);
@@ -138,12 +143,15 @@ bool Start(Stream& s)
 	if (granularity == -1 && s.requestedFrames > 0) { long p = minimum; while (p < frames && p * 2 <= maximum) p *= 2; frames = p; }
 	long inputs = 0, outputs = 0; ASIOGetChannels(&inputs, &outputs);
 	if (outputs < 2) { s.error = "the driver has fewer than two outputs"; return false; }
+	// Whole stereo pairs: what the routing asks for, as far as the driver has them.
+	const long wanted = s.outputChannels ? s.outputChannels(s.context, -1) : 2;
+	s.outputs = static_cast<int>(std::clamp(std::min(wanted, outputs) / 2 * 2, 2L, static_cast<long>(MaxOutputs)));
 	s.bufferCount = 0;
-	for (long c = 0; c < 2; ++c) { s.buffers[s.bufferCount] = ASIOBufferInfo{}; s.buffers[s.bufferCount].isInput = ASIOFalse; s.buffers[s.bufferCount].channelNum = c; ++s.bufferCount; }
+	for (long c = 0; c < s.outputs; ++c) { s.buffers[s.bufferCount] = ASIOBufferInfo{}; s.buffers[s.bufferCount].isInput = ASIOFalse; s.buffers[s.bufferCount].channelNum = c; ++s.bufferCount; }
 	if (s.captureChannel >= 0 && s.captureChannel < inputs) { s.buffers[s.bufferCount] = ASIOBufferInfo{}; s.buffers[s.bufferCount].isInput = ASIOTrue; s.buffers[s.bufferCount].channelNum = s.captureChannel; ++s.bufferCount; }
 	static ASIOCallbacks callbacks{ BufferSwitch, RateChanged, Message, BufferSwitchTimeInfo };
 	s.frames = frames;
-	s.scratch.assign(static_cast<size_t>(frames) * 2, 0.f); s.capture.assign(static_cast<size_t>(frames), 0.f);
+	s.scratch.assign(static_cast<size_t>(frames) * s.outputs, 0.f); s.capture.assign(static_cast<size_t>(frames), 0.f);
 	if (ASIOCreateBuffers(s.buffers, s.bufferCount, frames, &callbacks) != ASE_OK) { s.error = "ASIOCreateBuffers failed"; return false; }
 	for (int c = 0; c < s.bufferCount; ++c) {
 		s.channels[c] = ASIOChannelInfo{}; s.channels[c].channel = s.buffers[c].channelNum; s.channels[c].isInput = s.buffers[c].isInput;
@@ -285,6 +293,7 @@ VPE_ASIO_API void* VpeAsioOutputCreate(void* context, const char* driver, int ra
 	auto render = pcm ? reinterpret_cast<RenderFn>(reinterpret_cast<void*>(GetProcAddress(pcm, "VpePcmRender"))) : nullptr;
 	if (!render) return fail("VpePcm is not loaded");
 	auto* s = new Stream();
+	s->outputChannels = reinterpret_cast<ChannelsFn>(reinterpret_cast<void*>(GetProcAddress(pcm, "VpePcmOutputChannels")));
 	s->context = context; s->render = render; s->driver = driver; s->rate = rate; s->requestedFrames = bufferFrames;
 	s->paused.store(paused ? 1 : 0);
 	for (auto& metric : s->metrics) metric.store(0);
