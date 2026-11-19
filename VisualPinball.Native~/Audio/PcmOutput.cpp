@@ -5,11 +5,16 @@
 // stream renders the graph on its own MMCSS thread and keeps only one engine period plus a small margin
 // queued, instead of going through Unity's mixer ring and FMOD's own WASAPI buffer. Other platforms
 // report no output, so the managed side keeps Unity's carrier.
+//
+// One output renders the graph, on the default device or a chosen one. More outputs on other devices each play
+// a tap of the graph (the zones routed to that device) on their own clock. An output whose zones use more than
+// the first stereo pair opens the device with all of its channels.
 
 #include "PcmRenderer.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <cstring>
 #include <vector>
 
 namespace {
@@ -38,6 +43,8 @@ struct Stream {
 	IAudioRenderClient* render = nullptr;
 	std::wstring device;
 	UINT32 bufferFrames = 0, periodFrames = 0;
+	WORD channels = 2;
+	DWORD channelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
 	Sample sample = Sample::Float32; // exclusive streams use the device's own format
 	std::vector<float> convert;
 	void Close() {
@@ -46,18 +53,18 @@ struct Stream {
 	}
 };
 
-WAVEFORMATEXTENSIBLE Format(int rate, WORD container, WORD valid, bool floating)
+WAVEFORMATEXTENSIBLE Format(int rate, WORD container, WORD valid, bool floating, WORD channels, DWORD mask)
 {
 	WAVEFORMATEXTENSIBLE format{};
 	format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-	format.Format.nChannels = 2;
+	format.Format.nChannels = channels;
 	format.Format.nSamplesPerSec = static_cast<DWORD>(rate);
 	format.Format.wBitsPerSample = container;
-	format.Format.nBlockAlign = static_cast<WORD>(2 * container / 8);
+	format.Format.nBlockAlign = static_cast<WORD>(channels * container / 8);
 	format.Format.nAvgBytesPerSec = static_cast<DWORD>(rate) * format.Format.nBlockAlign;
 	format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 	format.Samples.wValidBitsPerSample = valid;
-	format.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+	format.dwChannelMask = mask;
 	format.SubFormat = floating ? KSDATAFORMAT_SUBTYPE_IEEE_FLOAT : KSDATAFORMAT_SUBTYPE_PCM;
 	return format;
 }
@@ -78,6 +85,9 @@ void Convert(const float* from, BYTE* to, size_t samples, Sample sample)
 struct Output {
 	void* context = nullptr;
 	int rate = 0;
+	int tap = -1; // -1 renders the graph; 0..3 plays that tap of it and never renders
+	bool demote = false; // an exclusive stream that can't reopen exclusively plays shared from then on
+	std::wstring wanted; // endpoint id, or empty to play on the default device and follow it
 	bool exclusive = false; // the device belongs to this stream alone: no Windows mixing, period-sized buffers
 	UINT32 requestedFrames = 0; // exclusive period in frames, 0 for the device's minimum
 	std::atomic<int> paused{0};
@@ -96,15 +106,21 @@ struct Output {
 	void Add(Metric metric) { metrics[metric].store(metrics[metric].load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
 	float Ms(UINT32 frames) const { return 1000.f * frames / rate; }
 
+	void Render(float* data, int frames, int channels)
+	{
+		if (tap < 0) VpePcmRender(context, data, frames, channels, rate, paused.load(std::memory_order_relaxed));
+		else VpePcmTapRender(context, tap, data, frames, channels);
+	}
+
 	void Fill(Stream& stream, UINT32 frames)
 	{
 		BYTE* data = nullptr;
 		if (frames == 0 || FAILED(stream.render->GetBuffer(frames, &data))) return;
 		if (stream.sample == Sample::Float32) {
-			VpePcmRender(context, reinterpret_cast<float*>(data), static_cast<int>(frames), 2, rate, paused.load(std::memory_order_relaxed));
+			Render(reinterpret_cast<float*>(data), static_cast<int>(frames), stream.channels);
 		} else {
-			stream.convert.resize(static_cast<size_t>(frames) * 2);
-			VpePcmRender(context, stream.convert.data(), static_cast<int>(frames), 2, rate, paused.load(std::memory_order_relaxed));
+			stream.convert.resize(static_cast<size_t>(frames) * stream.channels);
+			Render(stream.convert.data(), static_cast<int>(frames), stream.channels);
 			Convert(stream.convert.data(), data, stream.convert.size(), stream.sample);
 		}
 		stream.render->ReleaseBuffer(frames, 0);
@@ -114,12 +130,27 @@ struct Output {
 	HRESULT Open(IMMDeviceEnumerator* enumerator, HANDLE wake, Stream& stream)
 	{
 		IMMDevice* device = nullptr;
-		HRESULT hr = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+		HRESULT hr = wanted.empty() ? enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device) : enumerator->GetDevice(wanted.c_str(), &device);
 		if (SUCCEEDED(hr)) {
 			LPWSTR id = nullptr;
 			if (SUCCEEDED(device->GetId(&id))) { stream.device = id; CoTaskMemFree(id); }
 			hr = device->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr, reinterpret_cast<void**>(&stream.client));
 		}
+		stream.channels = 2; stream.channelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+		if (SUCCEEDED(hr) && VpePcmOutputChannels(context, tap) > 2) {
+			// Zones beyond the first pair need the device's own layout: a stereo stream would be spread over its
+			// speakers by Windows. A device with fewer channels keeps the stereo stream, and those zones play on it.
+			WAVEFORMATEX* mix = nullptr;
+			if (SUCCEEDED(stream.client->GetMixFormat(&mix)) && mix) {
+				if (mix->nChannels > 2 && mix->nChannels <= 16) {
+					stream.channels = mix->nChannels;
+					stream.channelMask = mix->wFormatTag == WAVE_FORMAT_EXTENSIBLE && mix->cbSize >= 22 ? reinterpret_cast<WAVEFORMATEXTENSIBLE*>(mix)->dwChannelMask : 0;
+					if (!stream.channelMask) stream.channelMask = (1u << mix->nChannels) - 1;
+				}
+				CoTaskMemFree(mix);
+			}
+		}
+		if (tap >= 0) VpePcmTapAttach(context, tap, 1); // start at the newest audio, also after a lost device
 		if (exclusive) {
 			if (SUCCEEDED(hr)) hr = OpenExclusive(device, wake, stream);
 			if (device) device->Release();
@@ -128,8 +159,8 @@ struct Output {
 			return hr;
 		}
 		if (device) device->Release();
-		// Float stereo at the graph's rate; Windows converts to the engine's mix format when they differ.
-		auto format = Format(rate, 32, 32, true);
+		// Float at the graph's rate; Windows converts to the engine's mix format when they differ.
+		auto format = Format(rate, 32, 32, true, stream.channels, stream.channelMask);
 		stream.sample = Sample::Float32;
 		REFERENCE_TIME period = 0, minimum = 0;
 		if (SUCCEEDED(hr)) hr = stream.client->GetDevicePeriod(&period, &minimum);
@@ -160,8 +191,11 @@ struct Output {
 		WAVEFORMATEXTENSIBLE format{};
 		bool found = false;
 		for (const auto& candidate : candidates) {
-			format = Format(rate, candidate.container, candidate.valid, candidate.floating);
-			if (stream.client->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, &format.Format, nullptr) == S_OK) { stream.sample = candidate.sample; found = true; break; }
+			format = Format(rate, candidate.container, candidate.valid, candidate.floating, stream.channels, stream.channelMask);
+			const HRESULT supported = stream.client->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, &format.Format, nullptr);
+			if (supported == S_OK) { stream.sample = candidate.sample; found = true; break; }
+			// a device that went away is no verdict on its formats: the caller retries instead of giving up on exclusive
+			if (supported == AUDCLNT_E_DEVICE_INVALIDATED || supported == AUDCLNT_E_SERVICE_NOT_RUNNING) return supported;
 		}
 		if (!found) return AUDCLNT_E_UNSUPPORTED_FORMAT;
 		REFERENCE_TIME period = 0, minimum = 0;
@@ -214,20 +248,27 @@ struct Output {
 		opened.store(SUCCEEDED(hr) ? 1 : -1, std::memory_order_release);
 		SetEvent(ready);
 		std::vector<float> scratch(static_cast<size_t>(rate / 100) * 2);
+		auto close = [&] { stream.Close(); if (tap >= 0) VpePcmTapAttach(context, tap, 0); }; // a tap without a device is silent
 		ULONGLONG nextDeviceCheck = GetTickCount64() + 1000, nextRetry = 0;
 		bool running = SUCCEEDED(hr);
 		while (running) {
 			const ULONGLONG now = GetTickCount64();
 			if (!stream.client) {
 				if (now >= nextRetry) {
-					if (SUCCEEDED(Open(enumerator, wake, stream))) Add(Reopens);
+					const HRESULT reopened = Open(enumerator, wake, stream);
+					if (SUCCEEDED(reopened)) Add(Reopens);
+					else if (exclusive && demote && (reopened == AUDCLNT_E_UNSUPPORTED_FORMAT || reopened == AUDCLNT_E_EXCLUSIVE_MODE_NOT_ALLOWED || reopened == AUDCLNT_E_DEVICE_IN_USE)) {
+						// The device that plays now (a new default one, say) can't be taken exclusively: share it rather than stay silent.
+						exclusive = false;
+					}
 					else nextRetry = now + 500;
 				}
 				if (!stream.client) {
 					// No device: keep the graph's clock running so one-shots finish and the ROM stream drains.
 					Set(State, 2);
+					if (tap >= 0) VpePcmTapAttach(context, tap, 0);
 					if (WaitForSingleObject(stop, 10) == WAIT_OBJECT_0) break;
-					VpePcmRender(context, scratch.data(), rate / 100, 2, rate, paused.load(std::memory_order_relaxed));
+					if (tap < 0) VpePcmRender(context, scratch.data(), rate / 100, 2, rate, paused.load(std::memory_order_relaxed));
 					continue;
 				}
 			}
@@ -265,14 +306,14 @@ struct Output {
 				Fill(stream, frames);
 				Set(QueuedMs, Ms(padding + frames));
 			}
-			if (FAILED(hr) || (now >= nextDeviceCheck && DefaultChanged(enumerator, stream.device))) {
+			if (FAILED(hr) || (wanted.empty() && now >= nextDeviceCheck && DefaultChanged(enumerator, stream.device))) {
 				// Device lost or the user picked another default output: follow it like Unity does.
 				if (FAILED(hr)) Set(LastError, static_cast<float>(static_cast<unsigned>(hr))); error.store(static_cast<unsigned>(hr));
-				stream.Close(); nextRetry = 0;
+				close(); nextRetry = 0;
 			}
 			if (now >= nextDeviceCheck) nextDeviceCheck = now + 1000;
 		}
-		stream.Close();
+		close();
 		Release(enumerator);
 		if (wake) CloseHandle(wake);
 		if (mmcss) AvRevertMmThreadCharacteristics(mmcss);
@@ -284,12 +325,26 @@ struct Output {
 
 void* VpePcmOutputCreate(void* context, int rate, int paused) { return VpePcmOutputCreateEx(context, rate, paused, 0, 0); }
 
-void* VpePcmOutputCreateEx(void* context, int rate, int paused, int mode, int bufferFrames)
+namespace {
+void* Create(void* context, int rate, int paused, int mode, int bufferFrames, const char* deviceId, int tap, bool demote);
+}
+void* VpePcmOutputCreateEx(void* context, int rate, int paused, int mode, int bufferFrames) { return Create(context, rate, paused, mode, bufferFrames, nullptr, -1, false); }
+void* VpePcmOutputOpen(void* context, int rate, int paused, int mode, int bufferFrames, const char* deviceId, int tap) { return Create(context, rate, paused, mode, bufferFrames, deviceId, tap, true); }
+
+namespace {
+void* Create(void* context, int rate, int paused, int mode, int bufferFrames, const char* deviceId, int tap, bool demote)
 {
-	if (!context || rate < 8000 || rate > 192000 || mode < 0 || mode > 1 || bufferFrames < 0 || bufferFrames > 8192) return nullptr;
+	if (!context || rate < 8000 || rate > 192000 || mode < 0 || mode > 1 || bufferFrames < 0 || bufferFrames > 8192 || tap < -1 || tap > 3) return nullptr;
 	auto* output = new (std::nothrow) Output();
 	if (!output) return nullptr;
 	output->context = context; output->rate = rate; output->paused.store(paused ? 1 : 0); // before the prefill renders
+	output->tap = tap; output->demote = demote;
+	if (deviceId && *deviceId) {
+		const int length = MultiByteToWideChar(CP_UTF8, 0, deviceId, -1, nullptr, 0);
+		if (length <= 1) { delete output; return nullptr; }
+		output->wanted.resize(static_cast<size_t>(length) - 1);
+		MultiByteToWideChar(CP_UTF8, 0, deviceId, -1, output->wanted.data(), length);
+	}
 	output->exclusive = mode == 1; output->requestedFrames = static_cast<UINT32>(bufferFrames);
 	for (auto& metric : output->metrics) metric.store(0);
 	output->Set(Rate, static_cast<float>(rate));
@@ -304,6 +359,8 @@ void* VpePcmOutputCreateEx(void* context, int rate, int paused, int mode, int bu
 		VpePcmOutputDestroy(output); return nullptr;
 	}
 	return output;
+}
+
 }
 
 void VpePcmOutputDestroy(void* handle)
@@ -331,10 +388,75 @@ int VpePcmOutputMetrics(void* handle, float* values, int count)
 	return 1;
 }
 
+namespace {
+// PKEY_Device_FriendlyName and PKEY_AudioEngine_DeviceFormat, spelled out so no extra header defines them here.
+const PROPERTYKEY FriendlyName = { { 0xa45c254e, 0xdf1c, 0x4efd, { 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0 } }, 14 };
+const PROPERTYKEY DeviceFormat = { { 0xf19f064d, 0x082c, 0x4e27, { 0xbc, 0x73, 0x68, 0x82, 0xa1, 0xbb, 0x8e, 0x4c } }, 0 };
+
+std::string Utf8(const wchar_t* text)
+{
+	if (!text) return {};
+	const int length = WideCharToMultiByte(CP_UTF8, 0, text, -1, nullptr, 0, nullptr, nullptr);
+	if (length <= 1) return {};
+	std::string value(static_cast<size_t>(length) - 1, '\0');
+	WideCharToMultiByte(CP_UTF8, 0, text, -1, value.data(), length, nullptr, nullptr);
+	for (auto& character : value) if (character == '\t' || character == '\n' || character == '\r') character = ' ';
+	return value;
+}
+std::string Id(IMMDevice* device)
+{
+	LPWSTR id = nullptr; std::string value;
+	if (device && SUCCEEDED(device->GetId(&id))) { value = Utf8(id); CoTaskMemFree(id); }
+	return value;
+}
+}
+
+int VpePcmDeviceList(char* buffer, int length)
+{
+	// The caller's thread may already use COM in another mode: then it is initialized, and not ours to release.
+	const HRESULT com = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+	std::string list;
+	IMMDeviceEnumerator* enumerator = nullptr;
+	if (SUCCEEDED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator)))) {
+		std::string standard;
+		IMMDevice* device = nullptr;
+		if (SUCCEEDED(enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device))) { standard = Id(device); Release(device); }
+		IMMDeviceCollection* devices = nullptr;
+		UINT count = 0;
+		if (SUCCEEDED(enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &devices)) && SUCCEEDED(devices->GetCount(&count))) {
+			for (UINT i = 0; i < count; ++i) {
+				if (FAILED(devices->Item(i, &device))) continue;
+				const auto id = Id(device);
+				std::string name = id; int channels = 2;
+				IPropertyStore* store = nullptr;
+				if (SUCCEEDED(device->OpenPropertyStore(STGM_READ, &store))) {
+					PROPVARIANT value; PropVariantInit(&value);
+					if (SUCCEEDED(store->GetValue(FriendlyName, &value)) && value.vt == VT_LPWSTR) name = Utf8(value.pwszVal);
+					PropVariantClear(&value);
+					if (SUCCEEDED(store->GetValue(DeviceFormat, &value)) && value.vt == VT_BLOB && value.blob.cbSize >= sizeof(WAVEFORMATEX))
+						channels = reinterpret_cast<const WAVEFORMATEX*>(value.blob.pBlobData)->nChannels;
+					PropVariantClear(&value);
+					Release(store);
+				}
+				Release(device);
+				if (!id.empty()) list += id + '\t' + name + '\t' + std::to_string(channels) + '\t' + (id == standard ? '1' : '0') + '\n';
+			}
+		}
+		Release(devices);
+		Release(enumerator);
+	}
+	if (SUCCEEDED(com)) CoUninitialize();
+	const int needed = static_cast<int>(list.size()) + 1;
+	if (buffer && length >= needed) std::memcpy(buffer, list.c_str(), static_cast<size_t>(needed));
+	return needed;
+}
+
 #else
 
 void* VpePcmOutputCreate(void*, int, int) { return nullptr; }
 void* VpePcmOutputCreateEx(void*, int, int, int, int) { return nullptr; }
+void* VpePcmOutputOpen(void*, int, int, int, int, const char*, int) { return nullptr; }
+int VpePcmDeviceList(char*, int) { return 0; }
 void VpePcmOutputDestroy(void*) {}
 void VpePcmOutputSetPaused(void*, int) {}
 unsigned VpePcmOutputLastError() { return 0; }

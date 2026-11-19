@@ -12,13 +12,17 @@
 
 namespace {
 constexpr int BusCount = 7, VoiceCount = 512, QueueSize = 4096, StreamSize = 8192, BlockSize = 4096, StreamCount = 8, RomBus = 2;
+constexpr int ZoneCount = 5, TapCount = 4, TapSize = 8192, MaxChannels = 16;
+// The mechanical buses (0 and 1) have a second buffer each for the pair near the backbox, after the seven buses.
+constexpr int SurroundBuses = 2, BufferCount = BusCount + SurroundBuses;
 static_assert(std::atomic<float>::is_always_lock_free && std::atomic<std::uint64_t>::is_always_lock_free, "PCM control atomics must be lock-free");
 float Finite(float value) { return std::isfinite(value) ? value : 0.f; }
+bool Depth(float depth) { return std::isfinite(depth) && depth >= 0 && depth <= 1; }
 bool Controls(float gain, float pitch, float pan) { return std::isfinite(gain) && gain >= 0 && gain <= 4 && std::isfinite(pitch) && pitch >= .01f && pitch <= 3 && std::isfinite(pan) && pan >= -1 && pan <= 1; }
 struct Clip { std::vector<float> samples; int frames, channels, rate; };
-struct Command { std::uint64_t id = 0; Clip* clip = nullptr; int bus = 0; float gain = 1, pitch = 1, pan = 0; bool start = false, loop = false, paused = false; };
+struct Command { std::uint64_t id = 0; Clip* clip = nullptr; int bus = 0; float gain = 1, pitch = 1, pan = 0, depth = .5f; bool start = false, loop = false, paused = false; };
 struct Slot { std::atomic<std::uint64_t> generation{0}, stop{0}; std::atomic<int> state{0}; std::atomic<float> seconds{0}; };
-struct Voice { Command controls{}; double cursor = 0; float left = 0, right = 0; bool active = false, fresh = true; };
+struct Voice { Command controls{}; double cursor = 0; float left = 0, right = 0, backLeft = 0, backRight = 0; bool active = false, fresh = true; };
 struct Stereo { float left = 0, right = 0; };
 // One live PCM input: a single producer pushes, the renderer reads. Slot 0 is the ROM stream of the original API;
 // slots 1.. are opened for other producers (plugin game audio, videos). A jitter buffer waits for `target` frames
@@ -54,6 +58,85 @@ struct StreamInput {
 		return Control();
 	}
 };
+// Where the buses play: each in one zone, each zone on one stereo pair of the rendering output or of a tap's device.
+// Published as one word, so the renderer never sees half of a change.
+struct Routing {
+	std::array<int, BusCount> busZone{};
+	std::array<int, ZoneCount> zonePair{}, zoneTap{}; // tap 0 is the rendering output, 1..4 a tap
+	std::array<bool, ZoneCount> reserved{}; // the zone's channels stay open on its output while no bus plays in it
+	// A mechanical bus on two pairs: its own zone near the player, backZone near the backbox.
+	std::array<bool, SurroundBuses> surround{};
+	std::array<int, SurroundBuses> backZone{};
+	// 7 x 3 bits of zones, 5 x 3 of pairs, 5 x 3 of taps, 5 reserved flags, then the surround settings: 64 in all.
+	static constexpr int PairShift = 21, TapShift = 36, ReservedShift = 51, SurroundShift = 56, BackShift = 58;
+	static constexpr std::uint64_t SurroundBits = ~std::uint64_t(0) << SurroundShift;
+	std::uint64_t Pack() const {
+		std::uint64_t bits = 0;
+		for (int bus = 0; bus < BusCount; ++bus) bits |= static_cast<std::uint64_t>(busZone[bus]) << (bus * 3);
+		for (int zone = 0; zone < ZoneCount; ++zone) {
+			bits |= static_cast<std::uint64_t>(zonePair[zone]) << (PairShift + zone * 3) | static_cast<std::uint64_t>(zoneTap[zone]) << (TapShift + zone * 3);
+			if (reserved[zone]) bits |= std::uint64_t(1) << (ReservedShift + zone);
+		}
+		for (int bus = 0; bus < SurroundBuses; ++bus) {
+			if (surround[bus]) bits |= std::uint64_t(1) << (SurroundShift + bus);
+			bits |= static_cast<std::uint64_t>(backZone[bus]) << (BackShift + bus * 3);
+		}
+		return bits;
+	}
+	static Routing Unpack(std::uint64_t bits) {
+		Routing routing;
+		for (int bus = 0; bus < BusCount; ++bus) routing.busZone[bus] = std::min(static_cast<int>(bits >> (bus * 3) & 7), ZoneCount - 1);
+		for (int zone = 0; zone < ZoneCount; ++zone) {
+			routing.zonePair[zone] = static_cast<int>(bits >> (PairShift + zone * 3) & 7);
+			routing.zoneTap[zone] = std::min(static_cast<int>(bits >> (TapShift + zone * 3) & 7), TapCount);
+			routing.reserved[zone] = (bits >> (ReservedShift + zone) & 1) != 0;
+		}
+		for (int bus = 0; bus < SurroundBuses; ++bus) {
+			routing.surround[bus] = (bits >> (SurroundShift + bus) & 1) != 0;
+			routing.backZone[bus] = std::min(static_cast<int>(bits >> (BackShift + bus * 3) & 7), ZoneCount - 1);
+		}
+		return routing;
+	}
+	// Whether a mechanical bus is split over two pairs; not when both would be the same zone.
+	bool Split(int bus) const { return bus < SurroundBuses && surround[bus] && busZone[bus] != backZone[bus]; }
+	// Bit per buffer that plays in the zone: the seven buses, then the back halves of the split ones.
+	unsigned Buffers(int zone) const {
+		unsigned mask = 0;
+		for (int bus = 0; bus < BusCount; ++bus) if (busZone[bus] == zone) mask |= 1u << bus;
+		for (int bus = 0; bus < SurroundBuses; ++bus) if (Split(bus) && backZone[bus] == zone) mask |= 1u << (BusCount + bus);
+		return mask;
+	}
+};
+// Zones on their way to another device: the renderer writes, that device's thread reads on its own clock. A frame
+// holds every zone's stereo pair, silent for the zones of other outputs.
+struct Tap {
+	static constexpr int FrameSize = ZoneCount * 2;
+	std::array<float, TapSize * FrameSize> ring{};
+	std::atomic<std::uint64_t> write{0}, read{0};
+	std::atomic<int> attached{0};
+	std::atomic<int> largestPush{0}, largestPull{0}; // biggest recent block in and out
+	std::atomic<float> underflows{0}, overflows{0}, drops{0};
+	// reader only
+	double fraction = 0;
+	bool priming = true;
+	// The queue the reader steers to: both sides move whole blocks, plus room for wake-up jitter.
+	int Control() const {
+		const int blocks = largestPush.load(std::memory_order_relaxed) + largestPull.load(std::memory_order_relaxed);
+		return std::min(blocks + blocks / 4, TapSize / 2);
+	}
+};
+// One processing chain per zone, all with the same settings, so every output ends in its own limiter.
+struct Dsp {
+	std::array<std::unique_ptr<vpe::AudioProcessing>, ZoneCount> zones;
+	explicit Dsp(int rate) { for (auto& zone : zones) zone = std::make_unique<vpe::AudioProcessing>(rate); }
+	bool Set(const float* values, int count) { bool accepted = true; for (auto& zone : zones) accepted = zone->Set(values, count) && accepted; return accepted; }
+	void Meters(float* values) const {
+		std::array<float, vpe::ProcessingMeters> zone{};
+		std::fill_n(values, vpe::ProcessingMeters, 0.f);
+		for (const auto& processing : zones) { processing->Meters(zone.data()); for (int i = 0; i < vpe::ProcessingMeters; ++i) values[i] = std::max(values[i], zone[i]); }
+	}
+	float EqResponse(int route, float hz) const { return zones[0]->EqResponse(route, hz); }
+};
 struct Context {
 	std::vector<std::unique_ptr<Clip>> clips; // Main thread only; the queue publishes stable Clip pointers.
 	std::array<const Clip*, 4096> previewClips{}; // Entries are immutable and published by previewRequest.
@@ -64,13 +147,17 @@ struct Context {
 	std::atomic<std::uint64_t> write{0}, read{0};
 	std::uint64_t next = 0;
 	std::array<std::atomic<float>, BusCount> busGain{};
-	std::array<float, BusCount * BlockSize * 2> buses{};
+	std::array<float, BufferCount * BlockSize * 2> buses{};
 	std::array<std::atomic<float>, 12> metrics{};
 	std::array<StreamInput, StreamCount> streams{};
-	vpe::AudioProcessing* processing = nullptr; // Render thread only.
-	vpe::AudioProcessing* controlProcessing = nullptr; // Main thread only; latest prepared graph.
-	std::atomic<vpe::AudioProcessing*> pendingProcessing{nullptr};
-	std::array<vpe::AudioProcessing*, 8> retired{};
+	std::atomic<std::uint64_t> routing{0}; // a packed Routing; zero plays every bus on the rendering output's first pair
+	std::array<float, ZoneCount * BlockSize * 2> zones{}; // Render thread only: the block of every zone that has a bus.
+	std::array<unsigned, ZoneCount> zoneBuses{}; // Render thread only: the buffers of each zone in that block.
+	std::array<Tap, TapCount> taps{};
+	Dsp* processing = nullptr; // Render thread only.
+	Dsp* controlProcessing = nullptr; // Main thread only; latest prepared graph.
+	std::atomic<Dsp*> pendingProcessing{nullptr};
+	std::array<Dsp*, 8> retired{};
 	std::atomic<unsigned> retiredWrite{0}, retiredRead{0};
 	std::atomic<int> previewRequest{-1};
 	int previewBus = -1, previewFrames = 0, previewRate = 0;
@@ -127,7 +214,7 @@ int VpePcmPrepareDsp(void* context, int rate) {
 	auto& c = *C(context); c.Collect();
 	if (c.pendingProcessing.load(std::memory_order_acquire)) return 0;
 	try {
-		auto next = std::make_unique<vpe::AudioProcessing>(rate);
+		auto next = std::make_unique<Dsp>(rate);
 		if (c.hasProcessingSettings) next->Set(c.processingSettings.data(), vpe::ProcessingValues);
 		c.controlProcessing = next.get();
 		c.pendingProcessing.store(next.release(), std::memory_order_release); return 1;
@@ -144,12 +231,12 @@ int VpePcmProcessingMeters(void* context, float* values, int count) {
 	C(context)->controlProcessing->Meters(values); return 1;
 }
 void VpePcmPreview(void* context, int bus, int enabled) {
-	if (context && bus >= 0 && bus < BusCount) C(context)->previewRequest.store(enabled ? bus + 1 : 0, std::memory_order_release);
+	if (context && bus >= 0 && bus < BufferCount) C(context)->previewRequest.store(enabled ? bus + 1 : 0, std::memory_order_release);
 }
 int VpePcmPreviewClip(void* context, int clip, int bus) {
 	if (!context || clip < 0 || clip >= static_cast<int>(C(context)->clips.size()) || bus < 0 || bus >= BusCount) return 0;
 	// One atomic message publishes the immutable clip and destination together, including when replacing a preview.
-	C(context)->previewRequest.store((clip + 1) * 8 + bus, std::memory_order_release);
+	C(context)->previewRequest.store((clip + 1) * 16 + bus, std::memory_order_release);
 	return 1;
 }
 float VpePcmEqResponse(void* context, int route, float hz) { return context && C(context)->controlProcessing ? C(context)->controlProcessing->EqResponse(route, hz) : 0.f; }
@@ -169,23 +256,25 @@ int VpePcmRegisterClip(void* context, const float* samples, int frames, int chan
 		return index;
 	} catch (...) { return -1; }
 }
-std::uint64_t VpePcmPlay(void* context, int clip, int bus, float gain, float pitch, float pan, int loop) {
-	if (!context || clip < 0 || clip >= static_cast<int>(C(context)->clips.size()) || bus < 0 || bus >= BusCount || !Controls(gain, pitch, pan)) return 0;
+std::uint64_t VpePcmPlay(void* context, int clip, int bus, float gain, float pitch, float pan, int loop) { return VpePcmPlayAt(context, clip, bus, gain, pitch, pan, .5f, loop); }
+int VpePcmUpdate(void* context, std::uint64_t id, float gain, float pitch, float pan, int paused) { return VpePcmUpdateAt(context, id, gain, pitch, pan, .5f, paused); }
+std::uint64_t VpePcmPlayAt(void* context, int clip, int bus, float gain, float pitch, float pan, float depth, int loop) {
+	if (!context || clip < 0 || clip >= static_cast<int>(C(context)->clips.size()) || bus < 0 || bus >= BusCount || !Controls(gain, pitch, pan) || !Depth(depth)) return 0;
 	auto& c = *C(context);
 	for (int i = 0; i < VoiceCount; ++i) {
 		const int state = c.slots[i].state.load(std::memory_order_acquire);
 		if (state != 0 && state != 3) continue;
 		const auto id = (++c.next) * VoiceCount + i;
 		c.slots[i].seconds.store(0); c.slots[i].generation.store(id, std::memory_order_release); c.slots[i].stop.store(0); c.slots[i].state.store(1);
-		Command command; command.id = id; command.clip = c.clips[clip].get(); command.bus = bus; command.gain = gain; command.pitch = pitch; command.pan = pan; command.loop = loop != 0; command.start = true;
+		Command command; command.id = id; command.clip = c.clips[clip].get(); command.bus = bus; command.gain = gain; command.pitch = pitch; command.pan = pan; command.depth = depth; command.loop = loop != 0; command.start = true;
 		if (c.Push(command)) return id;
 		c.slots[i].state.store(3); return 0;
 	}
 	c.metrics[10].store(c.metrics[10].load() + 1); return 0;
 }
-int VpePcmUpdate(void* context, std::uint64_t id, float gain, float pitch, float pan, int paused) {
-	if (!context || !Current(C(context), id) || !Controls(gain, pitch, pan)) return 0;
-	Command command; command.id = id; command.gain = gain; command.pitch = pitch; command.pan = pan; command.paused = paused != 0;
+int VpePcmUpdateAt(void* context, std::uint64_t id, float gain, float pitch, float pan, float depth, int paused) {
+	if (!context || !Current(C(context), id) || !Controls(gain, pitch, pan) || !Depth(depth)) return 0;
+	Command command; command.id = id; command.gain = gain; command.pitch = pitch; command.pan = pan; command.depth = depth; command.paused = paused != 0;
 	return C(context)->Push(command) ? 1 : 0;
 }
 void VpePcmStop(void* context, std::uint64_t id) { if (context && Current(C(context), id)) C(context)->slots[Index(id)].stop.store(id, std::memory_order_release); }
@@ -294,15 +383,9 @@ int VpePcmSetMasterGain(void* context, float gain, int immediate) {
 	c.masterRequest.store((static_cast<std::uint64_t>(c.masterJumps) << 32) | bits, std::memory_order_release);
 	return 1;
 }
-int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused) {
-	if (!output || frames < 0 || channels <= 0 || channels > 8) return 0;
-	std::fill_n(output, static_cast<size_t>(frames) * channels, 0.f);
-	if (!context || channels != 2 || rate < 8000 || rate > 192000) return 0; // This milestone exposes stereo only.
-	if (frames > BlockSize) {
-		for (int offset = 0; offset < frames; offset += BlockSize) VpePcmRender(context, output + offset * 2, std::min(BlockSize, frames-offset), 2, rate, paused);
-		return 1;
-	}
-	auto& c = *C(context);
+namespace {
+// Renders one block of every zone into the context's zone buffers and feeds the taps.
+Routing RenderBlock(Context& c, int frames, int rate, int paused) {
 	if (auto* next = c.pendingProcessing.exchange(nullptr, std::memory_order_acquire)) {
 		if (c.processing) {
 			const auto w = c.retiredWrite.load(std::memory_order_relaxed);
@@ -316,11 +399,13 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		if (!Current(&c, command.id)) continue;
 		auto& voice = c.voices[Index(command.id)];
 		if (command.start) { voice = Voice{}; voice.controls = command; voice.active = true; c.slots[Index(command.id)].state.store(2); }
-		else if (voice.active && voice.controls.id == command.id) { voice.controls.gain = command.gain; voice.controls.pitch = command.pitch; voice.controls.pan = command.pan; voice.controls.paused = command.paused; }
+		else if (voice.active && voice.controls.id == command.id) { voice.controls.gain = command.gain; voice.controls.pitch = command.pitch; voice.controls.pan = command.pan; voice.controls.depth = command.depth; voice.controls.paused = command.paused; }
 	}
 	c.read.store(r, std::memory_order_release);
 	std::array<float, BusCount> gains{}, peaks{};
-	for (int bus = 0; bus < BusCount; ++bus) { gains[bus] = c.busGain[bus].load(std::memory_order_relaxed); std::fill_n(c.buses.data() + bus*BlockSize*2, frames*2, 0.f); }
+	for (int bus = 0; bus < BusCount; ++bus) gains[bus] = c.busGain[bus].load(std::memory_order_relaxed);
+	for (int buffer = 0; buffer < BufferCount; ++buffer) std::fill_n(c.buses.data() + buffer*BlockSize*2, frames*2, 0.f);
+	const auto routing = Routing::Unpack(c.routing.load(std::memory_order_acquire));
 	int active = 0;
 	for (auto& voice : c.voices) {
 		if (!voice.active) continue;
@@ -333,16 +418,24 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		// Mono constant-power panning. Authored stereo retains both channels at center.
 		const float left = clip.channels == 1 ? std::sqrt((1-control.pan)*.5f) : std::min(1.f, 1-control.pan);
 		const float right = clip.channels == 1 ? std::sqrt((1+control.pan)*.5f) : std::min(1.f, 1+control.pan);
-		const float targetLeft = left * gain, targetRight = right * gain;
-		if (voice.fresh) { voice.left = targetLeft; voice.right = targetRight; voice.fresh = false; }
+		// On four speakers a mechanical voice fades from the pair near the player to the one near the backbox, with constant power.
+		const bool split = routing.Split(control.bus);
+		const float near = split ? std::sqrt(1 - control.depth) : 1.f, far = split ? std::sqrt(control.depth) : 0.f;
+		const float targetLeft = left * gain * near, targetRight = right * gain * near, targetBackLeft = left * gain * far, targetBackRight = right * gain * far;
+		if (voice.fresh) { voice.left = targetLeft; voice.right = targetRight; voice.backLeft = targetBackLeft; voice.backRight = targetBackRight; voice.fresh = false; }
 		const int ramp = std::max(1, rate/200);
 		const float leftStep = (targetLeft-voice.left)/ramp, rightStep = (targetRight-voice.right)/ramp;
+		const float backLeftStep = (targetBackLeft-voice.backLeft)/ramp, backRightStep = (targetBackRight-voice.backRight)/ramp;
+		const bool back = split || voice.backLeft != 0 || voice.backRight != 0; // also while fading out of the back pair
 		float* bus = c.buses.data() + control.bus*BlockSize*2;
+		float* backBus = c.buses.data() + (BusCount + std::min(control.bus, SurroundBuses - 1))*BlockSize*2;
 		for (int f = 0; f < frames; ++f) {
 			if (voice.cursor >= clip.frames) { if (control.loop) voice.cursor = std::fmod(voice.cursor, clip.frames); else { End(c, voice); break; } }
 			const auto sample = Sample(clip, voice.cursor, control.loop);
-			if (f < ramp) { voice.left += leftStep; voice.right += rightStep; } else { voice.left = targetLeft; voice.right = targetRight; }
+			if (f < ramp) { voice.left += leftStep; voice.right += rightStep; voice.backLeft += backLeftStep; voice.backRight += backRightStep; }
+			else { voice.left = targetLeft; voice.right = targetRight; voice.backLeft = targetBackLeft; voice.backRight = targetBackRight; }
 			bus[f*2] += sample.left * voice.left; bus[f*2+1] += sample.right * voice.right;
+			if (back) { backBus[f*2] += sample.left * voice.backLeft; backBus[f*2+1] += sample.right * voice.backRight; }
 			voice.cursor += static_cast<double>(clip.rate) / rate * control.pitch;
 		}
 		if (voice.active) {
@@ -403,8 +496,8 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 	}
 	const auto preview = c.previewRequest.exchange(-1, std::memory_order_acquire);
 	if (preview >= 0) {
-		c.previewClip = preview >= 8 ? c.previewClips[preview / 8 - 1] : nullptr;
-		c.previewBus = preview >= 8 ? preview % 8 : preview - 1;
+		c.previewClip = preview >= 16 ? c.previewClips[preview / 16 - 1] : nullptr;
+		c.previewBus = preview >= 16 ? preview % 16 : preview - 1;
 		c.previewFrames = preview ? rate * 3 : 0;
 		c.previewRate = rate;
 	}
@@ -430,13 +523,31 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		const int channel = (c.previewFrames / (rate/2)) % 2;
 		c.buses[c.previewBus*BlockSize*2 + f*2 + channel] += sample;
 	}
-	for (int bus = 0; bus < BusCount; ++bus) {
-		const float* samples = c.buses.data() + bus*BlockSize*2;
-		for (int i = 0; i < frames*2; ++i) { output[i] += samples[i]; peaks[bus] = std::max(peaks[bus], std::abs(samples[i])); }
-		c.metrics[bus].store(peaks[bus], std::memory_order_relaxed);
+	for (int buffer = 0; buffer < BufferCount; ++buffer) {
+		// a split bus shows the louder of its two pairs
+		const int bus = buffer < BusCount ? buffer : buffer - BusCount;
+		const float* samples = c.buses.data() + buffer*BlockSize*2;
+		for (int i = 0; i < frames*2; ++i) peaks[bus] = std::max(peaks[bus], std::abs(samples[i]));
 	}
+	for (int bus = 0; bus < BusCount; ++bus) c.metrics[bus].store(peaks[bus], std::memory_order_relaxed);
 	c.metrics[11].store(static_cast<float>(active));
-	if (c.processing) c.processing->Process(c.buses.data(), BlockSize*2, output, frames, paused != 0, previewActive);
+	for (int zone = 0; zone < ZoneCount; ++zone) {
+		const unsigned buffers = c.zoneBuses[zone] = routing.Buffers(zone);
+		if (!buffers) { if (c.processing) c.processing->zones[zone]->Idle(); continue; }
+		// The zone's chain sees the back half of a split bus as that bus: same settings, its own state.
+		std::array<const float*, BusCount> sources{};
+		for (int bus = 0; bus < BusCount; ++bus) {
+			if (buffers >> bus & 1) sources[bus] = c.buses.data() + bus*BlockSize*2;
+			else if (bus < SurroundBuses && buffers >> (BusCount + bus) & 1) sources[bus] = c.buses.data() + (BusCount + bus)*BlockSize*2;
+		}
+		float* out = c.zones.data() + zone*BlockSize*2;
+		if (c.processing) { c.processing->zones[zone]->Process(sources.data(), out, frames, paused != 0, previewActive); continue; }
+		std::fill_n(out, frames*2, 0.f);
+		for (const float* samples : sources) {
+			if (!samples) continue;
+			for (int i = 0; i < frames*2; ++i) out[i] += samples[i];
+		}
+	}
 	const auto transition = c.transitionRequest.load(std::memory_order_acquire);
 	if (transition != c.transitionSeen) {
 		const auto bits = static_cast<std::uint32_t>(transition);
@@ -460,10 +571,151 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		// Settings previews are independent of the paused game's temporary master envelope.
 		c.masterGain += masterStep;
 		const float gain = (paused && previewActive ? 1.f : static_cast<float>(c.transitionGain)) * c.masterGain;
-		output[f*2] = Finite(output[f*2]) * gain;
-		output[f*2+1] = Finite(output[f*2+1]) * gain;
+		for (int zone = 0; zone < ZoneCount; ++zone) {
+			if (!c.zoneBuses[zone]) continue;
+			float* out = c.zones.data() + zone*BlockSize*2 + f*2;
+			out[0] = Finite(out[0]) * gain; out[1] = Finite(out[1]) * gain;
+		}
 	}
 	if (frames) c.masterGain = masterTarget;
+	for (int id = 0; id < TapCount && frames; ++id) {
+		auto& tap = c.taps[id];
+		unsigned zones = 0;
+		for (int zone = 0; zone < ZoneCount; ++zone) if (routing.zoneTap[zone] == id + 1 && c.zoneBuses[zone]) zones |= 1u << zone;
+		if (!zones || !tap.attached.load(std::memory_order_acquire)) continue;
+		// The largest recent block: a larger one raises it at once, and it decays back over the next blocks.
+		int largest = tap.largestPush.load(std::memory_order_relaxed);
+		largest = frames >= largest ? frames : largest - std::max(1, (largest - frames) / 64);
+		tap.largestPush.store(std::min(largest, TapSize / 2), std::memory_order_relaxed);
+		const auto head = tap.write.load(std::memory_order_relaxed);
+		// A reader that stopped pulling: drop the block, and its catch-up trims back to the newest audio.
+		if (head - tap.read.load(std::memory_order_acquire) + frames > TapSize) { Bump(tap.overflows); continue; }
+		for (int f = 0; f < frames; ++f) {
+			float* frame = tap.ring.data() + (head + f) % TapSize * Tap::FrameSize;
+			for (int zone = 0; zone < ZoneCount; ++zone) {
+				const float* in = c.zones.data() + zone*BlockSize*2 + f*2;
+				const bool carried = (zones >> zone & 1) != 0;
+				frame[zone*2] = carried ? in[0] : 0.f; frame[zone*2+1] = carried ? in[1] : 0.f;
+			}
+		}
+		tap.write.store(head + frames, std::memory_order_release);
+	}
+	return routing;
+}
+// The first channel of a zone's pair, or of the first pair when the output doesn't have that one.
+int First(const Routing& routing, int zone, int channels) { const int first = routing.zonePair[zone] * 2; return first + 1 < channels ? first : 0; }
+}
+int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused) {
+	if (!output || frames < 0 || channels <= 0 || channels > MaxChannels) return 0;
+	std::fill_n(output, static_cast<size_t>(frames) * channels, 0.f);
+	if (!context || channels < 2 || rate < 8000 || rate > 192000) return 0;
+	auto& c = *C(context);
+	int offset = 0;
+	do {
+		const int count = std::min(BlockSize, frames - offset);
+		const auto routing = RenderBlock(c, count, rate, paused);
+		float* out = output + static_cast<size_t>(offset) * channels;
+		for (int zone = 0; zone < ZoneCount; ++zone) {
+			if (!c.zoneBuses[zone] || routing.zoneTap[zone]) continue; // a tapped zone plays on its own device
+			const float* in = c.zones.data() + zone*BlockSize*2;
+			const int first = First(routing, zone, channels);
+			for (int f = 0; f < count; ++f) { out[f*channels + first] += in[f*2]; out[f*channels + first + 1] += in[f*2+1]; }
+		}
+		offset += count;
+	} while (offset < frames);
+	return 1;
+}
+int VpePcmRoutingAbi() { return 1; }
+int VpePcmSetRouting(void* context, const int* busZone, const int* zonePair, const int* zoneTap, const int* zoneReserved) {
+	if (!context || !busZone || !zonePair || !zoneTap) return 0;
+	Routing routing;
+	for (int bus = 0; bus < BusCount; ++bus) { if (busZone[bus] < 0 || busZone[bus] >= ZoneCount) return 0; routing.busZone[bus] = busZone[bus]; }
+	for (int zone = 0; zone < ZoneCount; ++zone) {
+		if (zonePair[zone] < 0 || zonePair[zone] >= MaxChannels / 2 || zoneTap[zone] < 0 || zoneTap[zone] > TapCount) return 0;
+		routing.zonePair[zone] = zonePair[zone]; routing.zoneTap[zone] = zoneTap[zone];
+		routing.reserved[zone] = zoneReserved && zoneReserved[zone] != 0;
+	}
+	auto& word = C(context)->routing;
+	word.store((routing.Pack() & ~Routing::SurroundBits) | (word.load(std::memory_order_relaxed) & Routing::SurroundBits), std::memory_order_release);
+	return 1;
+}
+int VpePcmSetSurround(void* context, int bus, int enabled, int backZone) {
+	if (!context || bus < 0 || bus >= SurroundBuses || backZone < 0 || backZone >= ZoneCount) return 0;
+	auto& word = C(context)->routing;
+	auto routing = Routing::Unpack(word.load(std::memory_order_relaxed));
+	routing.surround[bus] = enabled != 0; routing.backZone[bus] = backZone;
+	word.store(routing.Pack(), std::memory_order_release);
+	return 1;
+}
+int VpePcmOutputChannels(void* context, int tap) {
+	if (!context || tap < -1 || tap >= TapCount) return 0;
+	const auto routing = Routing::Unpack(C(context)->routing.load(std::memory_order_acquire));
+	int channels = 2;
+	for (int zone = 0; zone < ZoneCount; ++zone) if (routing.zoneTap[zone] == tap + 1 && (routing.Buffers(zone) || routing.reserved[zone])) channels = std::max(channels, routing.zonePair[zone] * 2 + 2);
+	return channels;
+}
+int VpePcmTapAttach(void* context, int tap, int attached) {
+	if (!context || tap < 0 || tap >= TapCount) return 0;
+	auto& t = C(context)->taps[tap];
+	if (attached) {
+		// The reader starts at the newest audio and sizes its buffer anew.
+		t.read.store(t.write.load(std::memory_order_acquire), std::memory_order_release);
+		t.fraction = 0; t.priming = true; t.largestPush.store(0); t.largestPull.store(0);
+	}
+	t.attached.store(attached ? 1 : 0, std::memory_order_release);
+	return 1;
+}
+int VpePcmTapRender(void* context, int tap, float* output, int frames, int channels) {
+	if (!output || frames < 0 || channels <= 0 || channels > MaxChannels) return 0;
+	std::fill_n(output, static_cast<size_t>(frames) * channels, 0.f);
+	if (!context || tap < 0 || tap >= TapCount || channels < 2) return 0;
+	auto& t = C(context)->taps[tap];
+	const auto routing = Routing::Unpack(C(context)->routing.load(std::memory_order_acquire));
+	{
+		// As on the renderer's side: a device's first, larger fill must not size the buffer for good.
+		int largest = t.largestPull.load(std::memory_order_relaxed);
+		largest = frames >= largest ? frames : largest - std::max(1, (largest - frames) / 64);
+		t.largestPull.store(std::min(largest, TapSize / 2), std::memory_order_relaxed);
+	}
+	auto read = t.read.load(std::memory_order_relaxed); const auto written = t.write.load(std::memory_order_acquire);
+	const auto target = static_cast<std::uint64_t>(t.Control());
+	if (t.priming) {
+		if (written - read < std::max<std::uint64_t>(2, target)) return 1; // still filling the jitter buffer
+		t.priming = false;
+	} else if (target && written - read > target * 2 + 256) {
+		// The renderer ran far ahead (this device stalled): skip to the newest audio instead of staying late.
+		read = written - target; t.fraction = 0; Bump(t.drops);
+	}
+	// The two devices' clocks drift apart: hold the queue a little above the buffer by playing up to 0.3% faster or slower.
+	double step = 1;
+	if (target) {
+		const double setpoint = target * 1.25;
+		step += std::clamp((static_cast<double>(written - read) - setpoint) / setpoint * .004, -.003, .003);
+	}
+	std::array<int, ZoneCount> first{};
+	for (int zone = 0; zone < ZoneCount; ++zone) first[zone] = routing.zoneTap[zone] == tap + 1 ? First(routing, zone, channels) : -1;
+	bool underflow = false;
+	for (int f = 0; f < frames; ++f) {
+		if (read + 1 >= written) { underflow = true; t.fraction = 0; break; }
+		const float* a = t.ring.data() + read % TapSize * Tap::FrameSize, *b = t.ring.data() + (read + 1) % TapSize * Tap::FrameSize;
+		const float mix = static_cast<float>(t.fraction);
+		for (int zone = 0; zone < ZoneCount; ++zone) {
+			if (first[zone] < 0) continue;
+			output[f*channels + first[zone]] += a[zone*2] + (b[zone*2] - a[zone*2]) * mix;
+			output[f*channels + first[zone] + 1] += a[zone*2+1] + (b[zone*2+1] - a[zone*2+1]) * mix;
+		}
+		t.fraction += step; const auto advance = static_cast<std::uint64_t>(t.fraction);
+		read = std::min(read + advance, written); t.fraction -= advance;
+	}
+	t.read.store(read, std::memory_order_release);
+	if (underflow) { Bump(t.underflows); t.priming = true; }
+	return 1;
+}
+int VpePcmTapMetrics(void* context, int tap, float* values, int count) {
+	if (!context || tap < 0 || tap >= TapCount || !values || count != 5) return 0;
+	const auto& t = C(context)->taps[tap];
+	values[0] = static_cast<float>(t.write.load() - t.read.load()); values[1] = static_cast<float>(t.Control());
+	values[2] = t.underflows.load(); values[3] = t.overflows.load(); values[4] = t.drops.load();
 	return 1;
 }
 int VpePcmMetrics(void* context, float* values, int count) {

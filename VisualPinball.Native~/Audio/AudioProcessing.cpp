@@ -120,6 +120,22 @@ struct AudioProcessing::Impl {
 		delayCursor = dryCursor = 0;
 		master = 0; wet = 0;
 	}
+	// Render thread: takes the newest settings snapshot, if any.
+	void Adopt() {
+		const auto w = write.load(std::memory_order_acquire); const auto r = read.load(std::memory_order_relaxed);
+		if (w == r) return;
+		current = queue[(w-1) % Queue]; read.store(w, std::memory_order_release);
+		for (int route = 0; route < ProcessingRoutes; ++route) eq[route].Change(current.routes[route], rate, !initialized);
+		reverb.roomMs = current.room; reverb.rt20 = current.decay; reverb.highCutHz = current.damping;
+		limiter.outputLimit = current.ceiling; limiter.releaseMs = current.release;
+		if (!initialized) {
+			// A saved low volume must apply from the first sample, including after a rate reset.
+			master = current.master; width = current.width; predelaySamples = current.predelay;
+			processingMix = current.enabled && !current.bypass ? 1.f : 0.f;
+			limiterMix = processingMix && current.limiter ? 1.f : 0.f;
+			initialized = true;
+		}
+	}
 };
 AudioProcessing::AudioProcessing(int rate) : impl(std::make_unique<Impl>(rate)) {}
 AudioProcessing::~AudioProcessing() = default;
@@ -156,24 +172,25 @@ bool AudioProcessing::Set(const float* values, int count) {
 	p.proposed = s; p.queue[w % Queue] = s; p.write.store(w + 1, std::memory_order_release); return true;
 }
 
-void AudioProcessing::Process(float* buses, int stride, float* output, int frames, bool paused, bool preview) {
+void AudioProcessing::Idle() {
+	auto& p = *impl;
+	p.Adopt();
+	if (!p.silent) { p.Reset(); p.silent = true; }
+	for (auto& meter : p.meters) meter.store(0, std::memory_order_relaxed);
+	p.meters[11].store(1000.f*p.latency/p.rate);
+}
+
+void AudioProcessing::Process(float* buses, int stride, float* output, int frames, bool paused, bool preview, unsigned mask) {
+	std::array<const float*, 7> sources{};
+	for (int bus = 0; bus < 7; ++bus) sources[bus] = mask >> bus & 1 ? buses + bus*stride : nullptr;
+	Process(sources.data(), output, frames, paused, preview);
+}
+
+void AudioProcessing::Process(const float* const* buses, float* output, int frames, bool paused, bool preview) {
 	auto& p = *impl;
 	// STFX also guards SSE/x64; VPE covers the full chain on x86 and ARM64 as well.
 	[[maybe_unused]] ScopedFloatState denormals;
-	const auto w = p.write.load(std::memory_order_acquire); const auto r = p.read.load(std::memory_order_relaxed);
-	if (w != r) {
-		p.current = p.queue[(w-1) % Queue]; p.read.store(w, std::memory_order_release);
-		for (int route = 0; route < ProcessingRoutes; ++route) p.eq[route].Change(p.current.routes[route], p.rate, !p.initialized);
-		p.reverb.roomMs = p.current.room; p.reverb.rt20 = p.current.decay; p.reverb.highCutHz = p.current.damping;
-		p.limiter.outputLimit = p.current.ceiling; p.limiter.releaseMs = p.current.release;
-		if (!p.initialized) {
-			// A saved low volume must apply from the first sample, including after a rate reset.
-			p.master = p.current.master; p.width = p.current.width; p.predelaySamples = p.current.predelay;
-			p.processingMix = p.current.enabled && !p.current.bypass ? 1.f : 0.f;
-			p.limiterMix = p.processingMix && p.current.limiter ? 1.f : 0.f;
-			p.initialized = true;
-		}
-	}
+	p.Adopt();
 	const auto& s = p.current;
 	if (s.mute || s.master == 0 || (paused && !preview)) {
 		if (!p.silent) { p.Reset(); p.silent = true; }
@@ -188,7 +205,8 @@ void AudioProcessing::Process(float* buses, int stride, float* output, int frame
 	for (int f = 0; f < frames; ++f) {
 		float left = 0, right = 0, dryLeft = 0, dryRight = 0, roomLeft = 0, roomRight = 0;
 		for (int bus = 0; bus < 7; ++bus) {
-			float l = Clean(buses[bus*stride+f*2]), rr = Clean(buses[bus*stride+f*2+1]);
+			if (!buses[bus]) continue;
+			float l = Clean(buses[bus][f*2]), rr = Clean(buses[bus][f*2+1]);
 			dryLeft += l; dryRight += rr;
 			l = p.eq[bus].Sample(l, 0); rr = p.eq[bus].Sample(rr, 1); p.eq[bus].Advance();
 			p.compressors[bus].Process(l, rr, s.routes[bus], slew);
