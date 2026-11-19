@@ -232,7 +232,7 @@ namespace VisualPinball.Unity
 
 				case DisplayFrameFormat.Dmd565:
 					if (frame.Length == _width * _height * 2) {
-						CopyRgb565FrameToTexture(frame, _texture.GetRawTextureData<byte>());
+						CopyRgb565Frame(frame, _width, _height, _texture.GetRawTextureData<byte>());
 						_texture.Apply();
 
 					} else {
@@ -265,12 +265,12 @@ namespace VisualPinball.Unity
 		/// Expands 5-6-5 dots into the RGB24 texture, bottom row first, each channel's top bits repeated into its low ones so
 		/// that full intensity stays 255.
 		/// </summary>
-		private void CopyRgb565FrameToTexture(byte[] frame, NativeArray<byte> textureData)
+		internal static void CopyRgb565Frame(byte[] frame, int width, int height, NativeArray<byte> textureData)
 		{
-			for (var y = 0; y < _height; y++) {
-				var src = (_height - y - 1) * _width * 2;
-				var dst = y * _width * 3;
-				for (var x = 0; x < _width; x++, src += 2, dst += 3) {
+			for (var y = 0; y < height; y++) {
+				var src = (height - y - 1) * width * 2;
+				var dst = y * width * 3;
+				for (var x = 0; x < width; x++, src += 2, dst += 3) {
 					var v = frame[src] | frame[src + 1] << 8;
 					int r = v >> 11, g = (v >> 5) & 0x3f, b = v & 0x1f;
 					textureData[dst] = (byte)(r << 3 | r >> 2);
