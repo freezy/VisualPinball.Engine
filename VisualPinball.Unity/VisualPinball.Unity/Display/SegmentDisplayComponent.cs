@@ -285,6 +285,8 @@ namespace VisualPinball.Unity
 				case DisplayFrameFormat.Dmd4:
 				case DisplayFrameFormat.Dmd8:
 				case DisplayFrameFormat.Dmd24:
+				case DisplayFrameFormat.Dmd565:
+				case DisplayFrameFormat.Video24:
 					if (_frameThrottle.ShouldLog(out var suppressed)) {
 						Logger.Warn("Segment display {DisplayId} cannot render pixel data, use a DMD component ({Suppressed} suppressed).", Id, suppressed);
 					}

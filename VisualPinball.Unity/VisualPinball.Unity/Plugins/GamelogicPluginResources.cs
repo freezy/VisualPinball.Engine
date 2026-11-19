@@ -248,7 +248,7 @@ namespace VisualPinball.Unity
 			if (!_displays.TryGetValue(args.Id, out var display)) return;
 			var format = FromLegacy(args.Format);
 			if (format == DisplayEncoding.None) return;
-			int stride = display.Width * (format == DisplayEncoding.Rgb24 ? 3 : 1);
+			int stride = display.Width * PluginDisplayFrame.BytesPerPixel(format);
 			if (args.Data == null || args.Data.Length < stride * display.Height) { _fault(new ArgumentException("Invalid frame buffer for " + args.Id)); return; }
 			display.Source.Publish(new PluginDisplayFrame(args.Data, display.Width, display.Height, stride, format, ++_sequence, Timestamp(), display.Instance));
 		}
@@ -308,7 +308,8 @@ namespace VisualPinball.Unity
 		/// Converts a gamelogic engine's <see cref="DisplayFrameFormat"/> to the plugin <see cref="DisplayEncoding"/>:
 		/// <see cref="DisplayFrameFormat.Dmd2"/> to <see cref="DisplayEncoding.Gray2"/>, <see cref="DisplayFrameFormat.Dmd4"/> to
 		/// <see cref="DisplayEncoding.Gray4"/>, <see cref="DisplayFrameFormat.Dmd8"/> to <see cref="DisplayEncoding.Luminance8"/>,
-		/// and <see cref="DisplayFrameFormat.Dmd24"/> and <see cref="DisplayFrameFormat.Video24"/> to <see cref="DisplayEncoding.Rgb24"/>.
+		/// <see cref="DisplayFrameFormat.Dmd24"/> and <see cref="DisplayFrameFormat.Video24"/> to <see cref="DisplayEncoding.Rgb24"/>,
+		/// and <see cref="DisplayFrameFormat.Dmd565"/> to <see cref="DisplayEncoding.Rgb565"/>.
 		/// </summary>
 		/// <param name="format">The engine's frame format.</param>
 		/// <returns>
@@ -318,13 +319,15 @@ namespace VisualPinball.Unity
 		public static DisplayEncoding FromLegacy(DisplayFrameFormat format) => format switch {
 			DisplayFrameFormat.Dmd2 => DisplayEncoding.Gray2, DisplayFrameFormat.Dmd4 => DisplayEncoding.Gray4,
 			DisplayFrameFormat.Dmd8 => DisplayEncoding.Luminance8, DisplayFrameFormat.Dmd24 => DisplayEncoding.Rgb24,
-			DisplayFrameFormat.Video24 => DisplayEncoding.Rgb24, _ => DisplayEncoding.None
+			DisplayFrameFormat.Video24 => DisplayEncoding.Rgb24, DisplayFrameFormat.Dmd565 => DisplayEncoding.Rgb565,
+			_ => DisplayEncoding.None
 		};
 		/// <summary>
 		/// Converts a plugin <see cref="DisplayEncoding"/> to the <see cref="DisplayFrameFormat"/> to request from a gamelogic engine
 		/// through <see cref="IDisplayFrameFormatPreference.RequestDisplayFrameFormat"/>: <see cref="DisplayEncoding.Gray2"/> to
 		/// <see cref="DisplayFrameFormat.Dmd2"/>, <see cref="DisplayEncoding.Gray4"/> to <see cref="DisplayFrameFormat.Dmd4"/>,
-		/// <see cref="DisplayEncoding.Rgb24"/> to <see cref="DisplayFrameFormat.Dmd24"/>, and anything else to
+		/// <see cref="DisplayEncoding.Rgb24"/> to <see cref="DisplayFrameFormat.Dmd24"/>, <see cref="DisplayEncoding.Rgb565"/> to
+		/// <see cref="DisplayFrameFormat.Dmd565"/>, and anything else to
 		/// <see cref="DisplayFrameFormat.Dmd8"/>. The DMD plugin also uses it to hand frames to its native pipeline.
 		/// </summary>
 		/// <param name="format">
@@ -334,7 +337,8 @@ namespace VisualPinball.Unity
 		/// <returns>The matching engine frame format.</returns>
 		public static DisplayFrameFormat ToLegacy(DisplayEncoding format) => format switch {
 			DisplayEncoding.Gray2 => DisplayFrameFormat.Dmd2, DisplayEncoding.Gray4 => DisplayFrameFormat.Dmd4,
-			DisplayEncoding.Rgb24 => DisplayFrameFormat.Dmd24, _ => DisplayFrameFormat.Dmd8
+			DisplayEncoding.Rgb24 => DisplayFrameFormat.Dmd24, DisplayEncoding.Rgb565 => DisplayFrameFormat.Dmd565,
+			_ => DisplayFrameFormat.Dmd8
 		};
 		/// <summary>
 		/// Unsubscribes from the engine, unpublishes every resource, removes the native output listener and, if raw identification

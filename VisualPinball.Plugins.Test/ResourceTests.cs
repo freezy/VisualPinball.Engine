@@ -168,6 +168,15 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(count, Is.EqualTo(1));
 		}
 		[Test]
+		public void Rgb565FramesAreTwoBytesPerPixel()
+		{
+			Assert.That(PluginDisplayFrame.BytesPerPixel(DisplayEncoding.Rgb565), Is.EqualTo(2));
+			Assert.That(PluginDisplayFrame.BytesPerPixel(DisplayEncoding.Rgb24 | DisplayEncoding.Rgb565), Is.EqualTo(0));
+			var frame = new PluginDisplayFrame(new byte[3 * 2 * 2], 3, 2, 3 * 2, DisplayEncoding.Rgb565, 1, 0, 1);
+			Assert.That(frame.Stride, Is.EqualTo(6));
+			Assert.Throws<ArgumentException>(() => new PluginDisplayFrame(new byte[3 * 2], 3, 2, 3, DisplayEncoding.Rgb565, 1, 0, 1));
+		}
+		[Test]
 		public void ThrowingObserverCannotLeakPublication()
 		{
 			var faults = new List<Exception>(); var registry = new PluginResourceRegistry(faults.Add);

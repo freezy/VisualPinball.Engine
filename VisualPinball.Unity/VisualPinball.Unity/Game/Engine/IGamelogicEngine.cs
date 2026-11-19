@@ -357,7 +357,8 @@ namespace VisualPinball.Unity
 		Segment,
 		AlphaNumeric, // gets a byte-array converted string
 		Numeric,      // gets a byte-array converted float
-		Video24       // rgb video (3x 0-255)
+		Video24,      // rgb video (3x 0-255)
+		Dmd565        // rgb565 (2 bytes per dot, little-endian, red in the top 5 bits)
 	}
 
 	public class DisplayFrameData

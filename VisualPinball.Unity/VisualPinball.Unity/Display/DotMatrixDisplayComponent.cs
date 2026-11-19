@@ -230,6 +230,18 @@ namespace VisualPinball.Unity
 					}
 					break;
 
+				case DisplayFrameFormat.Dmd565:
+					if (frame.Length == _width * _height * 2) {
+						CopyRgb565FrameToTexture(frame, _texture.GetRawTextureData<byte>());
+						_texture.Apply();
+
+					} else {
+						if (_frameThrottle.ShouldLog(out var suppressed)) {
+							Logger.Warn("Cannot render {Bytes} bytes of RGB565 data to DMD {DisplayId} of {Width}x{Height} ({Suppressed} suppressed).", frame.Length, _id, _width, _height, suppressed);
+						}
+					}
+					break;
+
 				case DisplayFrameFormat.Segment:
 					if (_frameThrottle.ShouldLog(out var segmentSuppressed)) {
 						Logger.Warn("DMD {DisplayId} cannot render segment data, use a segment display component ({Suppressed} suppressed).", _id, segmentSuppressed);
@@ -246,6 +258,25 @@ namespace VisualPinball.Unity
 			var rowLength = _width * 3;
 			for (var y = 0; y < _height; y++) {
 				CopyData(frame, (_height - y - 1) * rowLength, rowLength, textureData, y * rowLength);
+			}
+		}
+
+		/// <summary>
+		/// Expands 5-6-5 dots into the RGB24 texture, bottom row first, each channel's top bits repeated into its low ones so
+		/// that full intensity stays 255.
+		/// </summary>
+		private void CopyRgb565FrameToTexture(byte[] frame, NativeArray<byte> textureData)
+		{
+			for (var y = 0; y < _height; y++) {
+				var src = (_height - y - 1) * _width * 2;
+				var dst = y * _width * 3;
+				for (var x = 0; x < _width; x++, src += 2, dst += 3) {
+					var v = frame[src] | frame[src + 1] << 8;
+					int r = v >> 11, g = (v >> 5) & 0x3f, b = v & 0x1f;
+					textureData[dst] = (byte)(r << 3 | r >> 2);
+					textureData[dst + 1] = (byte)(g << 2 | g >> 4);
+					textureData[dst + 2] = (byte)(b << 3 | b >> 2);
+				}
 			}
 		}
 
@@ -292,6 +323,7 @@ namespace VisualPinball.Unity
 
 				case DisplayFrameFormat.Dmd24:
 				case DisplayFrameFormat.Video24:
+				case DisplayFrameFormat.Dmd565:
 					// no palette to handle here
 					break;
 

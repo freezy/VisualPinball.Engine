@@ -169,7 +169,12 @@ namespace VisualPinball.Plugins
 		/// Four bytes per pixel, in red, green, blue, alpha order, each from 0 to 255. How alpha applies is given by
 		/// <see cref="PluginDisplayFrame.Alpha"/>.
 		/// </summary>
-		Rgba32 = 16
+		Rgba32 = 16,
+		/// <summary>
+		/// Two bytes per pixel, a little-endian 16-bit value with red in its top 5 bits, green in the middle 6 and blue in the
+		/// low 5, as color DMD hardware takes it.
+		/// </summary>
+		Rgb565 = 32
 	}
 
 	/// <summary>The color space of a display frame's color values.</summary>
@@ -522,13 +527,23 @@ namespace VisualPinball.Plugins
 		public PluginDisplayFrame(ReadOnlyMemory<byte> pixels, int width, int height, int stride, DisplayEncoding encoding,
 			long sequence, long timestampUs, long instance, FrameColorSpace colorSpace = FrameColorSpace.Srgb, FrameAlpha alpha = FrameAlpha.None)
 		{
-			int bytes = encoding == DisplayEncoding.Rgb24 ? 3 : encoding == DisplayEncoding.Rgba32 ? 4 : 1;
-			if (encoding != DisplayEncoding.Gray2 && encoding != DisplayEncoding.Gray4 && encoding != DisplayEncoding.Luminance8
-				&& encoding != DisplayEncoding.Rgb24 && encoding != DisplayEncoding.Rgba32) throw new ArgumentException("A frame needs one concrete VPE encoding.");
+			int bytes = BytesPerPixel(encoding);
+			if (bytes == 0) throw new ArgumentException("A frame needs one concrete VPE encoding.");
 			if (width <= 0 || height <= 0 || stride < checked(width * bytes) || pixels.Length < checked(stride * height)) throw new ArgumentException("Display frame shape does not match its buffer.");
 			Pixels = pixels; Width = width; Height = height; Stride = stride; Encoding = encoding; Sequence = sequence;
 			TimestampUs = timestampUs; Instance = instance; ColorSpace = colorSpace; Alpha = alpha;
 		}
+
+		/// <summary>Bytes per pixel of a single concrete encoding, or 0 for <see cref="DisplayEncoding.None"/> and combined flags.</summary>
+		/// <param name="encoding">The encoding.</param>
+		/// <returns>1 for the gray and luminance encodings, 2 for RGB565, 3 for RGB24, 4 for RGBA32, else 0.</returns>
+		public static int BytesPerPixel(DisplayEncoding encoding) => encoding switch {
+			DisplayEncoding.Gray2 or DisplayEncoding.Gray4 or DisplayEncoding.Luminance8 => 1,
+			DisplayEncoding.Rgb565 => 2,
+			DisplayEncoding.Rgb24 => 3,
+			DisplayEncoding.Rgba32 => 4,
+			_ => 0
+		};
 	}
 
 	/// <summary>A source of display frames, published as <see cref="ResourceKind.Display"/>.</summary>
