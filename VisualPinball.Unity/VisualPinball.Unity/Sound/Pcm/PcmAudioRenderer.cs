@@ -41,8 +41,9 @@ namespace VisualPinball.Unity
 		private int _extraDevices; // devices playing besides the main output
 		private OutputPlan _plan; // what the outputs opened with; null on Unity's carrier
 		private readonly bool[] _split = new bool[2]; // the mechanical buses that play on two pairs right now
-		private readonly List<string> _startProblems = new();
-		private readonly bool[] _tapDown = new bool[PcmOutputRouting.MaxExtraOutputs];
+		private readonly List<string> _liveProblems = new();
+		private readonly bool[] _tapDown = new bool[PcmOutputRouting.MaxExtraOutputs]; // its output waits for the device
+		private readonly bool[] _tapMissing = new bool[PcmOutputRouting.MaxExtraOutputs]; // its output could not be created at all
 		private readonly float[] _tapMetrics = new float[NativePcmSession.OutputMetricCount];
 		private float _tapCheck;
 		private string _loggedStatus;
@@ -269,8 +270,8 @@ namespace VisualPinball.Unity
 		{
 			ActiveOutputMode = PcmOutputMode.Shared;
 			_session.StopTapOutputs();
-			RoutingStatus = string.Empty; _extraDevices = 0; _plan = null; _startProblems.Clear();
-			Array.Clear(_tapDown, 0, _tapDown.Length);
+			RoutingStatus = string.Empty; _extraDevices = 0; _plan = null;
+			Array.Clear(_tapDown, 0, _tapDown.Length); Array.Clear(_tapMissing, 0, _tapMissing.Length);
 			var everythingOnMain = new OutputPlan();
 			if (!PreferDeviceOutput) { Publish(everythingOnMain); return false; }
 			// a device renders as soon as it starts: give it the master the listener applied so far, and the caller sets
@@ -279,16 +280,34 @@ namespace VisualPinball.Unity
 			var routing = Routing ?? new PcmOutputRouting();
 			var devices = _session.RoutingSupported ? NativePcmSession.Devices() : new List<PcmOutputDevice>();
 			if (!OpenMainOutput(paused, routing, devices, out var plan)) { Publish(everythingOnMain); return false; }
+			// The plan stays as it was asked for. The output of a device that isn't there waits for it on its own thread,
+			// and its sounds play on the main output meanwhile, which has the channels for it: every zone is reserved.
 			for (int tap = 0; tap < plan.TapDevices.Count; ++tap) {
-				if (_session.StartTapOutput(tap, plan.TapDevices[tap], _rate, paused)) { ++_extraDevices; continue; }
-				plan.FoldTap(tap); // the main output has the channels for it: every zone of the plan is reserved
-				_startProblems.Add(DeviceName(devices, plan.TapDevices[tap], plan.TapNames[tap]) + " is not available; its sounds play on the main output.");
+				_tapMissing[tap] = !_session.StartTapOutput(tap, plan.TapDevices[tap], _rate, paused);
+				_tapDown[tap] = !_tapMissing[tap] && Waiting(tap);
 			}
-			Publish(plan);
 			_plan = plan;
-			RoutingStatus = string.Join(" ", _startProblems);
-			foreach (var problem in _startProblems) Diagnose(problem);
+			PublishLive();
+			foreach (var problem in _liveProblems) Diagnose(problem);
 			return true;
+		}
+
+		/// <summary>
+		/// Publishes the plan as it can play right now: the sounds of a device that didn't open or is disconnected are
+		/// on the main output, and go back to the device when it is there.
+		/// </summary>
+		private void PublishLive()
+		{
+			var live = _plan.Copy();
+			_liveProblems.Clear(); _extraDevices = 0;
+			for (int tap = 0; tap < _plan.TapDevices.Count; ++tap) {
+				if (!_tapMissing[tap] && !_tapDown[tap]) { ++_extraDevices; continue; }
+				live.FoldTap(tap);
+				string name = string.IsNullOrEmpty(_plan.TapNames[tap]) ? "An output device" : _plan.TapNames[tap];
+				_liveProblems.Add(name + (_tapMissing[tap] ? " could not be opened" : " is not connected") + "; its sounds play on the main output.");
+			}
+			Publish(live);
+			RoutingStatus = string.Join(" ", _liveProblems);
 		}
 
 		private void Publish(OutputPlan plan)
@@ -352,22 +371,18 @@ namespace VisualPinball.Unity
 			_tapCheck = Time.unscaledTime + .5f;
 			bool changed = false;
 			for (int tap = 0; tap < _plan.TapDevices.Count; ++tap) {
-				// state 2: the stream lost its device and waits for it
-				bool down = _session.TapOutputMetrics(tap, _tapMetrics) && _tapMetrics[0] == 2;
+				if (_tapMissing[tap]) continue;
+				bool down = Waiting(tap);
 				changed |= down != _tapDown[tap];
 				_tapDown[tap] = down;
 			}
 			if (!changed) return;
-			var live = _plan.Copy();
-			var problems = new List<string>(_startProblems);
-			for (int tap = 0; tap < _plan.TapDevices.Count; ++tap) {
-				if (!_tapDown[tap]) continue;
-				live.FoldTap(tap);
-				problems.Add((string.IsNullOrEmpty(_plan.TapNames[tap]) ? "An output device" : _plan.TapNames[tap]) + " is not connected; its sounds play on the main output.");
-			}
-			Publish(live);
-			RoutingStatus = string.Join(" ", problems);
+			PublishLive();
+			UpdateStatus();
 		}
+
+		/// <summary>Whether a tap's output has no device right now and waits for it (state 2 of its metrics).</summary>
+		private bool Waiting(int tap) => _session.TapOutputMetrics(tap, _tapMetrics) && _tapMetrics[0] == 2;
 
 		/// <summary>
 		/// A <see cref="PcmOutputRouting"/> turned into what the native graph takes: a zone per output in use, and per
@@ -407,7 +422,9 @@ namespace VisualPinball.Unity
 				string defaultDevice = string.Empty;
 				foreach (var device in devices) if (device.IsDefault) defaultDevice = device.Id;
 				// The stereo pairs a device has; a pair it lacks would play on its first one, on top of what is there.
-				int Pairs(string id) { foreach (var device in devices) if (device.Id == id) return Mathf.Max(1, device.Channels / 2); return 1; }
+				// A device that isn't listed keeps the pair it was given: it isn't there to play on the wrong one, and has
+				// its channels again when it returns.
+				int Pairs(string id) { foreach (var device in devices) if (device.Id == id) return Mathf.Max(1, device.Channels / 2); return 8; }
 				// an ASIO driver is no Windows device: only an output without a device shares it, and its outputs aren't known here
 				string main = asio ? null : mainOutput == Main.Default || string.IsNullOrEmpty(routing.MainDevice) ? defaultDevice : routing.MainDevice;
 				// a driver whose outputs aren't known yet may have any pair; once it has played or was asked, its real count holds
