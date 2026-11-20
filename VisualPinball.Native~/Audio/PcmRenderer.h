@@ -92,7 +92,9 @@ VPE_PCM_API void* VpePcmOutputCreate(void* context, int rate, int paused);
 VPE_PCM_API void* VpePcmOutputCreateEx(void* context, int rate, int paused, int mode, int bufferFrames);
 // Like CreateEx, on a chosen device: deviceId is an endpoint id from VpePcmDeviceList (UTF-8), or null/empty for the
 // default device, which the stream then follows. With tap -1 the output renders the graph; with 0..3 it plays that
-// tap (see VpePcmTapRender) and never renders. It opens as many channels as its zones need (VpePcmOutputChannels).
+// tap (see VpePcmTapRender) and never renders; a tap output is shared mode only (mode 0), since a tap holds what
+// a shared stream asks for at once. A tap output is also created while its device is missing: it waits for the
+// device (state 2 in its metrics) and plays once it is there. It opens as many channels as its zones need (VpePcmOutputChannels).
 // Unlike CreateEx, an exclusive stream opened here continues shared when the device it has to reopen on (after the
 // default device changed, say) can't be taken exclusively, rather than staying silent.
 VPE_PCM_API void* VpePcmOutputOpen(void* context, int rate, int paused, int mode, int bufferFrames, const char* deviceId, int tap);

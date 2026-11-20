@@ -491,6 +491,7 @@ int main(int argc, char** argv) {
 	{
 		Check(VpePcmOutputOpen(nullptr, 48000, 0, 0, 0, nullptr, -1) == nullptr, "an output on a device needs a graph");
 		Session s; Check(VpePcmOutputOpen(s.c, 48000, 0, 0, 0, nullptr, 4) == nullptr, "an output plays tap 0 to 3 or renders");
+		Check(VpePcmOutputOpen(s.c, 48000, 0, 1, 8192, nullptr, 0) == nullptr, "a tap output is shared mode only");
 		// Needs real playback devices: --live-routing [part of a second device's name] [its pair] [seconds] [part of the
 		// rendering device's name, which then plays a higher tone on that pair too]. Without a name it lists them.
 		if (argc > 1 && std::string(argv[1]) == "--live-routing") {

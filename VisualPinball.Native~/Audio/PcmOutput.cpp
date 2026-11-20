@@ -245,12 +245,17 @@ struct Output {
 		HRESULT hr = wake ? CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator)) : E_FAIL;
 		Stream stream;
 		if (SUCCEEDED(hr)) hr = Open(enumerator, wake, stream);
-		opened.store(SUCCEEDED(hr) ? 1 : -1, std::memory_order_release);
+		// An output that plays a tap exists without its device too: it waits for it here, like after losing it, so
+		// nobody has to open it again when the device is plugged in. The rendering output has to open, or the caller
+		// renders the graph another way.
+		const bool waits = tap >= 0 && enumerator != nullptr;
+		if (FAILED(hr) && waits) Set(State, 2);
+		opened.store(SUCCEEDED(hr) || waits ? 1 : -1, std::memory_order_release);
 		SetEvent(ready);
 		std::vector<float> scratch(static_cast<size_t>(rate / 100) * 2);
 		auto close = [&] { stream.Close(); if (tap >= 0) VpePcmTapAttach(context, tap, 0); }; // a tap without a device is silent
 		ULONGLONG nextDeviceCheck = GetTickCount64() + 1000, nextRetry = 0;
-		bool running = SUCCEEDED(hr);
+		bool running = SUCCEEDED(hr) || waits;
 		while (running) {
 			const ULONGLONG now = GetTickCount64();
 			if (!stream.client) {
@@ -335,6 +340,8 @@ namespace {
 void* Create(void* context, int rate, int paused, int mode, int bufferFrames, const char* deviceId, int tap, bool demote)
 {
 	if (!context || rate < 8000 || rate > 192000 || mode < 0 || mode > 1 || bufferFrames < 0 || bufferFrames > 8192 || tap < -1 || tap > 3) return nullptr;
+	// A tap is sized for the periods of a shared stream; an exclusive one may ask for more at once than it holds.
+	if (tap >= 0 && mode != 0) return nullptr;
 	auto* output = new (std::nothrow) Output();
 	if (!output) return nullptr;
 	output->context = context; output->rate = rate; output->paused.store(paused ? 1 : 0); // before the prefill renders
