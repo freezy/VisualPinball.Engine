@@ -80,6 +80,8 @@ namespace VisualPinball.Unity
 		ScreenSpaceReflections,
 		AmbientOcclusion,
 		ScreenSpaceGlobalIllumination,
+		/// <summary>Shadows traced against the table's geometry. Needs a GPU that traces rays, too.</summary>
+		RayTracedShadows,
 	}
 
 	/// <summary>
@@ -105,6 +107,9 @@ namespace VisualPinball.Unity
 		public bool BallReflections;
 		public int MotionBlur; // VpeMotionBlur
 		public int Shadows; // VpeShadows
+		// The directional light around the table traces its shadows instead of reading a shadow map: sharp
+		// where a part touches the playfield, softer the further it is from it. Nothing while Shadows is off.
+		public bool RayTracedShadows;
 		public int ReflectionQuality; // VpeReflectionQuality, while ScreenSpaceReflections is on
 	}
 
@@ -177,6 +182,15 @@ namespace VisualPinball.Unity
 		public static bool IsEffectSupported(VpeEffect effect) => EffectSupport == null || EffectSupport(effect);
 
 		public static System.Func<VpeEffect, bool> EffectSupport;
+
+		/// <summary>
+		/// Whether the render tier at a quality level renders an effect on this machine, without switching to
+		/// it: what a settings page needs to offer an effect before its tier is chosen. False without a
+		/// pipeline that says so.
+		/// </summary>
+		public static bool IsEffectSupportedAt(int qualityLevel, VpeEffect effect) => TierEffectSupport != null && TierEffectSupport(qualityLevel, effect);
+
+		public static System.Func<int, VpeEffect, bool> TierEffectSupport;
 
 		/// <summary>Whether the active pipeline applies <see cref="VpeGraphicsSettings.BallReflections"/> (it sets this next to its applier).</summary>
 		public static bool BallReflectionsSupported;
