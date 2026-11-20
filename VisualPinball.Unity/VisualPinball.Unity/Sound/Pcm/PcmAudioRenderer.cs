@@ -85,10 +85,28 @@ namespace VisualPinball.Unity
 		/// <summary>What became of <see cref="Routing"/> when the outputs opened; empty when every bus plays where it was sent.</summary>
 		public string RoutingStatus { get; private set; } = string.Empty;
 		public static string[] AsioDrivers() => NativePcmSession.AsioDrivers();
+		private static readonly Dictionary<string, int> AsioOutputCounts = new();
+		/// <summary>
+		/// The outputs an ASIO driver has, or 0 when unknown. The first question for a driver that isn't playing loads
+		/// it for a moment; the answer is kept, so ask for the driver the user chose, not for every installed one.
+		/// </summary>
+		public static int AsioOutputs(string driver)
+		{
+			if (string.IsNullOrEmpty(driver)) return 0;
+			if (AsioOutputCounts.TryGetValue(driver, out int known)) return known;
+			int outputs = NativePcmSession.AsioDriverOutputs(driver);
+			if (outputs > 0) AsioOutputCounts[driver] = outputs; // unknown is asked again: the driver may have been busy
+			return outputs;
+		}
 		/// <summary>Whether this build ships the optional ASIO library (Windows x64).</summary>
 		public static bool AsioAvailable => NativePcmSession.AsioAvailable;
 		/// <summary>Opens the ASIO driver's settings window, also when no table is playing.</summary>
-		public static bool ShowAsioControlPanel(string driver) => !string.IsNullOrEmpty(driver) && NativePcmSession.ShowAsioControlPanel(driver);
+		public static bool ShowAsioControlPanel(string driver)
+		{
+			if (string.IsNullOrEmpty(driver)) return false;
+			AsioOutputCounts.Remove(driver); // its panel may change which outputs it has: asked again next time
+			return NativePcmSession.ShowAsioControlPanel(driver);
+		}
 		/// <summary>Unloads a driver loaded only for its settings window. Playing streams are not affected.</summary>
 		public static void CloseAsioControlPanel() => NativePcmSession.CloseAsioControlPanel();
 		public bool DeviceOutput => _session?.HasDeviceOutput == true;
@@ -392,7 +410,9 @@ namespace VisualPinball.Unity
 				int Pairs(string id) { foreach (var device in devices) if (device.Id == id) return Mathf.Max(1, device.Channels / 2); return 1; }
 				// an ASIO driver is no Windows device: only an output without a device shares it, and its outputs aren't known here
 				string main = asio ? null : mainOutput == Main.Default || string.IsNullOrEmpty(routing.MainDevice) ? defaultDevice : routing.MainDevice;
-				int mainPairs = asio ? 8 : Pairs(main);
+				// a driver whose outputs aren't known yet may have any pair; once it has played or was asked, its real count holds
+				int asioOutputs = asio && AsioOutputCounts.TryGetValue(AsioDriver ?? string.Empty, out int counted) ? counted : 0;
+				int mainPairs = !asio ? Pairs(main) : asioOutputs > 0 ? Mathf.Clamp(asioOutputs / 2, 1, 8) : 8;
 				int Pair(int pair, int pairs) => pair >= 0 && pair < pairs ? pair : 0;
 				plan.ZonePair[0] = Pair(routing.MainPair, mainPairs);
 				plan.Reserved[0] = 1;

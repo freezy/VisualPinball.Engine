@@ -94,6 +94,16 @@ namespace VisualPinball.Unity
 		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioDriverName(int index, StringBuilder name, int length);
 		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioShowControlPanel(string driver);
 		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern void VpeAsioCloseControlPanel();
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioDriverOutputs(string driver);
+		/// <summary>
+		/// The outputs an ASIO driver has, or 0 when it can't be told (an older library, another driver in use). Loads
+		/// the driver for a moment unless it is playing, so ask for the driver in use only.
+		/// </summary>
+		internal static int AsioDriverOutputs(string driver)
+		{
+			try { return VpeAsioDriverOutputs(driver); }
+			catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { return 0; }
+		}
 		internal const int OutputMetricCount = 13;
 		private IntPtr _context, _output;
 		private readonly IntPtr[] _tapOutputs = new IntPtr[PcmOutputRouting.MaxExtraOutputs]; // main thread only
