@@ -46,6 +46,7 @@ struct Stream {
 	int rate = 0;
 	long requestedFrames = 0, frames = 0;
 	std::atomic<int> paused{0}, opened{0}, reset{0}, panel{0};
+	std::atomic<long> driverOutputs{0}; // the outputs the driver has, known once it is initialized
 	bool panelOnly = false; // keeps the driver loaded only to show its control panel
 	std::array<std::atomic<float>, MetricCount> metrics{};
 	ASIOBufferInfo buffers[MaxOutputs + 1]{};
@@ -175,6 +176,8 @@ bool Open(Stream& s, bool& initialized)
 	ASIODriverInfo info{}; info.asioVersion = 2; info.sysRef = GetDesktopWindow();
 	if (ASIOInit(&info) != ASE_OK) { s.error = std::string("ASIOInit failed: ") + info.errorMessage; return false; }
 	initialized = true;
+	long inputs = 0, outputs = 0;
+	if (ASIOGetChannels(&inputs, &outputs) == ASE_OK) s.driverOutputs.store(outputs);
 	if (s.panelOnly) return true;
 	// The graph's DSP is prepared for Unity's rate, so the device has to run at it.
 	ASIOSampleRate current = 0; ASIOGetSampleRate(&current);
@@ -358,3 +361,18 @@ VPE_ASIO_API int VpeAsioShowControlPanel(const char* driver)
 }
 
 VPE_ASIO_API void VpeAsioCloseControlPanel() { ClosePanel(); }
+
+// The number of outputs a driver has, or 0 when it can't be told. A driver that plays or shows its panel answers at
+// once; otherwise it is loaded for the question and unloaded again, which takes a moment, so ask for the driver in
+// use only and keep the answer. Only one driver can be loaded per process: while another one plays or shows its
+// panel, the answer is 0. Main thread only.
+VPE_ASIO_API int VpeAsioDriverOutputs(const char* driver)
+{
+	if (!driver || !*driver) return 0;
+	if (g) return g->driver == driver ? static_cast<int>(g->driverOutputs.load()) : 0;
+	if (gPanel) return gPanel->driver == driver ? static_cast<int>(gPanel->driverOutputs.load()) : 0;
+	auto* s = new Stream(); s->driver = driver; s->panelOnly = true;
+	const int outputs = Launch(s) ? static_cast<int>(s->driverOutputs.load()) : 0;
+	Close(s);
+	return outputs;
+}
