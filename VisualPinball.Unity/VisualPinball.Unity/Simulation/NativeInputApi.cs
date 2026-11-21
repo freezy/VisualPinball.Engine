@@ -286,6 +286,14 @@ namespace VisualPinball.Unity.Simulation
 			public string Name => DecodeUtf8(_name);
 		}
 
+		// Same native layout as InputButtonInfo, without marshaling the name for each poll.
+		[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 2 * sizeof(int) + ButtonNameSize)]
+		public struct InputButtonState
+		{
+			public int ButtonId;
+			public int IsPressed;
+		}
+
 		/// <summary>
 		/// Native device metadata returned by enumeration.
 		/// </summary>
@@ -414,6 +422,9 @@ namespace VisualPinball.Unity.Simulation
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int VpeInputListDeviceButtons(int deviceIndex, [Out] InputButtonInfo[] buttons, int maxButtons);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int VpeInputReadDeviceButtons(int deviceIndex, [Out] InputButtonState[] buttons, int maxButtons);
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void VpeInputSetButtonBindings([In] InputButtonBinding[] bindings, int count);
