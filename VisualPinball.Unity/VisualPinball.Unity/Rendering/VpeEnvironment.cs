@@ -36,6 +36,11 @@ namespace VisualPinball.Unity
 		/// <summary>How far the spot reaches, in meters.</summary>
 		public float Range;
 		public bool Shadows;
+		/// <summary>
+		/// How large a directional light's source looks from the table, in degrees: the larger, the softer its
+		/// shadows where the pipeline makes them so. 0 leaves the pipeline's default (about the sun's).
+		/// </summary>
+		public float AngularDiameter;
 	}
 
 	/// <summary>Implemented by the active render pipeline to light the table's surroundings.</summary>
