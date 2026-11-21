@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Packaging Shader Variants | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Packaging Shader Variants | VPE Documentation ">
+      
+      <meta name="description" content="Why runtime-resolved materials need a shipped shader variant collection in player builds, and how to keep it current as tables are added.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/packaging/shader-variants.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+      <script src="./../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-packaging-shader-variants">
+<h1 id="shader-variants">Shader Variants</h1>
+
+<p>This page is for people building and shipping a player. It explains why a table that looks correct in the editor can render with broken materials in a standalone build, and what you do about it when you add a new table.</p>
+<p>It is specifically about HDRP. Other renderers that resolve materials at runtime will hit the same class of problem, but the keyword and tooling details below are HDRP/Unity-specific.</p>
+<h2 id="why-a-build-needs-help">Why a build needs help</h2>
+<p>The HDRP resolver builds its materials at runtime: it clones a small set of template materials and flips HDRP/Lit keywords (surface type, refraction model, transmission, SSR-transparent, thickness, double-sided, and so on) to match each <code>materials.json</code> profile. See <a href="import.html">import</a> for the resolver flow.</p>
+<p>Those keywords are HDRP <code>shader_feature</code> keywords, and <code>shader_feature</code> behaves differently in the editor than in a build:</p>
+<ul>
+<li>In the <strong>editor</strong> the shader compiler is present. The first time a material asks for a keyword combination that has not been compiled yet, the editor compiles it on demand and caches it (the <em>&quot;Compiling shader variants…&quot;</em> hitches). A runtime-built material always finds its variant, so the table looks correct.</li>
+<li>In a <strong>player build</strong> there is no shader compiler. Only the <code>shader_feature</code> combinations that some material asset uses at build time — or that a <code>ShaderVariantCollection</code> referenced from <em>Project Settings → Graphics → Preloaded Shaders</em> lists — are compiled and shipped. The resolver's runtime combinations are not present on any build-time material, so without a preloaded collection they are stripped. HDRP then substitutes the nearest available variant, and the visible result is broken transparency, refraction, and reflections — even though import itself succeeds.</li>
+</ul>
+<p>This is why the editor and a build of the <em>same</em> table off the <em>same</em> <code>.vpe</code> can look different. It is not a packaging problem; the <code>.vpe</code> is renderer-agnostic and correct. The variants are a property of the <strong>player + render pipeline + platform + engine version</strong>, not of the table, which is why they live in the player and not in the package.</p>
+<h2 id="the-fix-a-preloaded-shadervariantcollection">The fix: a preloaded ShaderVariantCollection</h2>
+<p>A player ships a <code>ShaderVariantCollection</code> that covers the variants the resolver produces, referenced from <em>Project Settings → Graphics → Preloaded Shaders</em>. The build then keeps exactly those variants (and only those), so runtime-built materials find the right one.</p>
+<p>Because the needed combinations depend on per-material data (which texture maps and material features each profile enables) and on per-pass keyword differences, the collection cannot be reliably enumerated by hand. It is <strong>captured</strong> from real table loads instead, which records exactly the <code>(shader, pass, keyword)</code> tuples that are actually drawn.</p>
+<h2 id="adding-variants-for-a-new-table">Adding variants for a new table</h2>
+<p>A new table can introduce material/keyword combinations the collection has not seen yet. When you add one, capture it and rebuild:</p>
+<ol>
+<li><strong>Clear the tracked set.</strong> <em>Project Settings → Graphics</em>, in the shader-loading section, clear the currently-tracked shader variants.</li>
+<li><strong>Exercise the table.</strong> Enter play mode, load the table, and move the camera so every insert, plastic, ramp, and post is actually drawn — only drawn variants are recorded. To broaden coverage, load several tables in the same session <strong>without clearing in between</strong>; the tracked set accumulates.</li>
+<li><strong>Save to asset.</strong> Save the tracked set to the player's <code>.shadervariants</code> collection.</li>
+<li><strong>Preload it.</strong> Make sure the collection is referenced under <em>Preloaded Shaders</em> (the player provides a menu helper that wires it for you).</li>
+<li><strong>Rebuild</strong> and verify the table renders correctly in the build.</li>
+</ol>
+<p>Capture while the editor is on the <strong>same quality level the build ships</strong> (see the quality-level note below), so the recorded variants match the shipped pipeline.</p>
+<h2 id="things-that-bite">Things that bite</h2>
+<ul>
+<li><strong>Quality level / pipeline must match.</strong> Variants captured under one HDRP pipeline asset may not be exactly what another needs. Develop and capture on the quality level you actually ship.</li>
+<li><strong>Ray tracing is kept out of player builds for now.</strong> The DXR pipeline pulls in ray-tracing passes that the imported glTF shadergraphs cannot compile, and it multiplies the variant count enormously. The shipped quality level is a rasterized one (deferred + SSR); the DXR asset stays in the project for future work but is not the player default.</li>
+<li><strong>The imported glTF shadergraphs are intentionally not in the build.</strong> The HDRP glTF material generator builds its import placeholders on HDRP/Lit, and the resolver replaces every imported material by name, so the original glTF shadergraph is never actually used and does not need to ship. Keeping it out also sidesteps a real problem: gltFast's glTF materials are HDRP Shader Graphs, so HDRP auto-generates ray-tracing passes for them (<code>ForwardDXR</code>, <code>GBufferDXR</code>, …), and gltFast's versions have an invalid gradient <code>Sample</code> in the ray-tracing <code>closesthit</code> context. Those passes are only compiled when ray tracing is enabled in the build, so they failed only while the standalone still defaulted to the DXR pipeline — and they would break a future ray-tracing build the same way if the shadergraphs were shipped. A harmless &quot;shader missing&quot; line for those shadergraphs may appear in the <em>Development Console</em>; it does not affect rendering and does not appear in non-development builds.</li>
+<li><strong>Guard against regressions.</strong> The player fails a standalone build when the collection is missing, empty, or not preloaded, so a fresh checkout or a settings reset cannot silently ship broken transparency.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/packaging/shader-variants.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
