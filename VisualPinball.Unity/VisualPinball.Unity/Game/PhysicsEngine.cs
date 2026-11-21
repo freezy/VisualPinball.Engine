@@ -25,6 +25,7 @@ using NLog;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
 using VisualPinball.Unity.Simulation;
@@ -1524,6 +1525,32 @@ namespace VisualPinball.Unity
 			_ctx.SimulationState = state;
 		}
 
+		/// <summary>Refresh the visual flipper angles before the playfield is culled.</summary>
+		public static bool LateFlipperSampling { get; set; }
+		private int _lastFlipperRenderFrame = -1;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetLateFlipperSampling() => LateFlipperSampling = false;
+
+		private void OnEnable()
+		{
+			_lastFlipperRenderFrame = -1;
+			RenderPipelineManager.beginContextRendering += RefreshFlippersForRender;
+		}
+
+		private void RefreshFlippersForRender(ScriptableRenderContext context, List<Camera> cameras)
+		{
+			if (!LateFlipperSampling || _lastFlipperRenderFrame == Time.frameCount || !_ctx.UseExternalTiming) return;
+
+			foreach (var camera in cameras) {
+				if (camera && camera.cameraType == CameraType.Game && camera.targetDisplay == 0 && camera.targetTexture == null) {
+					_lastFlipperRenderFrame = Time.frameCount;
+					_threading?.RefreshFlipperMovements();
+					break;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Unity update loop. Dispatches to either the threaded or
 		/// single-threaded code path via <see cref="PhysicsEngineThreading"/>.
@@ -1592,6 +1619,7 @@ namespace VisualPinball.Unity
 
 		private void OnDisable()
 		{
+			RenderPipelineManager.beginContextRendering -= RefreshFlippersForRender;
 			if (_ctx == null || !_ctx.UseExternalTiming) {
 				return;
 			}

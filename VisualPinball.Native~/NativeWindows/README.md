@@ -33,6 +33,8 @@ The HWNDs live on a plugin-owned message thread with per-monitor DPI awareness; 
 
 Present never waits for the display: Windows uses `DXGI_PRESENT_DO_NOT_WAIT`, Metal skips a frame when two are in flight, and Vulkan acquires with a zero timeout and prefers immediate mode. Skipped frames are counted in the diagnostics.
 
+The Windows library also exposes the experimental Reflex bridge. It resolves NVAPI from the installed NVIDIA driver and requests frame-start sleep on Unity's DX12 device. Unity still owns playfield presentation, so the experiment runs without application Present markers. Set `VPE_TEST_REFLEX=1` for `Windows/Build.ps1 -Test` to exercise enable, sleep, disable, and device release on a supported GeForce device.
+
 ## C API
 
 | Function | Purpose |

@@ -303,6 +303,18 @@ int main()
 		D3D12_COMMAND_QUEUE_DESC queue{}; queue.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		Check12(Test::device12->CreateCommandQueue(&queue, IID_PPV_ARGS(&Test::queue12)), "Create D3D12 test queue");
 		Check12(Test::device12->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Test::fence12)), "Create D3D12 test fence");
+		if (GetEnvironmentVariableW(L"VPE_TEST_REFLEX", nullptr, 0) > 0) {
+			UnityPluginLoad(&interfaces);
+			Test::Assert(VPNW_ReflexSleep() == 1, "Reflex waits for a Unity device");
+			VPNW_ReflexInitEvent()(0);
+			const auto status = VPNW_ReflexSleep();
+			std::cout << "Reflex DX12 frame-start status=" << status << std::endl;
+			Test::Assert(status == 0, "NVAPI accepts Reflex and frame-start sleep");
+			Test::Assert(VPNW_ReflexStop() == 0, "NVAPI disables Reflex");
+			Test::Assert(VPNW_ReflexSleep() == 0, "NVAPI re-enables Reflex");
+			UnityPluginUnload();
+			Test::Assert(VPNW_ReflexSleep() == 1, "Reflex releases the Unity device at shutdown");
+		}
 		auto texture12 = Test::Texture12();
 		Test::Roundtrip(interfaces, texture12.Get());
 		auto corners12 = Test::Texture12(DXGI_FORMAT_B8G8R8A8_UNORM, true);

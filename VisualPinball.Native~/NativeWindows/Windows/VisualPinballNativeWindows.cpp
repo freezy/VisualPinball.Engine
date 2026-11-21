@@ -21,6 +21,7 @@
 #include "IUnityGraphics.h"
 #include "IUnityGraphicsD3D11.h"
 #include "D3D12CopyBridge.h"
+#include "ReflexPacing.h"
 #include <array>
 #include <atomic>
 #include <deque>
@@ -550,13 +551,26 @@ float4 PixelMain(Vertex input) : SV_Target {
 		CreatePipeline();
 	}
 
+	void UNITY_INTERFACE_API InitializeReflex(int)
+	{
+		if (UnityInterfaces && Renderer.load() == kUnityGfxRendererD3D12) {
+			if (auto graphics = UnityInterfaces->Get<IUnityGraphicsD3D12v7>()) {
+				reflex::SetDevice(graphics->GetDevice());
+			}
+		}
+	}
+
 	void UNITY_INTERFACE_API GraphicsEvent(UnityGfxDeviceEventType event)
 	{
 		std::lock_guard<std::mutex> lock(DeviceMutex);
 		try {
-			if (event == kUnityGfxDeviceEventShutdown || event == kUnityGfxDeviceEventBeforeReset) ReleaseDevice();
+			if (event == kUnityGfxDeviceEventShutdown || event == kUnityGfxDeviceEventBeforeReset) {
+				reflex::SetDevice(nullptr);
+				ReleaseDevice();
+			}
 			else if (event == kUnityGfxDeviceEventInitialize || event == kUnityGfxDeviceEventAfterReset) {
 				Renderer.store(UnityGraphics ? UnityGraphics->GetRenderer() : -1);
+				InitializeReflex(0);
 				InitializeDevice();
 			}
 		}
@@ -821,6 +835,21 @@ VPNW_API int VPNW_CALL VPNW_GetLastError(char* destination, int capacity)
 	return static_cast<int>(LastError.size() + 1);
 }
 
+extern "C" UNITY_INTERFACE_EXPORT UnityRenderingEvent VPNW_CALL VPNW_ReflexInitEvent()
+{
+	return InitializeReflex;
+}
+
+extern "C" UNITY_INTERFACE_EXPORT int VPNW_CALL VPNW_ReflexSleep()
+{
+	return reflex::Sleep();
+}
+
+extern "C" UNITY_INTERFACE_EXPORT int VPNW_CALL VPNW_ReflexStop()
+{
+	return reflex::Stop();
+}
+
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces* interfaces)
 {
 	UnityInterfaces = interfaces;
@@ -848,6 +877,7 @@ extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginLoad(IUnit
 extern "C" void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginUnload()
 {
 	if (UnityGraphics) UnityGraphics->UnregisterDeviceEventCallback(GraphicsEvent);
+	reflex::SetDevice(nullptr);
 	VPNW_DestroyAll();
 	{ std::lock_guard<std::mutex> device(DeviceMutex); ReleaseDevice(); }
 	{ std::lock_guard<std::mutex> windows(WindowServiceMutex); WindowService.reset(); }

@@ -912,6 +912,22 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal void RefreshFlipperMovements()
+		{
+			if (!_ctx.IsInitialized || _ctx.SimulationState == null || _snapshotFlipperIds.Length == 0) return;
+
+			// The snapshot writer puts flippers before other float animations. Keep the regular
+			// Update pass for gameplay consumers and refresh only the flipper visuals here.
+			ref readonly var snapshot = ref _ctx.SimulationState.AcquireReadBuffer();
+			var count = System.Math.Min(_snapshotFlipperIds.Length, snapshot.FloatAnimationCount);
+			for (var i = 0; i < count; i++) {
+				var animation = snapshot.FloatAnimations[i];
+				if (_ctx.FloatAnimatedComponents.TryGetValue(animation.ItemId, out var emitter) && emitter is FlipperComponent flipper) {
+					flipper.UpdateAnimationValue(animation.Value);
+				}
+			}
+		}
+
 		/// <summary>
 		/// Apply visual updates from a triple-buffer snapshot.
 		/// </summary>

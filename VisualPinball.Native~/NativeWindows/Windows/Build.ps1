@@ -33,15 +33,20 @@ New-Item -ItemType Directory -Force -Path (Split-Path -Parent $output) | Out-Nul
 $compileArguments = @('/nologo', '/c', '/std:c++17', '/permissive-', '/EHsc', '/W4', '/WX', '/O2', '/MD', '/utf-8', '/DUNICODE', '/D_UNICODE', '/D_WIN32_WINNT=0x0A00', "/Fo$object")
 foreach ($path in $includePaths) { $compileArguments += "/I$path" }
 & $compiler @compileArguments $source
-if (!$Test -and $LASTEXITCODE -eq 0) {
-	$bridgeObject = Join-Path $buildDirectory 'D3D12CopyBridge.obj'
-	$bridgeArguments = $compileArguments | Where-Object { !($_ -like '/Fo*') }
-	& $compiler @bridgeArguments "/Fo$bridgeObject" (Join-Path $nativeRoot 'D3D12CopyBridge.cpp')
-}
 if ($LASTEXITCODE -ne 0) { throw "C++ compilation failed with exit code $LASTEXITCODE." }
+$extraObjects = @()
+$extraSources = if ($Test) { @('ReflexPacing') } else { @('D3D12CopyBridge', 'ReflexPacing') }
+$sourceArguments = $compileArguments | Where-Object { !($_ -like '/Fo*') }
+foreach ($name in $extraSources) {
+	$extraObject = Join-Path $buildDirectory "$name.obj"
+	& $compiler @sourceArguments "/Fo$extraObject" (Join-Path $nativeRoot "$name.cpp")
+	if ($LASTEXITCODE -ne 0) { throw "C++ compilation failed for $name with exit code $LASTEXITCODE." }
+	$extraObjects += $extraObject
+}
 $linkArguments = @('/NOLOGO', '/MACHINE:X64', '/INCREMENTAL:NO', '/OPT:REF', '/OPT:ICF', "/OUT:$output", "/IMPLIB:$(Join-Path $buildDirectory 'VisualPinballNativeWindows.lib')", $object, 'd3d11.lib', 'd3d12.lib', 'dxgi.lib', 'dcomp.lib', 'd3dcompiler.lib', 'user32.lib')
 foreach ($path in $libraryPaths) { $linkArguments += "/LIBPATH:$path" }
-if (!$Test) { $linkArguments += @('/DLL', $bridgeObject) }
+if (!$Test) { $linkArguments += '/DLL' }
+$linkArguments += $extraObjects
 & $linker @linkArguments
 if ($LASTEXITCODE -ne 0) { throw "C++ linking failed with exit code $LASTEXITCODE." }
 Write-Host "Built $output"
