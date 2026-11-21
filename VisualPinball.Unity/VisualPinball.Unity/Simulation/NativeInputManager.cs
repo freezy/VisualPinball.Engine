@@ -229,8 +229,8 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Custom bindings supplied by the host application. When non-null and non-empty, these are sent
-		/// to the native layer on the next <see cref="StartPolling"/> instead of the built-in defaults.
+		/// Keyboard bindings supplied by the host and sent to the native layer on the next <see cref="StartPolling"/>.
+		/// Null uses the built-in defaults. An empty list disables keyboard bindings.
 		/// Set this from your config before launching a table (and again whenever the user edits bindings).
 		/// Static so it outlives the per-table singleton lifecycle.
 		/// </summary>
@@ -486,7 +486,7 @@ namespace VisualPinball.Unity.Simulation
 			var toSend = configured?.ToArray() ?? _bindings.ToArray();
 			NativeInputApi.VpeInputSetBindings(toSend, toSend.Length);
 			SendControlBindings();
-			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured != null && configured.Count > 0 ? "custom" : "default");
+			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured == null ? "default" : "custom");
 
 			// Create callback delegate (keep reference to prevent GC)
 			_callbackDelegate = OnInputEvent;
