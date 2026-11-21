@@ -51,6 +51,8 @@ namespace VisualPinball.Unity.Simulation
 		// StartPolling, because that's when the native side switches to its polling enumeration,
 		// which is the only index space consistent with axis events.
 		private volatile Dictionary<int, string> _deviceIdsByIndex = new();
+		private int _deviceRevision;
+		public int DeviceRevision => Volatile.Read(ref _deviceRevision);
 
 		// Input configuration
 		private readonly List<NativeInputApi.InputBinding> _bindings = new();
@@ -61,6 +63,7 @@ namespace VisualPinball.Unity.Simulation
 		private static volatile List<NativeInputApi.InputBinding> _configuredBindings;
 		private static volatile NativeInputApi.InputControlBinding[] _configuredControlBindings = Array.Empty<NativeInputApi.InputControlBinding>();
 		private bool _hasNativeButtons;
+		private bool _hasNativeButtonStates;
 		private bool _hasNativeControlBindings;
 
 		// Set from the main thread (Application.isFocused). When the app window isn't focused, native input
@@ -177,6 +180,12 @@ namespace VisualPinball.Unity.Simulation
 				_hasNativeButtons = false;
 			}
 			try {
+				NativeInputApi.VpeInputReadDeviceButtons(-1, null, 0);
+				_hasNativeButtonStates = true;
+			} catch (EntryPointNotFoundException) {
+				_hasNativeButtonStates = false;
+			}
+			try {
 				NativeInputApi.VpeInputReadControlCapture(null, 0);
 				_hasNativeControlBindings = true;
 			} catch (EntryPointNotFoundException) {
@@ -220,8 +229,8 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Custom bindings supplied by the host application. When non-null and non-empty, these are sent
-		/// to the native layer on the next <see cref="StartPolling"/> instead of the built-in defaults.
+		/// Keyboard bindings supplied by the host and sent to the native layer on the next <see cref="StartPolling"/>.
+		/// Null uses the built-in defaults. An empty list disables keyboard bindings.
 		/// Set this from your config before launching a table (and again whenever the user edits bindings).
 		/// Static so it outlives the per-table singleton lifecycle.
 		/// </summary>
@@ -252,6 +261,7 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		public bool SupportsControllerButtons => _hasNativeButtons;
+		public bool SupportsDeviceButtonStates => _hasNativeButtonStates;
 		public bool SupportsControlBindings => _hasNativeControlBindings;
 
 		private void SendControlBindings()
@@ -435,6 +445,16 @@ namespace VisualPinball.Unity.Simulation
 			return buttons;
 		}
 
+		/// <summary>Copies the latest button state and returns the total number of buttons on the device.</summary>
+		public int ReadDeviceButtons(string deviceId, NativeInputApi.InputButtonState[] states)
+		{
+			if (!_polling || !_hasNativeButtonStates) return 0;
+			foreach (var (index, id) in _deviceIdsByIndex) {
+				if (id == deviceId) return NativeInputApi.VpeInputReadDeviceButtons(index, states, states.Length);
+			}
+			return 0;
+		}
+
 		/// <summary>
 		/// Starts native input polling and sends the current action bindings to the
 		/// native layer.
@@ -463,10 +483,10 @@ namespace VisualPinball.Unity.Simulation
 
 			// Send bindings to native layer: host-supplied custom bindings if present, else the defaults
 			var configured = _configuredBindings;
-			var toSend = configured != null && configured.Count > 0 ? configured.ToArray() : _bindings.ToArray();
+			var toSend = configured?.ToArray() ?? _bindings.ToArray();
 			NativeInputApi.VpeInputSetBindings(toSend, toSend.Length);
 			SendControlBindings();
-			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured != null && configured.Count > 0 ? "custom" : "default");
+			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured == null ? "default" : "custom");
 
 			// Create callback delegate (keep reference to prevent GC)
 			_callbackDelegate = OnInputEvent;
@@ -501,6 +521,7 @@ namespace VisualPinball.Unity.Simulation
 			NativeInputApi.VpeInputStopPolling();
 			_simulationThread?.ResetInputNotifications(false);
 			_polling = false;
+			Interlocked.Increment(ref _deviceRevision);
 			_pollIntervalUs = 0;
 			Volatile.Write(ref _actualEventRateHz, 0f);
 
@@ -635,6 +656,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			try {
 				ListDevices();
+				Interlocked.Increment(ref _deviceRevision);
 				DevicesChanged?.Invoke();
 			} catch (Exception e) {
 				Logger.Error(e, "{Prefix:l} [NativeInputManager] Failed to refresh devices after hotplug", LogPrefix);
@@ -682,6 +704,7 @@ namespace VisualPinball.Unity.Simulation
 				_initialized = false;
 				_hasNativeGameplayGate = false;
 				_hasNativeButtons = false;
+				_hasNativeButtonStates = false;
 				_hasNativeControlBindings = false;
 			}
 
