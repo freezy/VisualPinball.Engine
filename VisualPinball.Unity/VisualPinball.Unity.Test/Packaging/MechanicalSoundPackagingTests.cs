@@ -75,6 +75,7 @@ namespace VisualPinball.Unity.Test
 				var input = child.AddComponent<InputActionSoundComponent>();
 				input.ActionName = "Start Game";
 				input.SoundAsset = second;
+				input.StartWhen = StartWhen.TurnedOff;
 				new PackageWriter(source).WritePackageSync(package);
 				var task = new RuntimePackageReader(package).ImportIntoScene();
 				while (!task.IsCompleted)
@@ -97,6 +98,7 @@ namespace VisualPinball.Unity.Test
 				var restoredInput = imported.GetComponentInChildren<InputActionSoundComponent>(true);
 				Assert.That(restoredInput.ActionName, Is.EqualTo("Start Game"));
 				Assert.That(restoredInput.SoundAsset, Is.SameAs(restored.Up));
+				Assert.That(restoredInput.StartWhen, Is.EqualTo(StartWhen.TurnedOff));
 			}
 			finally {
 				if (imported)
