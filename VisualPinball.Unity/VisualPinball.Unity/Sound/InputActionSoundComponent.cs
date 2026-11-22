@@ -24,6 +24,8 @@ namespace VisualPinball.Unity
 	public class InputActionSoundComponent : SoundComponent, IPackable
 	{
 		public string ActionName;
+		[Tooltip("Whether the sound plays when the button is pressed or when it is released.")]
+		public StartWhen StartWhen = StartWhen.TurnedOn;
 		private Player _player;
 		private bool _pressed;
 		public override bool SupportsLoopingSoundAssets() => false;
@@ -38,7 +40,7 @@ namespace VisualPinball.Unity
 			if (InputManager.GetCanonicalActionName(ActionName) != action || _pressed == pressed)
 				return;
 			_pressed = pressed;
-			if (pressed)
+			if (pressed == (StartWhen == StartWhen.TurnedOn))
 				StartSound();
 		}
 		protected override void OnDisable() {
@@ -51,17 +53,20 @@ namespace VisualPinball.Unity
 		public new byte[] Pack() => PackageApi.Packer.Pack(new InputActionSoundPackable
 		{
 			Sound = base.Pack(),
-			ActionName = ActionName
+			ActionName = ActionName,
+			StartWhen = StartWhen
 		});
 		public new void Unpack(byte[] bytes) {
 			var p = PackageApi.Packer.Unpack<InputActionSoundPackable>(bytes);
 			base.Unpack(p.Sound);
 			ActionName = p.ActionName;
+			StartWhen = p.StartWhen;
 		}
 	}
 	public struct InputActionSoundPackable
 	{
 		public byte[] Sound;
 		public string ActionName;
+		public StartWhen StartWhen;
 	}
 }
