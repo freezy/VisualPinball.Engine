@@ -90,7 +90,24 @@ namespace VisualPinball.Unity
 		[JsonProperty("name")]
 		public string Name;
 
+		[JsonProperty("roles")]
+		public List<TableAuthorRole> Roles = new();
+
 		[JsonProperty("vpuHandle")]
+		[VpuUsername]
 		public string VpuHandle;
 	}
+
+	[Serializable]
+	public class TableAuthorRole
+	{
+		[JsonProperty("title")]
+		public string Title;
+
+		[JsonProperty("description", NullValueHandling = NullValueHandling.Ignore)]
+		[TextArea]
+		public string Description;
+	}
+
+	internal sealed class VpuUsernameAttribute : PropertyAttribute { }
 }

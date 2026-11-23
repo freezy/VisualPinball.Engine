@@ -152,7 +152,15 @@ namespace VisualPinball.Unity
 			@"(?:-(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?" +
 			@"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?\z");
 		private static bool ValidId(string id) => Guid.TryParseExact(id, "D", out var guid) && guid != Guid.Empty && id == guid.ToString("D");
-		private static List<TableAuthor> CloneAuthors(List<TableAuthor> authors) => (authors ?? new()).Select(a => a == null ? throw new InvalidDataException("Null author.") : new TableAuthor { Name = a.Name ?? "", VpuHandle = a.VpuHandle ?? "" }).ToList();
+		private static List<TableAuthor> CloneAuthors(List<TableAuthor> authors) =>
+			(authors ?? new()).Select(author => author == null ? throw new InvalidDataException("Null author.") : new TableAuthor {
+				Name = author.Name ?? "",
+				VpuHandle = author.VpuHandle ?? "",
+				Roles = (author.Roles ?? new()).Select(role => role == null ? throw new InvalidDataException("Null author role.") : new TableAuthorRole {
+					Title = role.Title,
+					Description = role.Description
+				}).ToList()
+			}).ToList();
 		private static string LegacyHash(Credit c) => Digest("VPE-LEGACY-SOURCE", w => { Text(w, c.Kind); Text(w, c.SourceFingerprint); Text(w, c.Version); Authors(w, c.PrimaryAuthors); Authors(w, c.SecondaryAuthors); });
 		private static string Digest(string domain, Action<BinaryWriter> write)
 		{
@@ -164,6 +172,30 @@ namespace VisualPinball.Unity
 		private static void Number(BinaryWriter writer, int value) { writer.Write((byte)(value >> 24)); writer.Write((byte)(value >> 16)); writer.Write((byte)(value >> 8)); writer.Write((byte)value); }
 		private static void Text(BinaryWriter writer, string value) { var bytes = new UTF8Encoding(false, true).GetBytes(value ?? ""); if (bytes.Length > 16384) throw new InvalidDataException("Provenance string too long."); Number(writer, bytes.Length); writer.Write(bytes); }
 		private static void Hash(BinaryWriter writer, string value) { if (!VpeIntegrity.IsHash(value)) throw new InvalidDataException("Invalid SHA-256."); for (var i = 0; i < 64; i += 2) writer.Write(Convert.ToByte(value.Substring(i, 2), 16)); }
-		private static void Authors(BinaryWriter writer, List<TableAuthor> authors) { Number(writer, authors?.Count ?? 0); if (authors == null) return; if (authors.Count > 32768) throw new InvalidDataException("Too many authors."); foreach (var author in authors) { if (author == null) throw new InvalidDataException("Null author."); Text(writer, author.Name); Text(writer, author.VpuHandle); } }
+		private static void Authors(BinaryWriter writer, List<TableAuthor> authors)
+		{
+			var count = authors?.Count ?? 0;
+			if (count > 32768) throw new InvalidDataException("Too many authors.");
+
+			// A negative count marks author lists that include roles, preserving the hashes of existing credits without roles.
+			var hasRoles = authors?.Any(author => author?.Roles?.Count > 0) ?? false;
+			Number(writer, hasRoles ? -count : count);
+			if (authors == null) return;
+
+			foreach (var author in authors) {
+				if (author == null) throw new InvalidDataException("Null author.");
+				Text(writer, author.Name);
+				Text(writer, author.VpuHandle);
+				if (!hasRoles) continue;
+
+				Number(writer, author.Roles?.Count ?? 0);
+				if (author.Roles == null) continue;
+				foreach (var role in author.Roles) {
+					if (string.IsNullOrWhiteSpace(role?.Title)) throw new InvalidDataException("Each author role must have a title.");
+					Text(writer, role.Title);
+					Text(writer, role.Description);
+				}
+			}
+		}
 	}
 }

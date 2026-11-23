@@ -302,11 +302,17 @@ shape, color, intensity, range, spot angles, area size, shadow parameters, plus 
 
 Opening a package checks the directory only: paths, lengths and that nothing is listed twice or missing. The hashes are checked where content is used for something that outlives the load (the texture and content caches key on them), and for the whole package on request (`VpeIntegrity.VerifyFile`), since hashing every entry reads the whole file. They detect change; they are not signatures.
 
+## table/table.json
+
+The `primaryAuthors` and `secondaryAuthors` arrays contain author objects with `name`, `roles`, and `vpuHandle`. Each entry in the ordered `roles` array contains a nonblank `title` and an optional `description`. An author without roles has an empty list. The same author objects appear in ancestry credits.
+
 ## table/provenance.json
 
 `{ "schemaVersion": 1, "tableId", "kind", "sourceFingerprint", "metadataHash", "creditIndexHash", "rootHash", "sources": [ … ], "credits": [ … ] }` identifies the table across its versions (`tableId`, a GUID kept from export to export) and carries the credits of the tables it was derived from. `sources` are the root hashes of those tables; each entry of `credits` names one of them with its `tableId`, `version`, authors and `kind`. The hashes commit to the table's metadata and credits, so that a derived table can't drop or rewrite where it came from without changing its own identity. A package without valid provenance is refused.
 
 Table versions use `major.minor.patch` with an optional lowercase `v` prefix, SemVer prerelease identifiers after `-`, and build identifiers after `+` (for example `v1.0.0-alpha1+build.1`). Versions are limited to 128 characters and preserved exactly in metadata, ancestor credits and hashes; prefixes and suffixes are not normalized.
+
+In the canonical hash input, an author array starts with a signed big-endian 32-bit count, followed by each author's name and VPU username. If any author in that array has roles, the count is negative and each author's username is followed by a nonnegative 32-bit role count and the title and description of each role in order. Missing descriptions encode as empty strings.
 
 ## sounds/ and meta/sounds.json
 

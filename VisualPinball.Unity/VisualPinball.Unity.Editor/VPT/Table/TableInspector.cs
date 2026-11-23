@@ -25,6 +25,17 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	[CustomPropertyDrawer(typeof(VpuUsernameAttribute))]
+	internal sealed class VpuUsernameDrawer : PropertyDrawer
+	{
+		private static readonly GUIContent UsernameLabel = new("VPU username");
+
+		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+		{
+			EditorGUI.PropertyField(position, property, UsernameLabel);
+		}
+	}
+
 	[CustomEditor(typeof(TableComponent))]
 	[CanEditMultipleObjects]
 	public class TableInspector : ItemInspector

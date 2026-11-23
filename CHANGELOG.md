@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Primary and secondary table authors can each carry a list of roles with titles and optional descriptions, included in `.vpe` exports and ancestry credits.
+
 - Experimental Player video settings for NVIDIA Reflex on Windows/DX12, a one-frame render queue, and late flipper sampling. Each can be switched independently for latency comparisons.
 
 - The Player's Nudge settings list connected analog devices, with independent switches, live axis plots, U-HID-G axis mapping, and shared cabinet weight.
