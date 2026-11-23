@@ -72,16 +72,26 @@ namespace VisualPinball.Plugins
 		public int Y { get; }
 		public int Width { get; }
 		public int Height { get; }
+		/// <summary>
+		/// Clockwise quarter turns, 0 to 3, by which the Player turns what it shows here. A producer that lays out its
+		/// picture for this destination sizes it by <see cref="ContentWidth"/> and <see cref="ContentHeight"/>.
+		/// </summary>
+		public int Rotation { get; }
+		/// <summary>The width of a picture that fills this destination: its height when the content is turned by a quarter.</summary>
+		public int ContentWidth => (Rotation & 1) != 0 ? Height : Width;
+		/// <summary>The height of a picture that fills this destination: its width when the content is turned by a quarter.</summary>
+		public int ContentHeight => (Rotation & 1) != 0 ? Width : Height;
 
 		public CabinetDisplayTarget(string endpointId, CabinetOutputRole role, CabinetEndpointState state,
-			int x = 0, int y = 0, int width = 0, int height = 0, string reason = "")
+			int x = 0, int y = 0, int width = 0, int height = 0, string reason = "", int rotation = 0)
 		{
 			if (string.IsNullOrWhiteSpace(endpointId)) throw new ArgumentException("An endpoint needs an ID.", nameof(endpointId));
 			if (!CabinetOutputRoles.IsDefined(role)) throw new ArgumentException("An output needs a role.", nameof(role));
 			if (!Enum.IsDefined(typeof(CabinetEndpointState), state)) throw new ArgumentOutOfRangeException(nameof(state));
 			if (state == CabinetEndpointState.Available && (width < 1 || height < 1)) throw new ArgumentOutOfRangeException(nameof(width));
+			if (rotation < 0 || rotation > 3) throw new ArgumentOutOfRangeException(nameof(rotation));
 			EndpointId = endpointId; Role = role; State = state;
-			X = x; Y = y; Width = width; Height = height; Reason = reason ?? "";
+			X = x; Y = y; Width = width; Height = height; Reason = reason ?? ""; Rotation = rotation;
 		}
 	}
 
