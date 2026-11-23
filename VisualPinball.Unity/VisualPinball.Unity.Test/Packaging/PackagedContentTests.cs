@@ -74,6 +74,36 @@ namespace VisualPinball.Unity.Test.Packaging
 		}
 
 		[Test]
+		public void ReadsAuthorCreditsInPackageOrderWithRoleTitlesAndUsernameFallback()
+		{
+			var package = Path.Combine(_root, "credits.vpe");
+			using (var archive = new System.IO.Compression.ZipArchive(File.Create(package), System.IO.Compression.ZipArchiveMode.Create)) {
+				using var writer = new StreamWriter(archive.CreateEntry("table/table.json").Open());
+				writer.Write(@"{
+					""version"": ""1.0.0"",
+					""primaryAuthors"": [
+						{ ""name"": ""Zoe"", ""vpuHandle"": ""zoe-vpu"", ""roles"": [
+							{ ""title"": ""Scripting"", ""description"": ""Rules and scoring"" },
+							{ ""title"": ""Artwork"" }
+						] },
+						{ ""name"": ""Maya"" }
+					],
+					""secondaryAuthors"": [
+						{ ""name"": "" "", ""vpuHandle"": ""alex-vpu"", ""roles"": [{ ""title"": ""Testing"" }] },
+						{ ""name"": ""Ben"", ""roles"": [] }
+					]
+				}");
+			}
+
+			Assert.That(VpeTableMetadataReader.TryRead(package, out var metadata), Is.True);
+			Assert.That(metadata.AuthorCredits.Select(credit => credit.Name), Is.EqualTo(new[] { "Zoe", "Maya", "alex-vpu", "Ben" }));
+			Assert.That(metadata.AuthorCredits[0].RoleTitles, Is.EqualTo(new[] { "Scripting", "Artwork" }));
+			Assert.That(metadata.AuthorCredits[1].RoleTitles, Is.Empty);
+			Assert.That(metadata.AuthorCredits[2].RoleTitles, Is.EqualTo(new[] { "Testing" }));
+			Assert.That(metadata.AuthorCredits[3].RoleTitles, Is.Empty);
+		}
+
+		[Test]
 		public async Task RoundTripsNestedTreeInEditorAndRuntimeResolver()
 		{
 			var source = CreateFixture();
