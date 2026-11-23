@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 		public string Manufacturer { get; set; }
 		public int? OriginalReleaseYear { get; set; }
 		public IReadOnlyList<string> PrimaryAuthors { get; set; } = Array.Empty<string>();
+		/// <summary>Primary credits followed by secondary credits, in package order.</summary>
+		public IReadOnlyList<VpeTableAuthorCredit> AuthorCredits { get; internal set; } = Array.Empty<VpeTableAuthorCredit>();
 
 		/// <summary>The package is of a table that isn't released (see <see cref="TableMetadata.IsPrivate"/>).</summary>
 		public bool IsPrivate { get; set; }
@@ -45,6 +47,19 @@ namespace VisualPinball.Unity
 		// in screenshots/table-bounds.json. Null when the package has no screenshot bounds. Lets the
 		// player lay out its table carousel without decoding any screenshot image.
 		public float? ScreenshotAspectRatio { get; set; }
+	}
+
+	/// <summary>A display name and the ordered role titles credited to this author.</summary>
+	public sealed class VpeTableAuthorCredit
+	{
+		public string Name { get; }
+		public IReadOnlyList<string> RoleTitles { get; }
+
+		internal VpeTableAuthorCredit(string name, IReadOnlyList<string> roleTitles)
+		{
+			Name = name;
+			RoleTitles = roleTitles;
+		}
 	}
 
 	/// <summary>
@@ -109,6 +124,9 @@ namespace VisualPinball.Unity
 					Manufacturer = tableMetadata.Manufacturer?.Trim(),
 					OriginalReleaseYear = tableMetadata.OriginalReleaseYear > 0 ? tableMetadata.OriginalReleaseYear : null,
 					PrimaryAuthors = primaryAuthors,
+					AuthorCredits = ReadAuthorCredits(tableMetadata.PrimaryAuthors)
+						.Concat(ReadAuthorCredits(tableMetadata.SecondaryAuthors))
+						.ToArray(),
 					IsPrivate = tableMetadata.IsPrivate,
 					// Same open: pull the screenshot aspect so the player never has to decode an image
 					// just to lay out its carousel.
@@ -122,6 +140,26 @@ namespace VisualPinball.Unity
 				Logger.Debug(e, "Cannot read table metadata of {File}.", fileInfo.Name);
 				UpdateCache(fileInfo, false, null);
 				return false;
+			}
+		}
+
+		private static IEnumerable<VpeTableAuthorCredit> ReadAuthorCredits(List<TableAuthor> authors)
+		{
+			if (authors == null) {
+				yield break;
+			}
+
+			foreach (var author in authors) {
+				var name = string.IsNullOrWhiteSpace(author?.Name) ? author?.VpuHandle : author.Name;
+				if (string.IsNullOrWhiteSpace(name)) {
+					continue;
+				}
+
+				var roleTitles = author.Roles?
+					.Select(role => role?.Title?.Trim())
+					.Where(title => !string.IsNullOrWhiteSpace(title))
+					.ToArray() ?? Array.Empty<string>();
+				yield return new VpeTableAuthorCredit(name.Trim(), roleTitles);
 			}
 		}
 
