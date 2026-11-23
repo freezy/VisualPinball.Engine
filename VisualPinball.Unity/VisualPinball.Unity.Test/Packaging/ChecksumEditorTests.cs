@@ -71,6 +71,36 @@ namespace VisualPinball.Unity.Test
 			} finally { Object.DestroyImmediate(image); }
 		}
 
+		[TestCase(nameof(TableMetadata.PrimaryAuthors))]
+		[TestCase(nameof(TableMetadata.SecondaryAuthors))]
+		public void AuthorMetadataSerializesRolesBeforeVpuUsername(string authorsField)
+		{
+			var gameObject = new GameObject("Author metadata");
+			try {
+				var table = gameObject.AddComponent<TableComponent>();
+				using var serializedTable = new SerializedObject(table);
+				var authors = serializedTable.FindProperty(nameof(TableComponent.Metadata)).FindPropertyRelative(authorsField);
+				authors.arraySize = 1;
+				var author = authors.GetArrayElementAtIndex(0);
+				var roles = author.FindPropertyRelative(nameof(TableAuthor.Roles));
+				roles.arraySize = 1;
+				var role = roles.GetArrayElementAtIndex(0);
+				role.FindPropertyRelative(nameof(TableAuthorRole.Title)).stringValue = "Scripting";
+				role.FindPropertyRelative(nameof(TableAuthorRole.Description)).stringValue = "Game rules";
+				Assert.That(roles.NextVisible(false), Is.True);
+				Assert.That(roles.name, Is.EqualTo(nameof(TableAuthor.VpuHandle)));
+				roles.stringValue = "alice";
+				serializedTable.ApplyModifiedPropertiesWithoutUndo();
+
+				var savedAuthors = authorsField == nameof(TableMetadata.PrimaryAuthors)
+					? table.Metadata.PrimaryAuthors
+					: table.Metadata.SecondaryAuthors;
+				Assert.That(savedAuthors.Single().Roles.Single().Title, Is.EqualTo("Scripting"));
+				Assert.That(savedAuthors.Single().Roles.Single().Description, Is.EqualTo("Game rules"));
+				Assert.That(savedAuthors.Single().VpuHandle, Is.EqualTo("alice"));
+			} finally { Object.DestroyImmediate(gameObject); }
+		}
+
 		[Test] public void ImportedAudioMatchesContentAndSettingsAndKeepsVpxName()
 		{
 			var bytes = Wav(); var path = _folder + "/library-name.wav"; File.WriteAllBytes(path, bytes); AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);

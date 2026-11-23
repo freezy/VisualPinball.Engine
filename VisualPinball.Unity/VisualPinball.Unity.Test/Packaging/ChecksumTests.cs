@@ -104,6 +104,51 @@ namespace VisualPinball.Unity.Test
 			Assert.That(c.VerifyParent(b, bMeta), Is.False);
 		}
 
+		[Test] public void AuthorRolesRoundTripInPackageMetadataAndAncestorCredits()
+		{
+			var metadata = new TableMetadata {
+				PrimaryAuthors = new() { new TableAuthor { Name = "Alice", VpuHandle = "alice", Roles = new() {
+					new TableAuthorRole { Title = "Scripting", Description = "Game rules and scoring" },
+					new TableAuthorRole { Title = "Testing" }
+				} } },
+				SecondaryAuthors = new() { new TableAuthor { Name = "Bob", Roles = new() {
+					new TableAuthorRole { Title = "Artwork" }
+				} } }
+			};
+			var parent = TableProvenance.New().Snapshot(metadata);
+			var derived = TableProvenance.Derive(parent, metadata);
+			var snapshot = derived.Snapshot(metadata);
+			var path = Path.Combine(_folder, "roles.vpe");
+			using (var storage = PackageApi.StorageManager.CreateStorage(path)) {
+				var table = storage.AddFolder(PackageApi.TableFolder);
+				table.AddFile(PackageApi.TableMetadataFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(metadata));
+				table.AddFile(TableProvenance.FileName).SetData(VpeIntegrity.Json(snapshot));
+			}
+			using var package = PackageApi.StorageManager.OpenStorage(path);
+			var restored = TableProvenance.Read(package.GetFolder(PackageApi.TableFolder), out var restoredMetadata);
+			var primary = restoredMetadata.PrimaryAuthors.Single();
+			Assert.That(primary.VpuHandle, Is.EqualTo("alice"));
+			Assert.That(primary.Roles.Select(role => role.Title), Is.EqualTo(new[] { "Scripting", "Testing" }));
+			Assert.That(primary.Roles[0].Description, Is.EqualTo("Game rules and scoring"));
+			Assert.That(primary.Roles[1].Description, Is.Null);
+			Assert.That(restoredMetadata.SecondaryAuthors.Single().Roles.Single().Title, Is.EqualTo("Artwork"));
+			Assert.That(restored.VerifyParent(parent, metadata), Is.True);
+
+			metadata.PrimaryAuthors[0].Roles[0].Description = "Edited";
+			Assert.Throws<InvalidDataException>(() => restored.Validate(metadata));
+			Assert.That(derived.Credits.Single().PrimaryAuthors[0].Roles[0].Description, Is.EqualTo("Game rules and scoring"));
+			restored.Credits.Single().SecondaryAuthors[0].Roles[0].Title = "Edited";
+			Assert.Throws<InvalidDataException>(() => restored.Validate(restoredMetadata));
+		}
+
+		[Test] public void AuthorRolesRequireATitle()
+		{
+			var metadata = new TableMetadata {
+				PrimaryAuthors = new() { new TableAuthor { Name = "Alice", Roles = new() { new TableAuthorRole() } } }
+			};
+			Assert.Throws<InvalidDataException>(() => TableProvenance.New().Snapshot(metadata));
+		}
+
 		[TestCase("1.0.0")]
 		[TestCase("v1.0.0")]
 		[TestCase("1.0.0-alpha1")]
