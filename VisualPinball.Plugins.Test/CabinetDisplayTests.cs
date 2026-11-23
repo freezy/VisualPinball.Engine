@@ -37,6 +37,17 @@ namespace VisualPinball.Plugins.Test
 		}
 
 		[Test]
+		public void ContentOfADestinationTurnedByAQuarterIsAsWideAsTheDestinationIsHigh()
+		{
+			var upright = new CabinetDisplayTarget("screen", CabinetOutputRole.Dmd, CabinetEndpointState.Available, width: 300, height: 1200, rotation: 1);
+			Assert.That((upright.ContentWidth, upright.ContentHeight), Is.EqualTo((1200, 300)));
+			var turnedOver = new CabinetDisplayTarget("screen", CabinetOutputRole.Dmd, CabinetEndpointState.Available, width: 300, height: 1200, rotation: 2);
+			Assert.That((turnedOver.ContentWidth, turnedOver.ContentHeight), Is.EqualTo((300, 1200)));
+			Assert.That(new CabinetDisplayTarget("screen", CabinetOutputRole.Dmd, CabinetEndpointState.Available, width: 128, height: 32).Rotation, Is.EqualTo(0));
+			Assert.Throws<ArgumentOutOfRangeException>(() => new CabinetDisplayTarget("screen", CabinetOutputRole.Dmd, CabinetEndpointState.Available, width: 128, height: 32, rotation: 4));
+		}
+
+		[Test]
 		public void RankingFallsBackOnlyWhenIneligibleAndIsIndependentOfPublicationOrder()
 		{
 			var b2s = Descriptor("b2s/1", "b2s");

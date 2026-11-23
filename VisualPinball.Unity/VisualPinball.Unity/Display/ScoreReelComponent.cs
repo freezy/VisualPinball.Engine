@@ -77,6 +77,14 @@ namespace VisualPinball.Unity
 
 		private bool _isRotatingDown => Direction == ScoreReelDirection.Down;
 
+		/// <summary>
+		/// Where the reel is now, in digits, from 0 up to but not including 10: 0 shows the zero, 9 the nine, and a
+		/// value in between means the reel is on its way to the next digit. After the nine it starts again at 0. It
+		/// counts up the same way for both values of <see cref="Direction"/>, which only says whether the next digit
+		/// comes from above or from below. Follows the animation, so a flat drawing of the reel can move with it.
+		/// </summary>
+		public float DigitPosition => _currentRotation / 36f;
+
 		public void AnimateTo(int position)
 		{
 			var increasePositions = (position - _endPosition + 10) % 10;
