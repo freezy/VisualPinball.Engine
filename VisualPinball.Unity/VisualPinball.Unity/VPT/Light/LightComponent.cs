@@ -168,6 +168,11 @@ namespace VisualPinball.Unity
 		private float _oldValue;
 		private float _newValueAt;
 		private float _oldValueAt;
+		/// <summary>
+		/// Whether the blink coroutine drives the intensity, so the fade in <see cref="Update"/> keeps out of its way.
+		/// </summary>
+		private bool _blinking;
+		private float _blinkIntensity;
 
 		private Color _color;
 		private float _brightness = 1f;
@@ -320,7 +325,7 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
-			if (_value == _newValue) {
+			if (_blinking || _value == _newValue) {
 				return;
 			}
 			var durationSeconds = _newValueAt - _oldValueAt;
@@ -339,6 +344,7 @@ namespace VisualPinball.Unity
 			if (!_hasLights) {
 				return;
 			}
+			StopBlinking();
 			if (FadeEnabled) {
 				_oldValue = _value;
 				_oldValueAt = Time.fixedTime;
@@ -361,7 +367,27 @@ namespace VisualPinball.Unity
 				return;
 			}
 			StopAllCoroutines();
+			_blinking = true;
+			_blinkIntensity = blinkIntensity;
 			StartCoroutine(nameof(Blink), blinkIntensity);
+		}
+
+		private void OnEnable()
+		{
+			// deactivating the object stopped the blink coroutine, but the lamp is still blinking; starting over also stops one
+			// that kept running while only the component was disabled
+			if (_blinking) {
+				StartBlinking(_blinkIntensity);
+			}
+		}
+
+		private void StopBlinking()
+		{
+			if (!_blinking) {
+				return;
+			}
+			StopAllCoroutines();
+			_blinking = false;
 		}
 
 		private IEnumerator Blink(float blinkIntensity)
