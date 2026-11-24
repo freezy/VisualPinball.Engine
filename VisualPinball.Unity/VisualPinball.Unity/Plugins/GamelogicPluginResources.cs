@@ -56,7 +56,8 @@ namespace VisualPinball.Unity
 	/// <term><c>&lt;controller&gt;/segments/&lt;id&gt;</c></term>
 	/// <description>
 	/// <see cref="ResourceKind.Segments"/>, role <c>segments</c>: one per segment display the engine announces (a display with a
-	/// height of 1 or less), with its layout from <see cref="ISegmentDisplayMetadata"/>.
+	/// height of 1 or less), with its layout from <see cref="ISegmentDisplayMetadata"/>. A display component under the same ID that
+	/// reports a number (score reels) shows it there as 7-segment digits.
 	/// </description>
 	/// </item>
 	/// </list>
@@ -99,9 +100,10 @@ namespace VisualPinball.Unity
 			internal readonly IDisposable Publication;
 			internal readonly string Layout;
 			internal readonly string Hardware;
+			internal readonly int Elements;
 			internal float[] Brightness = Array.Empty<float>();
-			internal Segments(SegmentResourceSource source, IDisposable publication, string layout, string hardware)
-			{ Source = source; Publication = publication; Layout = layout; Hardware = hardware; }
+			internal Segments(SegmentResourceSource source, IDisposable publication, string layout, string hardware, int elements)
+			{ Source = source; Publication = publication; Layout = layout; Hardware = hardware; Elements = elements; }
 			public void Dispose() { Publication.Dispose(); Source.Dispose(); }
 		}
 		/// <summary>Forwards native outputs without exposing the listener on the public type.</summary>
@@ -181,6 +183,16 @@ namespace VisualPinball.Unity
 			if (engine is IGamelogicAudioResourceProvider audio) _scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId + "/audio/rom", _provider, _controllerId, engine.Name + " audio", "rom-mix", ResourceKind.Audio, session, Interlocked.Increment(ref _instance)), audio.AudioSource));
 			engine.OnDisplaysRequested += DisplaysRequested;
 			engine.OnDisplayUpdateFrame += DisplayFrame;
+			if (table != null && _native == null) {
+				// Score reels tell the engine their value as a number; their segment display shows it as digits. A ROM drives its
+				// segment displays itself, so it keeps them.
+				foreach (var component in table.GetComponentsInChildren<ScoreReelDisplayComponent>(true)) {
+					var display = component;
+					EventHandler<DisplayFrameData> changed = (_, frame) => NumericFrame(frame);
+					display.OnDisplayChanged += changed;
+					_scope.Own(new Subscription(() => display.OnDisplayChanged -= changed));
+				}
+			}
 			engine.OnCoilChanged += Coil;
 			engine.OnLampChanged += Lamp;
 			engine.OnLampsChanged += Lamps;
@@ -209,7 +221,7 @@ namespace VisualPinball.Unity
 			// Displays are numbered in announcement order, so consumers can lay out digits before any frame arrives.
 			var source = new SegmentResourceSource(_segments.Count, elements, layout, hardware, _fault);
 			var descriptor = new PluginResourceDescriptor(_controllerId + "/segments/" + id, _provider, _controllerId, id, "segments", ResourceKind.Segments, _session, Interlocked.Increment(ref _instance));
-			_segments.Add(id, new Segments(source, _registry.Publish(descriptor, source), layout, hardware));
+			_segments.Add(id, new Segments(source, _registry.Publish(descriptor, source), layout, hardware, elements));
 		}
 		private void SegmentFrame(Segments display, DisplayFrameData args)
 		{
@@ -223,6 +235,31 @@ namespace VisualPinball.Unity
 				for (int bit = 0; bit < 16; bit++) brightness[element * 16 + bit] = (mask >> bit & 1) != 0 ? 1f : 0f;
 			}
 			display.Source.Publish(new PluginSegmentFrame(display.Layout, elements, 16, brightness, display.Hardware));
+		}
+		/// <summary>Standard 7-segment masks of the digits 0 to 9, segment a in bit 0 to segment g in bit 6.</summary>
+		private static readonly int[] SevenSegmentDigits = { 0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F };
+		/// <summary>
+		/// Shows the value of a display that reports a number, such as a score reel display, on the segment display the engine
+		/// announced under the same ID: one 7-segment digit per element, right-aligned, with leading zeros like reels.
+		/// </summary>
+		private void NumericFrame(DisplayFrameData args)
+		{
+			if (_disposed || args.Format != DisplayFrameFormat.Numeric || args.Data == null || args.Data.Length < sizeof(float)) return;
+			if (!_scheduler.IsOwner) { _scheduler.Post(() => NumericFrame(args)); return; }
+			if (!_segments.TryGetValue(args.Id, out var display) || display.Elements <= 0) return;
+			float number = BitConverter.ToSingle(args.Data, 0);
+			// whole units, like the reels turn
+			long value = float.IsNaN(number) || number <= 0 ? 0 : number >= long.MaxValue ? long.MaxValue : (long)number;
+			int elements = display.Elements;
+			if (display.Brightness.Length != elements * 16) display.Brightness = new float[elements * 16];
+			var brightness = display.Brightness;
+			Array.Clear(brightness, 0, brightness.Length);
+			for (int element = elements - 1; element >= 0; element--) {
+				int mask = SevenSegmentDigits[(int)(value % 10)];
+				value /= 10;
+				for (int bit = 0; bit < 7; bit++) brightness[element * 16 + bit] = (mask >> bit & 1) != 0 ? 1f : 0f;
+			}
+			display.Source.Publish(new PluginSegmentFrame("seg7", elements, 16, brightness, display.Hardware));
 		}
 		private void AddDisplay(string id, int width, int height)
 		{
