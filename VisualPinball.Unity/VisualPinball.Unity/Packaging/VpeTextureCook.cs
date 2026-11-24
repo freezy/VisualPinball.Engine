@@ -220,7 +220,8 @@ namespace VisualPinball.Unity
 					if (repackThisOnGpu) {
 						// GPU AG-repack: the compute kernel reads the raw normal via a plain SRV (.Load,
 						// no sRGB decode — unlike a custom-material blit, which gamma-distorts it) and
-						// writes the (1, y, 1, x) layout into mip 0. Detail is preserved exactly.
+						// writes the (1, y, 1, x) layout into mip 0. Detail is preserved exactly. A file decoded on the
+						// main thread is still at its own size; the kernel shrinks it to the cooked size.
 						normalRepack.Repack(upload, mipped, item.Cooked.Width, item.Cooked.Height);
 					} else {
 						// Plain copy. Non-normals, and normals already AG-packed on the CPU (fallback).

@@ -37,6 +37,8 @@ namespace VisualPinball.Unity
 		private static readonly int DestId = Shader.PropertyToID("_Dest");
 		private static readonly int WidthId = Shader.PropertyToID("_Width");
 		private static readonly int HeightId = Shader.PropertyToID("_Height");
+		private static readonly int SourceWidthId = Shader.PropertyToID("_SourceWidth");
+		private static readonly int SourceHeightId = Shader.PropertyToID("_SourceHeight");
 
 		private ComputeShader _shader;
 		private int _kernel;
@@ -75,7 +77,9 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// AG-repacks <paramref name="source"/> into mip 0 of <paramref name="dest"/>. The destination
-		/// must be a RenderTexture created with <c>enableRandomWrite = true</c>.
+		/// must be a RenderTexture created with <c>enableRandomWrite = true</c>. A source larger than
+		/// <paramref name="width"/> by <paramref name="height"/>, such as a file cooked to a smaller size, is
+		/// shrunk with a box filter on the way: each destination texel averages the source texels it covers.
 		/// </summary>
 		public void Repack(Texture source, RenderTexture dest, int width, int height)
 		{
@@ -83,6 +87,8 @@ namespace VisualPinball.Unity
 			_shader.SetTexture(_kernel, DestId, dest);
 			_shader.SetInt(WidthId, width);
 			_shader.SetInt(HeightId, height);
+			_shader.SetInt(SourceWidthId, source.width);
+			_shader.SetInt(SourceHeightId, source.height);
 			var groupsX = (int)(((uint)width + _groupX - 1) / _groupX);
 			var groupsY = (int)(((uint)height + _groupY - 1) / _groupY);
 			_shader.Dispatch(_kernel, groupsX, groupsY, 1);
