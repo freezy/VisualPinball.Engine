@@ -115,10 +115,11 @@ namespace VisualPinball.Unity
 		private void UpdateFrame()
 		{
 			var score = _score;
-			var tmp = score;
+			// whole digits, so large scores don't pick up float rounding on the way
+			var tmp = (long)score;
 
 			for (var i = ReelObjects.Length - 1; i >= 0; i--) {
-				ReelObjects[i].AnimateTo((int)tmp % 10);
+				ReelObjects[i].AnimateTo((int)(tmp % 10));
 				tmp /= 10;
 			}
 
