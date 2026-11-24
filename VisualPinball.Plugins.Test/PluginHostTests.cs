@@ -53,6 +53,21 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(calls.Count(call => call.EndsWith(":dispose")), Is.EqualTo(2));
 		}
 
+		[Test]
+		public void FailedLifecycleLoggingDoesNotInterruptCleanup()
+		{
+			var calls = new List<string>();
+			var factory = new TestFactory("test.logging", calls);
+			var log = new TextPluginLog(message => {
+				if (message.Contains("Stop")) throw new IOException("The diagnostic sink is unavailable.");
+			});
+			var host = new PluginHost(new[] { factory }, new PluginConfigurationStore(_directory), new OwnerScheduler(),
+				new PluginCapabilities(), new PluginResourceRegistry(), "windows", pluginLog: _ => log);
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			Run(host, host.StopGameAsync());
+			Assert.That(calls, Does.Contain("test.logging:stop").And.Contain("test.logging:dispose"));
+		}
+
 		[TestCase("initialize")]
 		[TestCase("prepare")]
 		[TestCase("start")]
