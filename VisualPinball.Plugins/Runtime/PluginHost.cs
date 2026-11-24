@@ -73,6 +73,7 @@ namespace VisualPinball.Plugins
 		{
 			internal readonly IPlayerPluginFactory Factory;
 			internal readonly IPlayerPlugin Plugin;
+			internal readonly IPluginLog Log;
 			internal readonly ResourceScope ApplicationScope;
 			internal readonly ResourceScope GameScope = new ResourceScope();
 			internal bool Prepared;
@@ -90,7 +91,7 @@ namespace VisualPinball.Plugins
 			/// <summary>Completes when every hook running now has finished.</summary>
 			internal Task RunningHooks() { lock (_hooks) return _hooks.Count == 0 ? Task.CompletedTask : Task.WhenAll(_hooks.ToArray()); }
 			internal PluginSettingsSnapshot? Settings;
-			internal Instance(IPlayerPluginFactory factory, IPlayerPlugin plugin, ResourceScope applicationScope) { Factory = factory; Plugin = plugin; ApplicationScope = applicationScope; }
+			internal Instance(IPlayerPluginFactory factory, IPlayerPlugin plugin, ResourceScope applicationScope, IPluginLog log) { Factory = factory; Plugin = plugin; ApplicationScope = applicationScope; Log = log; }
 		}
 		private readonly Dictionary<string, IPlayerPluginFactory> _factories;
 		private readonly Dictionary<string, PluginStatus> _statuses;
@@ -340,8 +341,10 @@ namespace VisualPinball.Plugins
 						var issues = factory.Schema.Validate(settings).Concat(factory.SettingsProvider?.Validate(new PluginChoiceRequest(identity, settings, Platform) { Package = new PluginPackageReference(packagePath, title) }) ?? Array.Empty<PluginValidationIssue>()).ToArray();
 						if (issues.Length > 0) throw new PluginConfigurationException(string.Join("; ", issues.Select(issue => issue.Field + ": " + issue.Message)));
 						if (Configuration.Read(descriptor, factory.Schema).SchemaVersion > factory.Schema.Version || Configuration.Read(descriptor, factory.Schema, identity).SchemaVersion > factory.Schema.Version) throw new PluginConfigurationException("Configuration requires a newer plugin version.");
-						var plugin = factory.Create(new PluginApplicationContext(descriptor, Configuration, Scheduler, Capabilities, Resources, application, _pluginLog(descriptor)));
-						var entry = new Instance(factory, plugin, application);
+						var log = _pluginLog(descriptor);
+						log.Info("Creating plugin instance.");
+						var plugin = factory.Create(new PluginApplicationContext(descriptor, Configuration, Scheduler, Capabilities, Resources, application, log));
+						var entry = new Instance(factory, plugin, application, log);
 						_entered.Add(entry);
 						await InvokeAsync(entry, PluginPhase.Initialize, token => plugin.InitializeAsync(token), gameToken).ConfigureAwait(false);
 						await Scheduler.Switch();
@@ -455,6 +458,7 @@ namespace VisualPinball.Plugins
 			SetStatus(entry.Factory.Descriptor.Id, PluginState.Starting, phase.ToString(), phase);
 			using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
 			deadline.CancelAfter(StartupTimeout);
+			entry.Log.Info($"Entering plugin hook {phase}.");
 			try { await AwaitHookAsync(entry, invoke(deadline.Token), deadline.Token).ConfigureAwait(false); }
 			catch (HookDeadlineException error) {
 				await Scheduler.Switch(); Abandon(entry, error.Hook);
@@ -462,6 +466,7 @@ namespace VisualPinball.Plugins
 				throw;
 			}
 			await Scheduler.Switch();
+			entry.Log.Info($"Completed plugin hook {phase}.");
 		}
 		private async Task AwaitHookAsync(Instance entry, Task hook, CancellationToken deadline)
 		{
@@ -630,6 +635,7 @@ namespace VisualPinball.Plugins
 			if (entry.Prepared) {
 				using var stopDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 				stopDeadline.CancelAfter(CleanupTimeout);
+				entry.Log.Info("Entering plugin hook Stop.");
 				try { await AwaitHookAsync(entry, entry.Plugin.StopGameAsync(stopDeadline.Token), stopDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 				catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
 				catch (OperationCanceledException) when (stopDeadline.IsCancellationRequested) {
@@ -640,10 +646,12 @@ namespace VisualPinball.Plugins
 			SafeDispose(entry.GameScope);
 			using var shutdownDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 			shutdownDeadline.CancelAfter(CleanupTimeout);
+			entry.Log.Info("Entering plugin hook Shutdown.");
 			try { await AwaitHookAsync(entry, entry.Plugin.ShutdownAsync(shutdownDeadline.Token), shutdownDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 			catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
 			catch (OperationCanceledException) { await Scheduler.Switch(); }
 			catch (Exception error) { await Scheduler.Switch(); _error(id + " / Shutdown", error); }
+			entry.Log.Info("Disposing plugin and application resources.");
 			SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
 			if (!keepDiagnostic) SetStatus(id, PluginState.Available, "Stopped");
 		}
