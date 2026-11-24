@@ -25,6 +25,11 @@ namespace VisualPinball.Unity
 		public RenderTexture Texture { get; }
 		/// <summary>Changes after allocation/recreation. A borrowing window must resubmit its native pointer.</summary>
 		public long Revision { get; private set; }
+		/// <summary>
+		/// Where the last copy to the whole texture put the picture, in normalized coordinates from the bottom-left (Unity UV
+		/// coordinates). Around it are the letterbox bars. The whole texture after a clear.
+		/// </summary>
+		public Rect Content { get; private set; } = new Rect(0, 0, 1, 1);
 		public CabinetOutputTexture(int width, int height)
 		{
 			if (width < 1 || height < 1 || width > SystemInfo.maxTextureSize || height > SystemInfo.maxTextureSize || (long)width * height > 33554432) throw new ArgumentOutOfRangeException(nameof(width), "Cabinet outputs support up to 32 megapixels.");
@@ -68,7 +73,9 @@ namespace VisualPinball.Unity
 			double outputAspect = Texture.width * (double)viewport.width / (Texture.height * viewport.height);
 			float width = (float)System.Math.Min(1, aspect / outputAspect), height = (float)System.Math.Min(1, outputAspect / aspect);
 			_copy.SetVector("_Viewport", new Vector4(viewport.x, viewport.y, viewport.width, viewport.height));
-			_copy.SetVector("_Content", new Vector4(viewport.x + (1 - width) * .5f * viewport.width, viewport.y + (1 - height) * .5f * viewport.height, width * viewport.width, height * viewport.height));
+			var content = new Rect(viewport.x + (1 - width) * .5f * viewport.width, viewport.y + (1 - height) * .5f * viewport.height, width * viewport.width, height * viewport.height);
+			_copy.SetVector("_Content", new Vector4(content.x, content.y, content.width, content.height));
+			if (viewport == new Rect(0, 0, 1, 1)) Content = content;
 			_copy.SetVector("_SourceTexel", new Vector4(1f / source.width, 1f / source.height, source.width, source.height));
 			_copy.SetFloat("_Encoded", colorSpace == FrameColorSpace.Srgb ? 1 : 0);
 			_copy.SetFloat("_Alpha", alpha == FrameAlpha.Premultiplied ? 2 : alpha == FrameAlpha.Straight ? 1 : 0);
@@ -107,6 +114,7 @@ namespace VisualPinball.Unity
 			if (_disposed) throw new ObjectDisposedException(nameof(CabinetOutputTexture));
 			EnsureCreated();
 			var active = RenderTexture.active;
+			Content = new Rect(0, 0, 1, 1);
 			try { RenderTexture.active = Texture; GL.Clear(false, true, Color.black); }
 			finally { RenderTexture.active = active; }
 		}
