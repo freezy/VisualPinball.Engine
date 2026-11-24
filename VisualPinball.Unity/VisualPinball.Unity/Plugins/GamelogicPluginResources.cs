@@ -118,6 +118,8 @@ namespace VisualPinball.Unity
 		private readonly IGamelogicEngine _engine;
 		private readonly Dictionary<string, Segments> _segments = new Dictionary<string, Segments>(StringComparer.Ordinal);
 		private readonly ControllerResourceSource _native;
+		/// <summary>IDs of the score reel displays whose segment displays show their value, see <see cref="NumericFrame"/>.</summary>
+		private readonly HashSet<string> _scoreReels = new HashSet<string>(StringComparer.Ordinal);
 		private readonly string[] _numberNames = new string[1024];
 		private readonly OwnerScheduler _scheduler;
 		private readonly PluginResourceRegistry _registry;
@@ -181,18 +183,19 @@ namespace VisualPinball.Unity
 				_scope.Own(new Subscription(() => native.SetNativeOutputListener(null)));
 			}
 			if (engine is IGamelogicAudioResourceProvider audio) _scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId + "/audio/rom", _provider, _controllerId, engine.Name + " audio", "rom-mix", ResourceKind.Audio, session, Interlocked.Increment(ref _instance)), audio.AudioSource));
-			engine.OnDisplaysRequested += DisplaysRequested;
-			engine.OnDisplayUpdateFrame += DisplayFrame;
 			if (table != null && _native == null) {
 				// Score reels tell the engine their value as a number; their segment display shows it as digits. A ROM drives its
 				// segment displays itself, so it keeps them.
 				foreach (var component in table.GetComponentsInChildren<ScoreReelDisplayComponent>(true)) {
 					var display = component;
+					_scoreReels.Add(display.Id);
 					EventHandler<DisplayFrameData> changed = (_, frame) => NumericFrame(frame);
 					display.OnDisplayChanged += changed;
 					_scope.Own(new Subscription(() => display.OnDisplayChanged -= changed));
 				}
 			}
+			engine.OnDisplaysRequested += DisplaysRequested;
+			engine.OnDisplayUpdateFrame += DisplayFrame;
 			engine.OnCoilChanged += Coil;
 			engine.OnLampChanged += Lamp;
 			engine.OnLampsChanged += Lamps;
@@ -218,6 +221,8 @@ namespace VisualPinball.Unity
 			if (_disposed || _segments.ContainsKey(id)) return;
 			string layout = "seg16", hardware = "";
 			if (_engine is ISegmentDisplayMetadata metadata && metadata.TryGetSegmentLayout(id, out var declared, out var declaredHardware)) { layout = declared; hardware = declaredHardware; }
+			// a score reel's digits are drawn here, as 7-segment masks
+			if (_scoreReels.Contains(id)) layout = "seg7";
 			// Displays are numbered in announcement order, so consumers can lay out digits before any frame arrives.
 			var source = new SegmentResourceSource(_segments.Count, elements, layout, hardware, _fault);
 			var descriptor = new PluginResourceDescriptor(_controllerId + "/segments/" + id, _provider, _controllerId, id, "segments", ResourceKind.Segments, _session, Interlocked.Increment(ref _instance));
@@ -259,7 +264,7 @@ namespace VisualPinball.Unity
 				value /= 10;
 				for (int bit = 0; bit < 7; bit++) brightness[element * 16 + bit] = (mask >> bit & 1) != 0 ? 1f : 0f;
 			}
-			display.Source.Publish(new PluginSegmentFrame("seg7", elements, 16, brightness, display.Hardware));
+			display.Source.Publish(new PluginSegmentFrame(display.Layout, elements, 16, brightness, display.Hardware));
 		}
 		private void AddDisplay(string id, int width, int height)
 		{
