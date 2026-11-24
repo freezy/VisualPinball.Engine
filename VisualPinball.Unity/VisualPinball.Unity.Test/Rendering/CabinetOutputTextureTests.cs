@@ -26,6 +26,26 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ContentIsWhereTheLetterboxedPictureLands()
+		{
+			var source = Solid(16, 8, Color.white);
+			try {
+				using var output = new CabinetOutputTexture(16, 16);
+				Assert.That(output.Content, Is.EqualTo(new Rect(0, 0, 1, 1)));
+				output.Copy(source, FrameColorSpace.Srgb);
+				Assert.That(output.Content, Is.EqualTo(new Rect(0, .25f, 1, .5f)));
+				// a quarter turn makes the picture tall
+				output.Copy(source, FrameColorSpace.Srgb, FrameAlpha.None, false, 1, false, false, new Rect(0, 0, 1, 1));
+				Assert.That(output.Content, Is.EqualTo(new Rect(.25f, 0, .5f, 1)));
+				// an inset keeps the picture of the whole texture
+				output.Copy(source, FrameColorSpace.Srgb, FrameAlpha.None, false, 0, false, false, new Rect(0, 0, .5f, .5f));
+				Assert.That(output.Content, Is.EqualTo(new Rect(.25f, 0, .5f, 1)));
+				output.Clear();
+				Assert.That(output.Content, Is.EqualTo(new Rect(0, 0, 1, 1)));
+			} finally { Object.DestroyImmediate(source); }
+		}
+
+		[Test]
 		public void RepeatedCopyUpdatesPixelsWithoutReplacementEventsAndEncodesLinearLight()
 		{
 			using var output = new CabinetOutputTexture(8, 8);
