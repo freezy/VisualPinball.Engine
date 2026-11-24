@@ -344,8 +344,14 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var state = _ctx.CreateState();
-			action(ref state);
+			lock (_ctx.PhysicsLock) {
+				// Input System callbacks can outlive the native state during table teardown.
+				if (!_ctx.EventQueue.Ref.IsCreated) {
+					return;
+				}
+				var state = _ctx.CreateState();
+				action(ref state);
+			}
 		}
 
 		/// <summary>
