@@ -42,6 +42,12 @@ namespace VisualPinball.Plugins
 		void Write(PluginLogLevel level, string message, Exception? exception = null);
 	}
 
+	/// <summary>Optionally persists the most recent lifecycle marker before a native hook runs.</summary>
+	public interface IPluginLifecycleLog : IPluginLog
+	{
+		void RecordLifecycle(string message);
+	}
+
 	public static class PluginLogExtensions
 	{
 		public static void Debug(this IPluginLog log, string message) => log.Write(PluginLogLevel.Debug, message);

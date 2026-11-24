@@ -342,7 +342,7 @@ namespace VisualPinball.Plugins
 						if (issues.Length > 0) throw new PluginConfigurationException(string.Join("; ", issues.Select(issue => issue.Field + ": " + issue.Message)));
 						if (Configuration.Read(descriptor, factory.Schema).SchemaVersion > factory.Schema.Version || Configuration.Read(descriptor, factory.Schema, identity).SchemaVersion > factory.Schema.Version) throw new PluginConfigurationException("Configuration requires a newer plugin version.");
 						var log = _pluginLog(descriptor);
-						log.Info("Creating plugin instance.");
+						RecordLifecycle(log, "Creating plugin instance.");
 						var plugin = factory.Create(new PluginApplicationContext(descriptor, Configuration, Scheduler, Capabilities, Resources, application, log));
 						var entry = new Instance(factory, plugin, application, log);
 						_entered.Add(entry);
@@ -458,7 +458,7 @@ namespace VisualPinball.Plugins
 			SetStatus(entry.Factory.Descriptor.Id, PluginState.Starting, phase.ToString(), phase);
 			using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
 			deadline.CancelAfter(StartupTimeout);
-			entry.Log.Info($"Entering plugin hook {phase}.");
+			RecordLifecycle(entry.Log, $"Entering plugin hook {phase}.");
 			try { await AwaitHookAsync(entry, invoke(deadline.Token), deadline.Token).ConfigureAwait(false); }
 			catch (HookDeadlineException error) {
 				await Scheduler.Switch(); Abandon(entry, error.Hook);
@@ -466,8 +466,22 @@ namespace VisualPinball.Plugins
 				throw;
 			}
 			await Scheduler.Switch();
-			entry.Log.Info($"Completed plugin hook {phase}.");
+			RecordLifecycle(entry.Log, $"Completed plugin hook {phase}.");
 		}
+
+		private static void RecordLifecycle(IPluginLog log, string message)
+		{
+			try {
+				if (log is IPluginLifecycleLog lifecycle) {
+					lifecycle.RecordLifecycle(message);
+				} else {
+					log.Info(message);
+				}
+			} catch (Exception) {
+				// Diagnostics must not keep a plugin from starting or releasing resources.
+			}
+		}
+
 		private async Task AwaitHookAsync(Instance entry, Task hook, CancellationToken deadline)
 		{
 			entry.Track(hook);
@@ -635,7 +649,7 @@ namespace VisualPinball.Plugins
 			if (entry.Prepared) {
 				using var stopDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 				stopDeadline.CancelAfter(CleanupTimeout);
-				entry.Log.Info("Entering plugin hook Stop.");
+				RecordLifecycle(entry.Log, "Entering plugin hook Stop.");
 				try { await AwaitHookAsync(entry, entry.Plugin.StopGameAsync(stopDeadline.Token), stopDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 				catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
 				catch (OperationCanceledException) when (stopDeadline.IsCancellationRequested) {
@@ -646,13 +660,14 @@ namespace VisualPinball.Plugins
 			SafeDispose(entry.GameScope);
 			using var shutdownDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 			shutdownDeadline.CancelAfter(CleanupTimeout);
-			entry.Log.Info("Entering plugin hook Shutdown.");
+			RecordLifecycle(entry.Log, "Entering plugin hook Shutdown.");
 			try { await AwaitHookAsync(entry, entry.Plugin.ShutdownAsync(shutdownDeadline.Token), shutdownDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 			catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
 			catch (OperationCanceledException) { await Scheduler.Switch(); }
 			catch (Exception error) { await Scheduler.Switch(); _error(id + " / Shutdown", error); }
-			entry.Log.Info("Disposing plugin and application resources.");
+			RecordLifecycle(entry.Log, "Disposing plugin and application resources.");
 			SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
+			RecordLifecycle(entry.Log, "Disposed plugin and application resources.");
 			if (!keepDiagnostic) SetStatus(id, PluginState.Available, "Stopped");
 		}
 		private void RebuildDispatch()

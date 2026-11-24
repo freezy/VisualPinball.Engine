@@ -24,13 +24,25 @@ namespace VisualPinball.Unity
 	/// <summary>
 	/// A plugin's log, written to NLog under the logger "Plugin.&lt;plugin id&gt;".
 	/// </summary>
-	public sealed class NLogPluginLog : IPluginLog
+	public sealed class NLogPluginLog : IPluginLifecycleLog
 	{
 		private readonly Logger _logger;
+		private readonly string _pluginId;
 
 		public NLogPluginLog(PluginDescriptor plugin)
 		{
-			_logger = LogManager.GetLogger("Plugin." + plugin.Id);
+			_pluginId = plugin.Id;
+			_logger = LogManager.GetLogger("Plugin." + _pluginId);
+		}
+
+		void IPluginLifecycleLog.RecordLifecycle(string message)
+		{
+			var data = new DiagnosticsWriter();
+			data.Add("plugin", _pluginId);
+			data.Add("state", message);
+			data.Add("utc", DateTime.UtcNow.ToString("O"));
+			// Diagnostics listeners save the current snapshot before this call returns.
+			DiagnosticsContext.Set("Plugin hook", data);
 		}
 
 		public bool IsEnabled(PluginLogLevel level) => _logger.IsEnabled(Map(level));
