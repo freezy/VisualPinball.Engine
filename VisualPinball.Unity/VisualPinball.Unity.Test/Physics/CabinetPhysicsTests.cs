@@ -30,6 +30,23 @@ namespace VisualPinball.Unity.Test
 	public class CabinetPhysicsTests
 	{
 		[Test]
+		public void LateInputDoesNotCreatePhysicsStateAfterEventQueueDisposal()
+		{
+			var playfield = new GameObject("Late input test");
+			playfield.SetActive(false);
+			try {
+				var engine = playfield.AddComponent<PhysicsEngine>();
+				var field = typeof(PhysicsEngine).GetField("_ctx", BindingFlags.Instance | BindingFlags.NonPublic);
+				var context = (PhysicsEngineContext)field.GetValue(engine);
+				context.EventQueue.Ref.Dispose();
+
+				engine.MutateState((ref PhysicsState _) => Assert.Fail("Late input ran after physics disposal."));
+			} finally {
+				Object.DestroyImmediate(playfield);
+			}
+		}
+
+		[Test]
 		public void OscillatorTracksAnalyticStepResponse()
 		{
 			const float mass = 113f;
