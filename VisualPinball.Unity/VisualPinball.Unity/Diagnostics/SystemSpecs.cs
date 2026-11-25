@@ -55,6 +55,7 @@ namespace VisualPinball.Unity
 			w.Add("gpu.vendor", SystemInfo.graphicsDeviceVendor);
 			w.Add("gpu.id", $"{SystemInfo.graphicsDeviceVendorID:x4}:{SystemInfo.graphicsDeviceID:x4}");
 			w.Add("gpu.api", SystemInfo.graphicsDeviceVersion);
+			w.Add("gpu.threading", SystemInfo.renderingThreadingMode.ToString());
 			Try(w, "gpu.driver", () => GpuDriverVersion(SystemInfo.graphicsDeviceVendorID, SystemInfo.graphicsDeviceID));
 			w.Add("gpu.vram-mb", SystemInfo.graphicsMemorySize);
 			w.Add("gpu.shader-level", SystemInfo.graphicsShaderLevel);
