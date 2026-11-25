@@ -86,25 +86,25 @@ Sensor types mean:
 | `CabinetIntent` | A real cabinet sensor where motion should be interpreted as a nudge attempt. |
 | `CabinetDirect` | A real cabinet sensor where measured motion should drive cabinet physics directly. |
 
-Recognized gamepads offer a Left Stick preset for `GamepadIntent` nudging. The Player's Auto-map uses a single recognized gamepad when no cabinet sensor is available. For a generic joystick, assign the axes manually.
+In the Player, open **Settings → Input → Nudge** to see connected analog input devices. Select a device to view its signal and settings, or use **Rescan** to refresh the list. Use its switch to enable or disable analog nudging independently of other devices. Recognized gamepads use their left stick, and U-HID-G devices with named joystick axes use X/Y acceleration. For other generic devices, assign axes under **Advanced axis settings**. Each live trace scales to recent motion, and its label shows the current device reading. A dash indicates an unavailable axis.
 
 KL25Z/Pinscape boards are cabinet sensors. Map their acceleration axes, then use mount rotation and mirror to match how the board is installed in the cabinet. The available rotations are 0, 90, 180, and 270 degrees. Mirror flips the board X axis before rotation.
 
 ### Pinscape Joystick Setup
 
-Recognized Pinscape joystick layouts offer acceleration and velocity presets on Windows, Linux, and macOS in the Player's Nudge settings and the `SimulationThreadComponent` inspector. Acceleration uses X/Y with an initial full-scale value of 9.80665 m/s² (1 g). Set the scale to match the range configured in firmware. The Player offers 1, 2, 4, and 8 g presets and an editable custom scale. Negative scale reverses an axis.
+Recognized Pinscape joystick layouts offer acceleration and velocity presets on Windows, Linux, and macOS in the Player's Nudge settings and the `SimulationThreadComponent` inspector. Acceleration uses X/Y with an initial full-scale value of 9.80665 m/s² (1 g). Enter the range configured in firmware in the full-scale field. Negative scale reverses an axis.
 
 Velocity setup uses RX/RY with the default Pinscape joystick full-scale value of 0.2048 m/s. Enable velocity reporting in firmware before selecting this preset. Pinscape Pico can assign arbitrary signals to joystick axes, so use the named axis selectors and custom scales when its layout differs from the standard Pinscape layout. Velocity mode uses the reported integrated velocity directly through VPE's cabinet sensor model.
 
-Auto-map recognizes cabinet layouts and explicitly typed accelerometer axes. Generic joystick X/Y axes require manual assignment. The Player adds a sensor slot when auto-mapping and preserves existing slots. The inspector's setup buttons configure its first sensor slot. Player settings are saved in the cabinet profile and applied to loaded tables.
+Enabling a recognized device applies its default mapping. Use **Signal** to select a different supported preset, or **Advanced axis settings** to assign channels and adjust ranges. The inspector's setup buttons configure its first sensor slot. Player settings are saved in the cabinet profile and applied to loaded tables.
 
-When several eligible devices are available, use **Nudge Device** in the Player's Nudge settings to choose which device supplies analog nudging. **Automatic** uses all mapped sensors.
+**Cabinet settings** holds the shared cabinet weight, tilt, and button bindings. Keyboard nudge tuning is shown when there is no active cabinet sensor.
 
 ### Pinscape Pico Open Pinball Device Setup
 
-Enable Open Pinball Device in the Pico firmware. With an OPD-capable NativeInput library, VPE lists the Pico with an OPD suffix and named nudge axes on Windows, Linux, and macOS. Auto-map prefers OPD when both interfaces are present. If you already mapped the Pico's joystick axes, select the OPD preset in that sensor slot to switch interfaces and then calibrate again.
+Enable Open Pinball Device in the Pico firmware. With an OPD-capable NativeInput library, VPE lists the Pico with an OPD suffix and named nudge axes on Windows, Linux, and macOS. If the same Pico also exposes a joystick interface, enable the interface you want to use and calibrate it.
 
-Auto-map uses acceleration. Choose the velocity preset if the firmware reports integrated X/Y nudge velocity. The Pico velocity preset uses 0.32768 m/s at full scale, matching the default firmware `vscale` of 100 counts per mm/s. Set custom scales if you use a different `vscale` or accelerometer range. The report format allows firmware to send zero for unused fields, so confirm which signals your firmware exposes.
+The default mapping uses acceleration. Choose the velocity preset if the firmware reports integrated X/Y nudge velocity. The Pico velocity preset uses 0.32768 m/s at full scale, matching the default firmware `vscale` of 100 counts per mm/s. Set custom scales if you use a different `vscale` or accelerometer range. The report format allows firmware to send zero for unused fields, so confirm which signals your firmware exposes.
 
 Preassigned OPD buttons use the existing VPE cabinet actions, including digital nudge and physical tilt. OPD also exposes plunger position and speed for diagnostics.
 
@@ -116,7 +116,7 @@ In the Player's Nudge settings, the **Button Bindings** section accepts joystick
 
 ### Rest Calibration
 
-In the Player, open the Nudge settings and choose Calibrate under Rest Calibration. This works from the main menu before loading a table. In the editor, enter Play Mode and choose Calibrate Centers in the `SimulationThreadComponent` inspector.
+In the Player, select an enabled device and choose **Calibrate** under **Rest Calibration**. This works from the main menu before loading a table. In the editor, enter Play Mode and choose Calibrate Centers in the `SimulationThreadComponent` inspector.
 
 Keep the cabinet still for about one second. Calibration averages fresh input reports for every active mapped channel. It checks sample count, sample duration, and input variation before updating any center. A disconnected device, stale reports, or excessive motion causes calibration to fail with the saved centers intact. Changing settings or leaving the tab cancels a running calibration.
 

@@ -75,3 +75,7 @@ Next, add *Numeric* under *Supported Formats*.
 In Visual Scripting, use the [Update Display](xref:uvs_node_reference#update-display) node to set a new score. It's up to you whether to use a separate [event](xref:uvs_setup#events) or to subscribe to a [player variable](xref:uvs_variables) directly.
 
 If you're using a score motor, read how to set it up correctly [here](xref:score-motors#usage).
+
+### In the Player
+
+Players without a backglass monitor still see the score: the player's *Score Reels* plugin draws every score reel display of the table as flat reels on the DMD or score panel output, which can also sit over the playfield. The flat reels follow the reel objects, so they turn at the same time and in the same direction. You don't need to set up anything for it, apart from listing your reels under **Reel Objects**.

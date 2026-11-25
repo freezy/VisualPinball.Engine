@@ -18,7 +18,7 @@ The most important plunger settings for gameplay are:
 - *Park Position*: normalized rest position from `0` to `1`, where `0` is fully forward and `1` is fully retracted.
 - *Speed Fire*: release speed used when the plunger fires.
 - *Speed Pull*: pull-back speed used when the plunger is pulled back by a coil or input.
-- *Mech Plunger*: enables synchronization with analog plunger input.
+- *Mech Plunger*: lets an analog plunger in the player's cabinet drive this plunger. See [Analog Plunger](xref:plunger_input).
 - *Auto Plunger*: makes the plunger rest at *Park Position* and fire from full retraction when triggered.
 
 ## Coil Modes
@@ -33,11 +33,13 @@ The plunger exposes multiple coil items. Pick the one that matches the real mech
 
 ## Manual Launchers
 
-For a normal shooter lane plunger, map player input to `c_pull`. Pressing the input pulls the plunger back, and releasing it fires from the current position. If the table uses analog plunger input, enable *Mech Plunger* so the physics plunger follows the analog input position.
+For a normal shooter lane plunger, map player input to `c_pull`. Pressing the input pulls the plunger back, and releasing it fires from the current position. Enable *Mech Plunger* on the shooter lane plunger so that players with an analog plunger can use it. Without an analog plunger connected, a mech plunger behaves like any other plunger.
 
 ## Auto-Launchers
 
 For ROM-controlled launch buttons, enable *Auto Plunger* and map the game logic coil to `c_autofire`. In this mode the plunger rests at *Park Position*. When the coil fires, VPE launches from full retraction, which gives a consistent launch impulse.
+
+If you also enable *Mech Plunger*, a player with an analog plunger can pull it back and let it go to press the *Launch Ball* button: the release holds Launch Ball for 100 ms, so map that button to the launch switch as usual.
 
 ## Kickbacks
 
@@ -59,4 +61,4 @@ VPE also applies the disabled state once when this coil mode is mapped at startu
 
 For kickbacks that should not block the outlane while idle, enable *Auto Plunger* and set *Park Position* to the clear/resting position. This keeps the physics target at the parked position while idle. If the original VPX table uses a small park position such as `0.1666`, start with the same value and tune only if the VPE geometry needs it.
 
-Avoid enabling *Mech Plunger* on kickbacks unless an analog input should control that specific plunger. A mechanical plunger with no analog input targets position `0`, which is fully forward and can make the plunger block the lane during gameplay.
+Don't enable *Mech Plunger* on kickbacks. The analog plunger would drive the kickback too, and a pull in the shooter lane would move it.

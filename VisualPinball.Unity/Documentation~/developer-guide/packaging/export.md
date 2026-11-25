@@ -71,16 +71,18 @@ Physics-only meshes are exported to `table/colliders.glb`. Related metadata is w
 
 This lets editor re-import reconnect those meshes correctly.
 
-Custom playfields with no enabled renderer store their authored collision mesh in `table/colliders.glb` and reference it from `PlayfieldMesh` data under `table/refs`. Both the Editor and Player restore the mesh to its `MeshFilter` before collider generation. Visible custom playfields reuse their scene mesh. Packages exported before this collision-only support must be exported again from the source table; the absent geometry cannot be recovered from those packages.
+Custom playfields with no enabled renderer store their authored collision mesh in `table/colliders.glb` and reference it from the `refs` of `PlayfieldMesh` in `table/items.json`. Both the Editor and Player restore the mesh to its `MeshFilter` before collider generation. Visible custom playfields reuse their scene mesh. Packages exported before this collision-only support must be exported again from the source table; the absent geometry cannot be recovered from those packages.
 
 ## Packables and References
 
-Gameplay and authoring data is split into two trees:
+Gameplay and authoring data of all nodes is in one file, `table/items.json`. Each node lists its components in the order they are created, and a component's entry has two parts:
 
-- `table/items/` - contains the data needed to instantiate and configure components.
-- `table/refs/` - contains data that restores cross-references after the hierarchy and components already exist.
+- `data` - what is needed to instantiate and configure the component.
+- `refs` - what restores its cross-references after the hierarchy and all components already exist.
 
-The split exists because some data can be applied immediately, while other data only makes sense after the whole object/component graph has been rebuilt.
+The split exists because some data can be applied immediately, while other data only makes sense after the whole object/component graph has been rebuilt. The export follows it: `PackageWriter` packs the data of every component, then the references of every component, and writes both as one file.
+
+The file used to be one zip entry per component, in two folder trees. A table has thousands of them, most under 200 bytes, so each cost more in zip headers than it held, and together they were nine tenths of the directory a reader walks when it opens the package. The exact shape and the rules a reader follows are in the [format specification](https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/VisualPinball.Unity/Packaging/FORMAT.md#itemsjson).
 
 Visual mechanism drivers are components too: the drop target's `DropTargetAnimationComponent` is stored as `DropTargetVisualAnimation`, including its timing, curves and optional emitter reference. The legacy animation keeps the `DropTargetAnimation` type name. `EventRotateComponent` is stored as `EventRotate`, including its event name, axis, rotation space, factor and offset; it reconnects to an event emitter on the same GameObject when the loaded table starts.
 
@@ -88,7 +90,7 @@ Packages exported before these visual drivers were supported must be exported ag
 
 ## Table Metadata
 
-Table-level metadata is written to `table/table.json` as a `TableMetadata` object: table name, abbreviation, primary and secondary authors, release date, original release year, and manufacturer. Captured table screenshots are not part of this file — they are written separately, under the top-level `screenshots/` folder, alongside a `table-bounds.json` crop sidecar.
+Table-level metadata is written to `table/table.json` as a `TableMetadata` object: table name, abbreviation, primary and secondary authors, release date, original release year, manufacturer, whether the package is private, and `exportDate`, when the package was written (UTC, `yyyy-MM-ddTHH:mm:ssZ`). The export date is set on the copy of the metadata that is written, so the table in the scene never has one, and it is not part of the metadata hash: exporting a table again doesn't make it another one. Captured table screenshots are not part of this file — they are written separately, under the top-level `screenshots/` folder, alongside a `table-bounds.json` crop sidecar.
 
 ## Globals, Assets, and Sounds
 

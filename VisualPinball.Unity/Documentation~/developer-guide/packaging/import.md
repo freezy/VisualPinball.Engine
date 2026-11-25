@@ -39,8 +39,8 @@ After the hierarchy exists, runtime import restores:
 - sounds
 - assets
 - collider meshes
-- packables from `items/`
-- references from `refs/`
+- the state of the game objects and the `data` of their components from `items.json`
+- the `refs` of those components, once all of them exist
 - globals
 - table metadata from `table.json`
 - material profiles from `materials.json` (restored last, against the fully built hierarchy)
