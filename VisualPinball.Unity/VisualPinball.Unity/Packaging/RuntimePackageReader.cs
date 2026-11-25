@@ -241,6 +241,10 @@ namespace VisualPinball.Unity
 					foreach (var slingshot in slingshots) {
 						slingshot.ValidateAfterUnpack();
 					}
+					// After the items, as the editor import does: the lights payload finds each light by
+					// its node id, while a lamp's own light sources go by sibling paths that glTFast's
+					// orientation helpers and the export's skipped inactive objects shift.
+					VpeLightRestore.RestoreLightProfiles(_table, _tableFolder, id => _transformByNodeId.GetValueOrDefault(id));
 					readRefsStopwatch.Stop();
 					LoadAttempt.Current?.Mark("references");
 					Logger.Debug($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
@@ -414,7 +418,6 @@ namespace VisualPinball.Unity
 				var fixupStopwatch = Stopwatch.StartNew();
 				ClearGeneratedTangents(table, meshesWithoutTangents);
 				VpeLightRestore.NormalizeImportedLightIntensities(table);
-				VpeLightRestore.RestoreLightProfiles(table, _tableFolder, id => _transformByNodeId.GetValueOrDefault(id));
 				fixupStopwatch.Stop();
 				Logger.Debug(
 					$"RuntimePackageReader: glb stages: load={loadStopwatch.ElapsedMilliseconds}ms, " +
