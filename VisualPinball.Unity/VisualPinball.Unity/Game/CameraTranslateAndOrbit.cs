@@ -32,7 +32,9 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 	public Player player;
 
-	private const float RadiusMin = 0.5f;
+	// close enough to look at a post or an insert (the player's near plane is at 1 cm), and just past where the
+	// player still takes a pose's playfield hit as its pivot (5 cm)
+	private const float RadiusMin = 0.2f;
 	private const float RadiusMax = 20f; // unbounded zoom-out pushes the camera to float-precision distances (broken raycasts)
 
 	private Transform _transformCache;
@@ -71,6 +73,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private Mouse _mouse;
 	private PhysicsEngine _physicsEngine;
 	private Camera _camera;
+	private Transform _playfield;
 
 	/* -------------------------------------------------------- */
 
@@ -305,12 +308,22 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			if (_mouse.rightButton.wasPressedThisFrame) {
 				_mouse1StartPosition = _mouse.position.ReadValue();
 				_isTrackingMouse1 = true;
+				if (_playfield == null) {
+					var playfield = player != null ? player.GetComponentInChildren<PlayfieldComponent>() : FindFirstObjectByType<PlayfieldComponent>();
+					_playfield = playfield != null ? playfield.transform : null;
+				}
 			}
 
 			if (!hasHitRestrictedHitArea && _isTrackingMouse1) {
 				var delta = DisplayRotation.ToLogicalDelta(_mouse.position.ReadValue() - _mouse1StartPosition);
-				positionOffset += _transformCache.up * (-delta.y * (_radius * panSpeed / 60000f));
-				positionOffset += _transformCache.right * (-delta.x * (_radius * panSpeed / 60000f));
+				// along the playfield (sloped) rather than the screen, so the point orbited and zoomed to stays on it
+				// and zooming in close doesn't take the camera through it
+				var normal = _playfield != null ? _playfield.up : Vector3.up;
+				var side = Vector3.ProjectOnPlane(_transformCache.right, normal).normalized;
+				var along = Vector3.Cross(side, normal); // away from the viewer, however steep the view
+				var scale = _radius * panSpeed / 60000f;
+				positionOffset += along * (-delta.y * scale);
+				positionOffset += side * (-delta.x * scale);
 				_mouse1StartPosition = _mouse.position.ReadValue();
 			}
 
