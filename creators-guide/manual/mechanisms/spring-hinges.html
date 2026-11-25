@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Spring Hinge Bash Toys | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Spring Hinge Bash Toys | VPE Documentation ">
+      
+      <meta name="description" content="Author a spring-returning toy with reciprocal ball impact and an optional moving magnet.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/spring-hinges.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="spring_hinges">
+<h1 id="spring-hinge-bash-toys">Spring Hinge Bash Toys</h1>
+
+<p>A Spring Hinge simulates a rigid toy rotating about one fixed axis. Balls push its analytic box with finite inertia, and its spring and damping return it toward an equilibrium angle. An optional child Spatial magnet can attract and carry one ball while applying the equal reaction torque to the toy.</p>
+<h2 id="create-a-toy">Create a Toy</h2>
+<p>For an existing model, make the rotating object's local origin the physical pivot, select that object, and choose <strong>GameObject &gt; Pinball &gt; Add Spring Hinge</strong>. VPE adds Spring Hinge and Spring Hinge Collider to the selected object and disables its independent colliders. Other selected moving parts are parented below the active object while preserving their world poses. Keep fixed brackets outside this hierarchy, then use the scene handles to set the axis, centre of mass, analytic box, and travel limits.</p>
+<p>Choose <strong>GameObject &gt; Pinball &gt; Spring Hinge Bash Toy</strong> to create a complete example object with a cube visual, analytic box, and owned magnet. The bash preset starts at 0 degrees and stops at 20 degrees with a low-elasticity box.</p>
+<p>Spring Hinge Collider also applies the physics angle directly to the rotating object around its local origin. It uses the Hinge Axis from Spring Hinge, caches the authored local rotation when play starts, and treats that pose as zero degrees. Do not animate or move the object from another behavior during play.</p>
+<h2 id="understand-the-angles">Understand the Angles</h2>
+<p>Angles are signed numbers around <strong>Hinge Axis</strong>. Point your right thumb in the direction of the axis: the direction your fingers curl is positive. A ball can therefore produce either a positive or negative angle depending on the axis direction, where it touches the toy, and which way it is moving. The words minimum and maximum only mean the lower and higher numbers; they do not mean hit position and return position.</p>
+<p>For a one-sided bash toy, make zero one of the stops. If the hit produces a negative angle, use a range such as <strong>Minimum Angle = -19</strong> and <strong>Maximum Angle = 0</strong>. If you prefer the hit to display as a positive angle, reverse the Hinge Axis and use <strong>Minimum Angle = 0</strong> and <strong>Maximum Angle = 19</strong>. A range of -19 to 19 lets the spring pass through zero and swing to the other side.</p>
+<h2 id="spring-hinge-inspector">Spring Hinge Inspector</h2>
+<h3 id="pivot-and-mass">Pivot and Mass</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Hinge Axis</strong></td>
+<td>Sets the line around which the toy rotates, using the GameObject's local X, Y, and Z directions. The local origin is always the pivot point. Reverse all three values to reverse which physical movement is called positive without changing the pivot line.</td>
+</tr>
+<tr>
+<td><strong>Centre Of Mass</strong></td>
+<td>Places the toy's balance point relative to the pivot, in VPX units. Its position controls how gravity pulls on the toy. Moving it farther from the pivot generally gives gravity more turning power. The yellow Scene view handle can be used to place it visually.</td>
+</tr>
+<tr>
+<td><strong>Toy Mass (ball-relative)</strong></td>
+<td>Sets the unloaded toy's weight relative to a standard ball. A value of 1 means the toy weighs as much as one standard ball. With automatic inertia, a heavier toy reacts more slowly to the same hit. When <strong>Override Inertia</strong> is enabled, this value still affects gravity, while <strong>Manual Inertia</strong> controls resistance to impacts and turning. A captured ball adds its own weight and resistance automatically.</td>
+</tr>
+<tr>
+<td><strong>Override Inertia</strong></td>
+<td>Chooses how VPE calculates the toy's resistance to being rotated. Leave it disabled for an estimate based on Toy Mass, Centre Of Mass, and Mass Box Half Extents. Enable it when you want to tune that resistance directly.</td>
+</tr>
+<tr>
+<td><strong>Manual Inertia</strong></td>
+<td>Appears when <strong>Override Inertia</strong> is enabled. Higher values make the toy harder to start and stop, so the same ball hit moves it less and it swings more slowly. Lower values make it react more quickly. This is a tuning value rather than a weight in kilograms.</td>
+</tr>
+<tr>
+<td><strong>Mass Box Half Extents</strong></td>
+<td>Appears when <strong>Override Inertia</strong> is disabled. Describes half the width, height, and depth of a simple box used only to estimate how the toy's mass is spread around the pivot. For example, X = 25 means a total width of 50 VPX units. This box does not collide with the ball.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="spring-and-stops">Spring and Stops</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spring Stiffness</strong></td>
+<td>Controls how strongly the spring pulls the toy toward Equilibrium Angle. A higher value returns the toy harder and usually faster. A lower value feels softer and allows the ball or captured weight to push it farther.</td>
+</tr>
+<tr>
+<td><strong>Spring Damping</strong></td>
+<td>Removes swinging over time. A higher value settles the toy sooner but can make it feel sluggish. A lower value allows it to swing back and forth for longer. Increase this if the toy keeps oscillating too much.</td>
+</tr>
+<tr>
+<td><strong>Equilibrium Angle</strong></td>
+<td>Sets the angle toward which the spring pulls. Gravity and a captured ball can make the final settled angle differ from this value. The value may be outside the allowed range when the spring should keep the toy pressed against a stop.</td>
+</tr>
+<tr>
+<td><strong>Minimum Angle</strong></td>
+<td>Sets the lower hard stop. The toy cannot rotate to a smaller signed angle. This is a number limit, not automatically the hit side.</td>
+</tr>
+<tr>
+<td><strong>Maximum Angle</strong></td>
+<td>Sets the upper hard stop. The toy cannot rotate to a larger signed angle. This is a number limit, not automatically the return side.</td>
+</tr>
+<tr>
+<td><strong>Initial Angle</strong></td>
+<td>Sets the toy's angle when play starts. Zero uses the local rotation authored in the Unity scene. The value must lie between Minimum Angle and Maximum Angle.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="angle-switch">Angle Switch</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enable Angle Switch</strong></td>
+<td>Adds a switch that game logic can use to detect that the toy has moved far enough in the positive-angle direction. Leave it disabled when the table does not need an angle switch.</td>
+</tr>
+<tr>
+<td><strong>Switch Close Angle</strong></td>
+<td>Closes the switch when the toy reaches or rises above this angle. For a bash toy that moves into negative angles, reverse Hinge Axis so the hit direction is positive before using this switch.</td>
+</tr>
+<tr>
+<td><strong>Switch Open Angle</strong></td>
+<td>Opens the switch again when the toy returns to or below this angle. Set it lower than Switch Close Angle so tiny movements near the threshold do not rapidly turn the switch on and off.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="setup-buttons">Setup Buttons</h3>
+<table>
+<thead>
+<tr>
+<th>Button</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Add Analytic Box Proxy</strong></td>
+<td>Appears when the GameObject has no Spring Hinge Collider and adds one. The toy needs this collider for balls to hit it and for its visible transform to follow the simulated angle.</td>
+</tr>
+<tr>
+<td><strong>Fit From Renderers</strong></td>
+<td>Fits Centre Of Mass, Mass Box Half Extents, and the collision box around the object's renderers and their children. Treat the result as a starting point: the renderer bounds cannot tell whether a model is hollow or where its real weight is concentrated.</td>
+</tr>
+<tr>
+<td><strong>Apply Bash Preset</strong></td>
+<td>Replaces the current hinge and collider settings with useful starting values for a simple one-sided bash toy. If the toy contains an owned magnet, the button also applies the recommended magnet settings. Review the fitted size, axis, travel direction, and magnet position afterward.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="spring-hinge-collider-inspector">Spring Hinge Collider Inspector</h2>
+<h3 id="analytic-box">Analytic Box</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Local Centre</strong></td>
+<td>Positions the middle of the collision box relative to the hinge pivot, in VPX units along the GameObject's local axes. Move this until the box covers the part of the model that the ball can hit.</td>
+</tr>
+<tr>
+<td><strong>Local Rotation</strong></td>
+<td>Rotates the collision box relative to the GameObject, in degrees. Use it when the hittable face is tilted or does not line up with the object's local axes.</td>
+</tr>
+<tr>
+<td><strong>Half Extents</strong></td>
+<td>Sets half the collision box's width, height, and depth in VPX units. The full size is twice these values. Keep all three values above zero.</td>
+</tr>
+<tr>
+<td><strong>Show Collider</strong></td>
+<td>Draws the collision box in green in the Scene view. In Play Mode it follows the current simulated angle, making it useful for checking that the visible toy and collision box move together. It has no effect on physics.</td>
+</tr>
+<tr>
+<td><strong>Hit Event</strong></td>
+<td>Allows the collider to send a Hit event to game logic when a ball strikes it. Turning this off does not stop the physical collision.</td>
+</tr>
+<tr>
+<td><strong>Hit Threshold</strong></td>
+<td>Sets the minimum impact speed required to send a Hit event. A value of zero reports every new impact. Raising it filters out gentle touches and resting contact. It does not change how the ball or toy moves.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="physics-material">Physics Material</h3>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Preset</strong></td>
+<td>Uses the bounce and friction values from a Physics Material asset. It is available when <strong>Overwrite Physics</strong> is disabled. Use a preset when several objects should share the same surface behavior.</td>
+</tr>
+<tr>
+<td><strong>Overwrite Physics</strong></td>
+<td>When enabled, the Elasticity, Elasticity Falloff, and Friction values below are used. When disabled, the selected Preset supplies those values.</td>
+</tr>
+<tr>
+<td><strong>Elasticity</strong></td>
+<td>Controls how much relative speed is returned after a collision. Zero gives almost no extra bounce; higher values make the ball and toy separate more sharply. A low value usually suits a heavy bash toy.</td>
+</tr>
+<tr>
+<td><strong>Elasticity Falloff</strong></td>
+<td>Reduces bounce for faster impacts. Zero keeps the same elasticity at every speed. Higher values make fast shots less bouncy while leaving slow contacts closer to the Elasticity setting.</td>
+</tr>
+<tr>
+<td><strong>Friction</strong></td>
+<td>Controls how strongly the surface grips a ball sliding across it. Higher values remove more sideways sliding and can transfer more sideways turning force to the toy. Lower values let the ball slide more freely.</td>
+</tr>
+</tbody>
+</table>
+<p>The collider also drives the visible rotation. It takes the angle and axis from Spring Hinge and applies them on top of the GameObject's authored local rotation. There is no separate transform or axis setting on this component.</p>
+<h2 id="scene-view-guides">Scene View Guides</h2>
+<p>The cyan line and arrow show the hinge axis. The orange arc shows the allowed angle range. The yellow sphere shows Centre Of Mass. When Spring Hinge Collider is selected, the cyan wire box is the editable collision box and the two orange wire boxes show where that box will be at Minimum Angle and Maximum Angle. Enable <strong>Show Collider</strong> to draw the current box in green.</p>
+<p>Version one supports one box attached to the hinge. Remove or disable Unity mesh and static colliders on the moving visual so the ball cannot hit two collision shapes for the same toy.</p>
+<p>The box is tested continuously against the ball, including its faces, edges, corners, and motion while the toy returns. The current implementation is tested for ordinary pinball shot speeds and moderately moving toys. Very small boxes, extremely stiff springs, or unusually fast mechanisms need additional play testing; see the developer qualification document for the measured limits.</p>
+<h2 id="couple-a-magnet">Couple a Magnet</h2>
+<p>Create a child GameObject below the rotating object, position it at the physical magnet pole in the toy, and add a Magnet component. Here, &quot;below&quot; means a descendant in the Unity hierarchy; the magnet may physically sit anywhere inside the toy's body. Select <strong>Spatial</strong>, then enable <strong>Couple To Parent Hinge</strong>. Spatial magnets always use the Physical response, so there is no separate response setting to configure. The child inherits the toy's rotation and resolves the Spring Hinge from its parent. Only one owned magnet and one attached ball are supported per hinge; the inspector rejects unsupported types or duplicates.</p>
+<p>The magnet transform is the moving pole. <strong>Held Ball Centre Offset</strong> is a separate target in VPX units along the magnet's local axes at the authored rest pose. These distances ignore GameObject and parent scale, just like the magnet's radius and other dimensions, so scaling the visual model does not move the hold point. The green Scene view sphere shows the size and position of a standard held ball.</p>
+<p>Click <strong>Fit Hold Point to Collider</strong> to place a standard 25-unit-radius ball against the nearest face, edge, or corner of the Spring Hinge Collider. The inspector warns when the target would put that ball inside the collider or leave a gap, because either placement prevents capture. Adjust the offset manually after fitting when the table uses a different ball radius.</p>
+<p><strong>Hold Stiffness</strong> and <strong>Hold Damping</strong> control attachment compliance. <strong>Max Hold Force</strong> is the current-dependent capacity. These settings are independent of Influence Radius. The inspector estimates the fastest standard ball the magnet can capture at full power while the toy is stationary. This is a starting point rather than a guarantee because coil rise time and toy motion also affect a real hit. Increase <strong>Strength</strong> when the ball reaches the hold point but bounces away without being captured; increase <strong>Max Hold Force</strong> when it captures and then immediately breaks free. The bash preset supplies values intended for ordinary pinball shot speeds. A captured ball's existing spin slows smoothly while it remains held. Turning the coil off honors coil decay before release. Release preserves the remaining ball and hinge velocity and ball spin.</p>
+<h2 id="validate-in-play-mode">Validate in Play Mode</h2>
+<p>Test both magnet-off impacts and magnet-on capture, a timed release in each travel direction, a second-ball strike, and balls resting on passive playfield geometry.</p>
+<h2 id="first-release-limits">First-release Limits</h2>
+<ul>
+<li>The pivot frame is fixed and must have nonzero orthogonal axes. Moving bases, shear, nested hinges, hinge-to-hinge contact, motors, and flexible toys are not supported.</li>
+<li>Collision uses one box proxy. Triangle, compound, and arbitrary mesh proxies are not supported.</li>
+<li>One Spatial magnet may own one ball. Other balls remain free and can strike the toy or held ball.</li>
+<li>Playfield and passive-surface support are qualified by the current sequential solver. Simultaneous squeezed contacts are an approximation and can retain a one-tick support lag.</li>
+<li>If an attached ball reaches a flipper, plunger, kicker, bumper, slingshot, or turntable, VPE releases it before the existing active mechanism runs and emits a rate-limited diagnostic. Place the held-ball sweep away from those mechanisms.</li>
+<li>Runtime save states and an isolated editor physics preview are not included. Packaged tables preserve authored values and hierarchy, not captured-ball IDs or warm solver state.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/spring-hinges.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
