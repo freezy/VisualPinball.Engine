@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using NLog;
@@ -61,14 +62,35 @@ namespace VisualPinball.Unity
 				var referencedDependencyType = typeof(IReferencedDependency);
 				var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 				foreach (var assembly in assemblies) {
-					foreach (var type in assembly.GetTypes()) {
-						// Look for the PackAsAttribute on the class
-						var attribute = type.GetCustomAttribute<PackAsAttribute>(inherit: false);
+					Type[] types;
+					try {
+						types = assembly.GetTypes();
+					} catch (ReflectionTypeLoadException ex) {
+						// An optional dependency can leave part of this assembly unloadable.
+						// Keep discovering the types that the runtime did manage to load.
+						types = ex.Types;
+						var loaderError = ex.LoaderExceptions?.FirstOrDefault(error => error != null);
+						Logger.Warn("Package type discovery could not load all types from {AssemblyName}: {LoaderError}",
+							assembly.GetName().Name, loaderError?.Message ?? ex.Message);
+					}
+					foreach (var type in types) {
+						if (type == null) {
+							continue;
+						}
+						PackAsAttribute attribute;
+						bool isDependency;
+						try {
+							attribute = type.GetCustomAttribute<PackAsAttribute>(inherit: false);
+							isDependency = referencedDependencyType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract;
+						} catch (Exception ex) when (ex is TypeLoadException or FileNotFoundException or FileLoadException or BadImageFormatException) {
+							// Reflection can encounter missing dependencies in the metadata of a type that loaded.
+							Logger.Debug(ex, "Package type discovery could not inspect {TypeName}.", type.FullName);
+							continue;
+						}
 						if (attribute != null) {
 							packAsTypes.Add((type, attribute.Name));
 						}
-
-						if (referencedDependencyType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract) {
+						if (isDependency) {
 							dependencyTypes.Add(type);
 						}
 					}
