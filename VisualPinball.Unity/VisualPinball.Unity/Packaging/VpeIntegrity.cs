@@ -88,13 +88,30 @@ namespace VisualPinball.Unity
 		public static string KeyHash(object parts) => Hash(Utf8.GetBytes(JsonConvert.SerializeObject(parts, Formatting.None, KeySettings)));
 		public static byte[] Json(object value) => Utf8.GetBytes(JsonConvert.SerializeObject(value, Formatting.None, Settings));
 		public static T Parse<T>(byte[] bytes, int limit = MaxManifestBytes)
+			=> Deserialize<T>(ParseToken(bytes, limit));
+
+		internal static T ParseVersioned<T>(byte[] bytes, string versionField, string schema, int supportedVersion)
+		{
+			var token = ParseToken(bytes, MaxManifestBytes);
+			var value = (token as JObject)?[versionField];
+			var version = value?.Type == JTokenType.Integer && int.TryParse(value.ToString(), out var parsed) ? parsed : 0;
+			if (version != supportedVersion) {
+				throw new InvalidPackageException(VpePackageSchemas.PayloadIncompatibility(schema, version, supportedVersion));
+			}
+			return Deserialize<T>(token);
+		}
+
+		private static JToken ParseToken(byte[] bytes, int limit)
 		{
 			if (bytes.Length > limit) throw new InvalidDataException("JSON exceeds its size limit.");
 			using var reader = new JsonTextReader(new StringReader(Utf8.GetString(bytes))) { MaxDepth = 64, DateParseHandling = DateParseHandling.None };
 			var token = JToken.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
 			if (reader.Read()) throw new InvalidDataException("Trailing JSON content.");
-			return token.ToObject<T>(JsonSerializer.Create(Settings)) ?? throw new InvalidDataException("Missing JSON value.");
+			return token;
 		}
+
+		private static T Deserialize<T>(JToken token)
+			=> token.ToObject<T>(JsonSerializer.Create(Settings)) ?? throw new InvalidDataException("Missing JSON value.");
 
 		public static byte[] ReadBounded(Stream stream, int max)
 		{

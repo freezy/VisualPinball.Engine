@@ -86,7 +86,9 @@ namespace VisualPinball.Unity
 			if (!metaFolder.TryGetFile(PackageApi.LightsFile, out var payloadFile, PackageApi.Packer.FileExtension)) {
 				return;
 			}
-			var payload = PackageApi.Packer.Unpack<VpeLightsPayload>(payloadFile.GetData());
+			using var stream = payloadFile.AsStream();
+			var payload = VpeIntegrity.ParseVersioned<VpeLightsPayload>(
+				VpeIntegrity.ReadBounded(stream, VpeIntegrity.MaxManifestBytes), "version", VpePackageSchemas.Lights, VpeLightsPayload.CurrentVersion);
 
 			if (payload.Lights == null || payload.Lights.Count == 0) {
 				return;

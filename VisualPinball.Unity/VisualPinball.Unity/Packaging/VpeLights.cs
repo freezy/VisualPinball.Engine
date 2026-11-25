@@ -17,6 +17,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct VpeLightsPayload
 	{
+		public const int CurrentVersion = 2;
 		public int Version;
 		public List<LightSourcePackable> Lights;
 	}
