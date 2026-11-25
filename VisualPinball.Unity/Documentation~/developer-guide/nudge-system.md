@@ -58,6 +58,8 @@ matched by `NudgeSystem`, normalized through `SensorMapping`, and queued into th
 simulation thread. Both queues are drained at the deterministic physics cadence,
 so all nudge sources advance in one millisecond steps.
 
+When a sensor reports motion before it sends a neutral reading, the cabinet filter starts with zero bias and applies that first report to the ball.
+
 Keyboard input intentionally wins while its synthetic cabinet movement is active.
 After that, `NudgeState` chooses the most recently active analog sensor. If two
 sensors have the same activity timestamp, the stronger cabinet motion wins. This

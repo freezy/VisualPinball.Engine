@@ -28,8 +28,7 @@ treeView-beta
             "colliders.glb"
             "table.json"
             "textures/"
-            "items/"
-            "refs/"
+            "items.json"
             "global/"
             "assets/"
             "sounds/"
@@ -50,8 +49,7 @@ The exact file and folder names are centralized in `PackageApi`, and every JSON 
 | `table/colliders.glb` | Carries meshes that exist for physics but are not naturally part of the visible glTF export. |
 | `table/table.json` | Carries table-level metadata from `TableComponent.Metadata` (`TableMetadata`). |
 | `table/textures/` | Carries VPE-owned textures as plain PNG/JPEG source files, one zip entry per texture, referenced by file name from `materials.json`. Stored (not deflated). This is the lossless source layer. |
-| `table/items/` | Carries component and item data needed to rebuild gameplay objects after the hierarchy exists. |
-| `table/refs/` | Carries cross-references that can only be restored after all items and components are in place. |
+| `table/items.json` | Carries, for every node, the item and component data needed to rebuild gameplay objects after the hierarchy exists, and the cross-references that can only be restored after all items and components are in place. |
 | `table/global/` | Carries table-wide mapping data: `switches.json`, `coils.json`, `lamps.json`, `wires.json`. |
 | `table/assets/` | Carries serialized `ScriptableObject` assets used by the table. |
 | `table/sounds/` and `table/meta/sounds.json` | Carry sound bytes and the metadata needed to resolve them. |

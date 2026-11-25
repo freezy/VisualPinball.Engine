@@ -228,6 +228,12 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Table loading continues when an unrelated assembly has missing dependencies, and the Player logs the assembly that could not be fully loaded.
+
+- GPU diagnostics include the graphics rendering-thread mode.
+
+- Table exports preserve authored light and renderer shadows. This changes the items, materials and lights schemas. Re-export tables for this build.
+
 - Packaged switch mappings retain the selected device when several devices share one object.
 
 - Cabinet accelerometers that only report changes now move the ball on their first nudge, even before a neutral report arrives.

@@ -127,6 +127,8 @@
       href: manual/sound.md
     - name: Nudging
       href: manual/nudging.md
+    - name: Analog Plunger
+      href: manual/plunger-input.md
     - name: Pinball Mechanisms
       items:
       - name: Troughs / Ball Drains
@@ -157,6 +159,8 @@
         href: manual/mechanisms/score-reels.md
       - name: Score Motors
         href: manual/mechanisms/score-motors.md
+      - name: Mechanical Sounds
+        href: manual/mechanisms/mechanical-sounds.md
       - name: Collision Switches
         href: manual/mechanisms/collision-switches.md
       - name: Tilt Bobs
