@@ -386,7 +386,7 @@ namespace VisualPinball.Unity.Editor
 				manifest.Schemas[VpePackageSchemas.Inserts] = InsertAuthoringPayload.Version;
 			}
 			if (_wroteLightProfiles) {
-				manifest.Schemas[VpePackageSchemas.Lights] = 1;
+				manifest.Schemas[VpePackageSchemas.Lights] = VpeLightsPayload.CurrentVersion;
 			}
 			if (_files.HasSounds) {
 				manifest.Schemas[VpePackageSchemas.Sounds] = 1;
@@ -1195,7 +1195,7 @@ namespace VisualPinball.Unity.Editor
 		private void WriteLightProfiles()
 		{
 			var payload = new VpeLightsPayload {
-				Version = 1,
+				Version = VpeLightsPayload.CurrentVersion,
 				Lights = _table.GetComponentsInChildren<Light>(!ExportActivesOnly)
 					.Select(light => LightSourcePackable.From(
 						_table.transform, light, _nodeIdByTransform.GetValueOrDefault(light.transform)))

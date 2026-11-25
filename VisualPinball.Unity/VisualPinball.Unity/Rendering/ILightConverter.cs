@@ -42,6 +42,9 @@ namespace VisualPinball.Unity
 
 		void SetShadow(Light light, bool enabled, bool isDynamic, float nearPlane = 0.01f);
 
+		void CaptureShadowSettings(Light light, ref HdrpLightSourcePackable data) { }
+		void RestoreShadowSettings(Light light, HdrpLightSourcePackable data) { }
+
 		void SetRange(Light light, float range);
 
 		/// <summary>

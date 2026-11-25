@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using UnityEngine.TestTools;
 
@@ -126,6 +127,37 @@ namespace VisualPinball.Unity.Test
 			var olderLayoutOnly = Manifest(VpePackageSchemas.ItemsVersion);
 			olderLayoutOnly.FormatVersion = PackageApi.FormatVersion - 1;
 			Assert.That(VpePackageSchemas.Incompatibility(olderLayoutOnly), Does.Contain($"format version {PackageApi.FormatVersion - 1}").And.Contain("Export the table again"));
+		}
+
+		[Test]
+		public void IncompatibleLightingSchemasAreRejectedBeforeLoadingPayloads()
+		{
+			var manifest = Manifest(VpePackageSchemas.ItemsVersion);
+			manifest.Schemas[VpePackageSchemas.Materials] = VpeMaterialSchema.Version;
+			manifest.Schemas[VpePackageSchemas.Lights] = VpeLightsPayload.CurrentVersion;
+			Assert.That(VpePackageSchemas.Incompatibility(manifest), Is.Null);
+
+			manifest.Schemas[VpePackageSchemas.Materials]--;
+			Assert.That(VpePackageSchemas.Incompatibility(manifest), Does.Contain("materials schema").And.Contain("Export the table again"));
+			manifest.Schemas[VpePackageSchemas.Materials]++;
+			manifest.Schemas[VpePackageSchemas.Lights]++;
+			Assert.That(VpePackageSchemas.Incompatibility(manifest), Does.Contain("lights schema").And.Contain("Update VPE"));
+		}
+
+		[Test]
+		public void OldItemsSchemaMustBeReExportedForAuthoredShadows()
+		{
+			Assert.That(VpePackageSchemas.Incompatibility(Manifest(6, reader: 4)),
+				Does.Contain("authored shadow settings").And.Contain("Export the table again"));
+		}
+
+		[Test]
+		public void UnsupportedPayloadVersionWinsOverUnknownFields()
+		{
+			var bytes = Encoding.UTF8.GetBytes("{\"formatVersion\":2,\"removedField\":true}");
+			var error = Assert.Throws<InvalidPackageException>(() => VpeIntegrity.ParseVersioned<VpeMaterialsPayload>(
+				bytes, "formatVersion", VpePackageSchemas.Materials, VpeMaterialSchema.Version));
+			Assert.That(error.Message, Does.Contain("materials schema 2").And.Contain("Export the table again"));
 		}
 
 		[Test]

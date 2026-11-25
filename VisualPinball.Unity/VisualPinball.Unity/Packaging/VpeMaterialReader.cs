@@ -64,10 +64,10 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			using (var stream = payloadFile.AsStream())
-				payload = VpeIntegrity.Parse<VpeMaterialsPayload>(VpeIntegrity.ReadBounded(stream, VpeIntegrity.MaxManifestBytes));
-			if (payload.FormatVersion != VpeMaterialSchema.Version)
-				throw new System.IO.InvalidDataException($"Unsupported materials schema {payload.FormatVersion}; expected {VpeMaterialSchema.Version}.");
+			using (var stream = payloadFile.AsStream()) {
+				payload = VpeIntegrity.ParseVersioned<VpeMaterialsPayload>(
+					VpeIntegrity.ReadBounded(stream, VpeIntegrity.MaxManifestBytes), "formatVersion", VpePackageSchemas.Materials, VpeMaterialSchema.Version);
+			}
 			if (!includeEditorOnlyTextures) {
 				payload.Textures = payload.Textures?.Where(texture => texture != null && !texture.EditorOnly).ToArray()
 					?? Array.Empty<VpeTexture>();
@@ -405,10 +405,26 @@ namespace VisualPinball.Unity
 				.Append(Encoding.UTF8.GetString(payload));
 		}
 
+		private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Renderer, object> AuthoredStaticCasters = new();
+
+		public static bool HasAuthoredStaticShadowCaster(Renderer renderer) => AuthoredStaticCasters.TryGetValue(renderer, out _);
+
+		public static void ApplyStaticShadowCaster(Renderer renderer, bool isStatic)
+		{
+			renderer.staticShadowCaster = isStatic;
+			// The default false leaves the renderer eligible for automatic classification.
+			if (isStatic) {
+				AuthoredStaticCasters.GetOrCreateValue(renderer);
+			} else {
+				AuthoredStaticCasters.Remove(renderer);
+			}
+		}
+
 		private static void ApplyRendererState(Renderer renderer, VpeRendererState state)
 		{
 			renderer.shadowCastingMode = VpeMaterialEnums.ParseShadowCastingMode(state.CastShadows);
 			renderer.receiveShadows = state.ReceiveShadows;
+			ApplyStaticShadowCaster(renderer, state.StaticShadowCaster);
 			renderer.renderingLayerMask = state.RenderingLayerMask;
 			if (state.Hdrp != null && state.Hdrp.RayTracingMode >= 0) {
 				renderer.rayTracingMode = (RayTracingMode)state.Hdrp.RayTracingMode;

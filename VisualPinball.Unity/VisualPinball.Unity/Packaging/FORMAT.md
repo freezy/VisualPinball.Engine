@@ -75,7 +75,7 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
   "formatVersion": 3,
   "writtenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
   "rootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
-  "schemas": { "items": 4, "itemsReader": 4, "materials": 2, "inserts": 4, "lights": 1, "sounds": 1, "rolling": 1 },
+  "schemas": { "items": 7, "itemsReader": 7, "materials": 3, "inserts": 4, "lights": 2, "sounds": 1, "rolling": 1 },
   "componentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
 }
 ```
@@ -85,7 +85,7 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
 | `formatVersion` | Container layout version. Readers must refuse versions other than the ones they implement. Version 3 moved the data of all nodes from one file per component (`items/`, `refs/`) into `items.json`. |
 | `writtenBy` | Free-form writer identification, diagnostics only. |
 | `rootNodeId` | Node id of the table root in `table.glb`. Readers anchor the restored component hierarchy here. |
-| `schemas` | Schema version per payload, keyed by payload name. Readers must check a payload's schema version before parsing it and skip (with a warning) versions they don't know. `itemsReader` is not a payload: it is the oldest `items` version a reader must implement to load the package (see below). |
+| `schemas` | Schema version per payload, keyed by payload name. Readers check the schema version before interpreting the payload. Unsupported items, materials, and light schemas prevent loading. Readers can skip unsupported optional payloads with a warning. `itemsReader` specifies the oldest items schema a reader must implement to load the package. |
 | `componentTypes` | All component/asset type names used by `items.json` and `assets/`. Lets a reader warn about missing plugins up front. |
 
 **Versioning policy.** `formatVersion` changes only on incompatible container-layout changes
@@ -205,17 +205,19 @@ added later) that readers are free to ignore.
 
 ```json
 {
-  "formatVersion": 2,
+  "formatVersion": 3,
   "writtenBy": "HdrpMaterialTranslator",
   "profiles":        [ { "id", "name", "type", "lit|decal|unlit|metal|rubber|dmd|insertHybrid|insertCover": { … } } ],
   "textures":        [ { "id", "fileName", "mimeType", "colorSpace", "wrapMode", "filterMode",
                          "anisoLevel", "generateMipMaps", "runtimeCompress", "forceUncompressed", "editorOnly", "sourceName",
                          "width", "height" } ],
   "bindings":        [ { "nodeId", "slot", "profileId" } ],
-  "rendererStates":  [ { "nodeId", "castShadows", "receiveShadows", "renderingLayerMask",
+  "rendererStates":  [ { "nodeId", "castShadows", "receiveShadows", "staticShadowCaster", "renderingLayerMask",
                          "hdrp": { "rayTracingMode" } } ]
 }
 ```
+
+An enabled `staticShadowCaster` records an authored static caster. HDRP can classify renderers with the default value automatically.
 
 **Profile types** (`type` discriminator; unknown types are skipped):
 
@@ -291,10 +293,7 @@ One plain image file per captured texture, usually the source bytes:
 
 ## meta/lights.json
 
-`{ "version": 1, "lights": [ … ] }` — one entry per light source: `nodeId`, enabled state, type,
-shape, color, intensity, range, spot angles, area size, shadow parameters, plus an `hdrp` block
-(volumetrics, dimmers, ray-traced shadows). This is the authored truth for lights; the GLB's
-`KHR_lights_punctual` is the portable approximation.
+`{ "version": 2, "lights": [ … ] }` contains one entry per light source with its node ID, enabled state, type, shape, color, intensity, range, spot angles, area size and shadow settings. The `hdrp` block includes volumetrics, ray-traced shadows, shadow bias and dimmer, and the update and resolution settings for cached shadows. The GLB's `KHR_lights_punctual` is the portable approximation. Re-export packages with an older light schema.
 
 ## integrity.json
 

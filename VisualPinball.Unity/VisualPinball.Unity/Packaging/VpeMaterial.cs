@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 	public static class VpeMaterialSchema
 	{
-		public const int Version = 2;
+		public const int Version = 3;
 	}
 
 	public static class VpeMaterialTypes
@@ -179,6 +179,7 @@ namespace VisualPinball.Unity
 		// See VpeShadowCastingModes.
 		public string CastShadows = VpeShadowCastingModes.On;
 		public bool ReceiveShadows = true;
+		public bool StaticShadowCaster;
 		// Unity renderingLayerMask. Bit 0 is the default layer; authoring tables commonly add
 		// bit 8 (light-layer 8) on table geometry.
 		public uint RenderingLayerMask = 1;

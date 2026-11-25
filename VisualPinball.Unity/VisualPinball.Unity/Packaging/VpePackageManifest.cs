@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 		/// The version of the items schema this build writes. It goes up by one with every change to the schema that
 		/// a reader has to know about, with a line added to <see cref="ItemsChanges"/>.
 		/// </summary>
-		public const int ItemsVersion = 6;
+		public const int ItemsVersion = 7;
 
 		/// <summary>
 		/// The oldest items schema version a reader must implement to load what this build writes, stored in the manifest
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 		/// older reader can ignore, so older players keep loading new tables; a change they would load wrongly raises it
 		/// to <see cref="ItemsVersion"/>.
 		/// </summary>
-		public const int ItemsReaderVersion = 4;
+		public const int ItemsReaderVersion = 7;
 
 		/// <summary>
 		/// The oldest items schema version this build still loads. The runtime reader takes every version from here
@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 		/// table is exported again instead of being migrated. Once older tables have to keep working, it stays
 		/// behind and the reader copes with the versions in between.
 		/// </remarks>
-		public const int MinItemsVersion = 4;
+		public const int MinItemsVersion = 7;
 
 		/// <summary>What each items schema version changed, in words a player can read. The first entry is version 2.</summary>
 		public static readonly string[] ItemsChanges = {
@@ -100,6 +100,7 @@ namespace VisualPinball.Unity
 			"the settings of a table's objects moved from thousands of small files into one, and tables from before have them where this build no longer looks",
 			"the objects of a prefab instance say which of the prefab's objects they are, so the editor links them to the prefab again even when they were renamed",
 			"input action sounds can play when the button is released, which older players play on the press instead",
+			"lights and renderers store authored shadow settings, including the light shape radius and static shadow casters",
 		};
 
 		/// <summary>
@@ -113,11 +114,28 @@ namespace VisualPinball.Unity
 			}
 			// says what changed since, which the format version alone can't
 			var items = ItemsIncompatibility(manifest);
-			if (items != null || manifest.FormatVersion == PackageApi.FormatVersion) {
+			if (items != null) {
 				return items;
+			}
+			if (manifest.FormatVersion == PackageApi.FormatVersion) {
+				return CheckPayload(manifest, Materials, VpeMaterialSchema.Version)
+					?? CheckPayload(manifest, Lights, VpeLightsPayload.CurrentVersion);
 			}
 			return $"This package uses format version {manifest.FormatVersion}, which this build no longer loads (it loads " +
 				$"version {PackageApi.FormatVersion}). Export the table again with a current VPE, or get an updated one from its author.";
+		}
+
+		private static string CheckPayload(VpePackageManifest manifest, string schema, int supportedVersion)
+			=> manifest.Schemas != null && manifest.Schemas.TryGetValue(schema, out var version) && version != supportedVersion
+				? PayloadIncompatibility(schema, version, supportedVersion)
+				: null;
+
+		internal static string PayloadIncompatibility(string schema, int version, int supportedVersion)
+		{
+			var action = version > supportedVersion
+				? "Update VPE to load it."
+				: "Export the table again with a current VPE, or get an updated one from its author.";
+			return $"This table uses {schema} schema {version}, but this build uses schema {supportedVersion}. {action}";
 		}
 
 		/// <summary>Why a package with another items schema version can't be loaded by this build, or null when it can.</summary>
