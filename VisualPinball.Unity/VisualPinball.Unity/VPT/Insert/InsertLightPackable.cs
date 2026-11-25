@@ -81,7 +81,9 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<InsertLightReferencesPackable>(bytes);
 			var node = refs.GetNode(data.SpillLightNodeId);
-			light.SpillLight = node ? node.GetComponent<Light>() : null;
+			// At runtime the spot sits on glTFast's orientation helpers below the node. Missing it
+			// leaves the spill as it was exported, lit whatever the lamp does.
+			light.SpillLight = VpeLightRestore.FindLight(node);
 		}
 	}
 

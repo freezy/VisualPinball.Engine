@@ -168,6 +168,11 @@ namespace VisualPinball.Unity.Test
 				var light = insertGo.AddComponent<InsertLightComponent>();
 				light.Intensity = 0.6f;
 				light.ExtraBulbs[0].Intensity = 0.4f;
+				var spillGo = new GameObject("Insert Spill Light");
+				spillGo.transform.SetParent(insertGo.transform, false);
+				var spill = spillGo.AddComponent<Light>();
+				spill.type = LightType.Spot;
+				light.SpillLight = spill;
 				staleBake = ScriptableObject.CreateInstance<InsertBakeData>();
 				staleBake.Hash = "stale-bake";
 				insert.SetBake(staleBake);
@@ -197,6 +202,14 @@ namespace VisualPinball.Unity.Test
 				var restoredLight = restoredInsert.GetComponent<InsertLightComponent>();
 				Assert.That(restoredLight.Intensity, Is.EqualTo(0.6f));
 				Assert.That(restoredLight.ExtraBulbs[0].Intensity, Is.EqualTo(0.4f));
+				// glTFast puts the spot below orientation helpers, not on the spill's own node: a
+				// reference that missed it left the spill lit whatever the lamp did.
+				var restoredSpillNode = restoredInsert.transform.Find("Insert Spill Light");
+				Assert.That(restoredSpillNode, Is.Not.Null);
+				Assert.That(restoredSpillNode.GetComponent<Light>(), Is.Null);
+				Assert.That(restoredLight.SpillLight, Is.Not.Null, "the spill reference must find the spot below glTFast's helpers");
+				Assert.That(restoredLight.SpillLight.type, Is.EqualTo(LightType.Spot));
+				Assert.That(restoredLight.SpillLight.transform.IsChildOf(restoredSpillNode), Is.True);
 			} finally {
 				if (source) { Object.DestroyImmediate(source); }
 				if (imported) { Object.DestroyImmediate(imported); }
@@ -344,6 +357,46 @@ namespace VisualPinball.Unity.Test
 				Assert.That(insertLight.BlinkInterval, Is.EqualTo(250));
 				Assert.That(insertLight.FadeSpeedUp, Is.EqualTo(0.2f));
 				Assert.That(insertLight.FadeSpeedDown, Is.EqualTo(0.4f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void SpillReferenceFindsTheSpotBelowGltfOrientationHelpers()
+		{
+			// What a runtime load of a package makes of a spot: the light two rotated helpers below
+			// the node the reference names, one from the export and one from the instantiation.
+			var go = new GameObject("Insert Lamp");
+			go.SetActive(false);
+			var spillGo = new GameObject("Spill");
+			spillGo.transform.SetParent(go.transform);
+			var exported = new GameObject("Spill_Orientation");
+			exported.transform.SetParent(spillGo.transform);
+			var instantiated = new GameObject("Spill_Orientation_Orientation");
+			instantiated.transform.SetParent(exported.transform);
+			// An authored light whose name looks like a helper is not one: helpers are named after their parent.
+			var other = new GameObject("Fill_Orientation");
+			other.transform.SetParent(spillGo.transform);
+			other.transform.SetAsFirstSibling();
+			try {
+				other.AddComponent<Light>();
+				var spot = instantiated.AddComponent<Light>();
+				var insertLight = go.AddComponent<InsertLightComponent>();
+				var refs = new PackagedRefs(go.transform);
+				refs.SetNodeIdsForWrite(new Dictionary<Transform, string> {
+					[go.transform] = "insert-node",
+					[spillGo.transform] = "spill-node",
+				});
+				refs.SetNodeIdsForRead(new Dictionary<string, Transform> {
+					["insert-node"] = go.transform,
+					["spill-node"] = spillGo.transform,
+				});
+				var referenceData = PackageApi.Packer.Pack(new InsertLightReferencesPackable { SpillLightNodeId = "spill-node" });
+
+				insertLight.UnpackReferences(referenceData, go.transform, refs, null);
+
+				Assert.That(insertLight.SpillLight, Is.SameAs(spot));
 			} finally {
 				Object.DestroyImmediate(go);
 			}

@@ -108,6 +108,32 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// The light a packaged node stands for. glTF spots and directional lights point the other
+		/// way than Unity's, so glTFast puts them on a rotated <c>*_Orientation</c> child, once when
+		/// exporting and again when instantiating, each named after its parent: at runtime the light
+		/// sits two helpers below the node its id names. The editor import folds them back into the
+		/// prefab's light.
+		/// </summary>
+		public static Light FindLight(Transform node)
+		{
+			while (node) {
+				if (node.TryGetComponent<Light>(out var light)) {
+					return light;
+				}
+				var helperName = node.name + "_Orientation";
+				Transform helper = null;
+				foreach (Transform child in node) {
+					if (child.name == helperName) {
+						helper = child;
+						break;
+					}
+				}
+				node = helper;
+			}
+			return null;
+		}
+
 		private static Light ResolveLightProfileTarget(
 			LightSourcePackable profile,
 			IReadOnlyList<Light> lights,
