@@ -16,8 +16,8 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Publishes a table's gamelogic engine to plugins: its controller events, displays, segment displays, native outputs and audio
-	/// become resources in the <see cref="PluginResourceRegistry"/>, where plugins such as PinUP, the B2S backglass and DMD bind them.
+	/// Publishes a table's gamelogic engine to plugins: its controller events, displays, segment displays, native and real-time
+	/// outputs and audio become resources in the <see cref="PluginResourceRegistry"/>, where plugins such as PinUP, the B2S backglass and DMD bind them.
 	/// </summary>
 	/// <remarks>
 	/// The Player creates one per game after loading the table, before the table starts and before
@@ -37,6 +37,14 @@ namespace VisualPinball.Unity
 	/// <description>
 	/// <see cref="ResourceKind.Outputs"/>, role <c>outputs</c>: every output by native number, when the engine implements
 	/// <see cref="IGamelogicNativeOutputs"/>.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <term><c>&lt;controller&gt;/outputs/realtime</c></term>
+	/// <description>
+	/// <see cref="ResourceKind.RealtimeOutputs"/>, role <c>realtime-outputs</c>: outputs and switches by native number from the
+	/// simulation thread, each new receiver starting with a snapshot, when the engine implements
+	/// <see cref="IGamelogicRealtimeOutputs"/>. The engine's listener is set while the resource has receivers.
 	/// </description>
 	/// </item>
 	/// <item>
@@ -68,7 +76,8 @@ namespace VisualPinball.Unity
 	/// a consumer's request for raw identification frames is forwarded.
 	/// <para>
 	/// Create and dispose it on the owner thread. The engine must raise its display events there (they throw otherwise); coil,
-	/// lamp, switch and native output changes raised on other threads are posted to the owner thread.
+	/// lamp, switch and native output changes raised on other threads are posted to the owner thread. Real-time outputs are not:
+	/// their receivers are called on the polling thread.
 	/// </para>
 	/// <example>
 	/// From the Player's plugin controller:
@@ -114,10 +123,24 @@ namespace VisualPinball.Unity
 			public void NativeOutputChanged(ControllerEventKind kind, int number, double value, ControllerValueSemantics semantics, double maximum) => _owner.EmitNative(kind, number, value, semantics, maximum);
 			public void NativeOutputPollEnd() => _owner.EmitNative(ControllerEventKind.PollEnd, -1, 0, ControllerValueSemantics.Binary, 1);
 		}
+		/// <summary>Forwards the real-time feed to its source on the polling thread, without exposing the listener on the public type.</summary>
+		private sealed class RealtimeOutputs : IRealtimeOutputListener
+		{
+			private readonly RealtimeOutputResourceSource _source;
+			internal RealtimeOutputs(RealtimeOutputResourceSource source) { _source = source; }
+			public bool BeginSnapshot() => _source.BeginSnapshot();
+			public void SnapshotValue(RealtimeOutputKind kind, int number, int value) => _source.PublishSnapshot(kind, number, value);
+			public void EndSnapshot() => _source.EndSnapshot();
+			public void AbortSnapshot() => _source.AbortSnapshot();
+			public void OutputChanged(RealtimeOutputKind kind, int number, int value) => _source.Publish(kind, number, value);
+		}
 		private static long _instance;
 		private readonly IGamelogicEngine _engine;
 		private readonly Dictionary<string, Segments> _segments = new Dictionary<string, Segments>(StringComparer.Ordinal);
 		private readonly ControllerResourceSource _native;
+		private readonly RealtimeOutputResourceSource _realtime;
+		private readonly RealtimeOutputs _realtimeListener;
+		private readonly RealtimeOutputPoll _realtimePoll;
 		/// <summary>IDs of the score reel displays whose segment displays show their value, see <see cref="NumericFrame"/>.</summary>
 		private readonly HashSet<string> _scoreReels = new HashSet<string>(StringComparer.Ordinal);
 		private readonly string[] _numberNames = new string[1024];
@@ -139,7 +162,7 @@ namespace VisualPinball.Unity
 		private long _sequence;
 		private bool _disposed;
 		/// <summary>
-		/// Publishes the engine's controller, native outputs and audio and the table's dot-matrix displays, and subscribes to the
+		/// Publishes the engine's controller, native and real-time outputs and audio and the table's dot-matrix displays, and subscribes to the
 		/// engine's events. Displays and segment displays that the engine announces later are published when it announces them.
 		/// </summary>
 		/// <param name="table">
@@ -182,6 +205,17 @@ namespace VisualPinball.Unity
 				native.SetNativeOutputListener(new NativeOutputs(this));
 				_scope.Own(new Subscription(() => native.SetNativeOutputListener(null)));
 			}
+			if (engine is IGamelogicRealtimeOutputs realtime) {
+				// Outputs and switches by native number from the simulation thread, for cabinet feedback (DOF). The engine only
+				// produces the feed while somebody receives it. The source reports one exception per subscriber, which is posted
+				// to the owner thread, so a broken subscriber doesn't allocate per value on the simulation thread.
+				_realtimePoll = RealtimeOutputPoll.For(engine);
+				_realtime = _scope.Own(new RealtimeOutputResourceSource(realtime.RealtimeNumbering,
+					error => _scheduler.Post(() => _fault?.Invoke(error)), _ => RealtimeReceiversChanged()));
+				_realtimeListener = new RealtimeOutputs(_realtime);
+				_scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId + "/outputs/realtime", _provider, _controllerId, engine.Name + " real-time outputs", "realtime-outputs", ResourceKind.RealtimeOutputs, session, Interlocked.Increment(ref _instance)), _realtime));
+				_scope.Own(new Subscription(() => _realtimePoll.SetListener(null)));
+			}
 			if (engine is IGamelogicAudioResourceProvider audio) _scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId + "/audio/rom", _provider, _controllerId, engine.Name + " audio", "rom-mix", ResourceKind.Audio, session, Interlocked.Increment(ref _instance)), audio.AudioSource));
 			if (table != null && _native == null) {
 				// Score reels tell the engine their value as a number; their segment display shows it as digits. A ROM drives its
@@ -208,6 +242,17 @@ namespace VisualPinball.Unity
 		/// <see cref="PluginGameContext.ControllerId"/> the Player passes to plugins.
 		/// </summary>
 		public string ControllerId => _controllerId;
+		/// <summary>
+		/// Sets the engine's real-time listener when the first receiver subscribes and removes it when the last one leaves, on
+		/// the owner thread.
+		/// </summary>
+		private void RealtimeReceiversChanged()
+		{
+			if (!_scheduler.IsOwner) { _scheduler.Post(RealtimeReceiversChanged); return; }
+			if (_disposed || _realtime == null) return;
+			var listening = _realtime.HasReceivers;
+			if (listening != _realtimePoll.IsListening) _realtimePoll.SetListener(listening ? _realtimeListener : null);
+		}
 		private void DisplaysRequested(object sender, RequestedDisplays args)
 		{
 			_scheduler.VerifyOwner();
@@ -383,7 +428,7 @@ namespace VisualPinball.Unity
 			_ => DisplayFrameFormat.Dmd8
 		};
 		/// <summary>
-		/// Unsubscribes from the engine, unpublishes every resource, removes the native output listener and, if raw identification
+		/// Unsubscribes from the engine, unpublishes every resource, removes the native and real-time output listeners and, if raw identification
 		/// frames were requested, asks the engine for its default display format again. Safe to call more than once. Call it on the
 		/// owner thread after the plugins have stopped, as the Player does when it disposes its game scope.
 		/// </summary>

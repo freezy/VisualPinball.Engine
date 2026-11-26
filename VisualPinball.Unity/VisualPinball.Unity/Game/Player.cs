@@ -149,6 +149,7 @@ namespace VisualPinball.Unity
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
 		private SimulationThreadComponent _simulationThreadComponent;
+		private RealtimeOutputPoll _realtimeOutputs;
 		private CancellationTokenSource _gamelogicEngineInitCts;
 
 		private PlayfieldComponent PlayfieldComponent {
@@ -265,6 +266,7 @@ namespace VisualPinball.Unity
 
 			// a table without a gamelogic engine still has its wires (keys to flippers) and devices
 			GamelogicEngine = engineComponent;
+			_realtimeOutputs = RealtimeOutputPoll.For(engineComponent);
 			_lampPlayer.Awake(this, _tableComponent, GamelogicEngine);
 			_coilPlayer.Awake(this, _tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
 			_switchPlayer.Awake(this, _tableComponent, GamelogicEngine, _inputManager);
@@ -420,6 +422,9 @@ namespace VisualPinball.Unity
 			}
 
 			UpdateAutoPlungerLaunch();
+
+			// without the simulation thread, the real-time outputs (DOF) are polled once per frame
+			_realtimeOutputs?.PollFromFrame();
 
 			VpeProfiler.Begin(ProfileSection.PlayerOnUpdate);
 			try {

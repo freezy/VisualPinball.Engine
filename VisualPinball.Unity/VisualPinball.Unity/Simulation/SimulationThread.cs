@@ -65,6 +65,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly IGamelogicPerformanceStats _gamelogicPerformanceStats;
 		private readonly IGamelogicLatencyStats _gamelogicLatencyStats;
 		private readonly IGamelogicInputDispatcher _inputDispatcher;
+		private readonly RealtimeOutputPoll _realtimeOutputs;
 		private readonly Action<string, float> _simulationCoilDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
@@ -159,6 +160,7 @@ namespace VisualPinball.Unity.Simulation
 			_gamelogicPerformanceStats = gamelogicEngine as IGamelogicPerformanceStats;
 			_gamelogicLatencyStats = gamelogicEngine as IGamelogicLatencyStats;
 			_inputDispatcher = GamelogicInputDispatcherFactory.Create(gamelogicEngine);
+			_realtimeOutputs = RealtimeOutputPoll.For(gamelogicEngine);
 			_simulationCoilDispatcher = simulationCoilDispatcher;
 
 			_inputBuffer = new InputEventBuffer(1024);
@@ -509,6 +511,7 @@ namespace VisualPinball.Unity.Simulation
 
 			// Try to enable no-GC region for hot path
 			bool noGcRegion = false;
+			var pollsRealtimeOutputs = false;
 			try
 			{
 				// Allocate 10MB for no-GC region
@@ -542,6 +545,12 @@ namespace VisualPinball.Unity.Simulation
 				// timetable now so it does not begin with a backlog.
 				_lastTickTicks = Stopwatch.GetTimestamp();
 				var iterationStartTicks = _lastTickTicks;
+
+				// From here until the loop exits, the real-time outputs are polled on every tick instead of every frame.
+				if (_realtimeOutputs != null) {
+					_realtimeOutputs.SimulationThreadStarted();
+					pollsRealtimeOutputs = true;
+				}
 
 				// Main simulation loop
 				while (_running)
@@ -654,6 +663,11 @@ namespace VisualPinball.Unity.Simulation
 			}
 			finally
 			{
+				// the frame update polls again, also when the loop died
+				if (pollsRealtimeOutputs) {
+					_realtimeOutputs.SimulationThreadStopped();
+				}
+
 				// Exit no-GC region
 				if (noGcRegion && GCSettings.LatencyMode == GCLatencyMode.NoGCRegion)
 				{
@@ -730,7 +744,10 @@ namespace VisualPinball.Unity.Simulation
 			}
 			var fenceDoneTicks = Stopwatch.GetTimestamp();
 
-			// 5. Write to shared state and swap buffers
+			// 5. Publish the real-time outputs (DOF) as soon as the emulation reported them, before the shared state.
+			_realtimeOutputs?.PollFromSimulationThread();
+
+			// 6. Write to shared state and swap buffers
 			WriteSharedState();
 
 			// Increment simulation time

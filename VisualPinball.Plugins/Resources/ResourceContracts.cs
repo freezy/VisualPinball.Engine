@@ -22,6 +22,12 @@ namespace VisualPinball.Plugins
 	/// It is separate from <see cref="Controller"/>, the outputs as the table maps them, so a controller binding without a
 	/// role stays unambiguous.
 	/// </para>
+	/// <para>
+	/// <see cref="RealtimeOutputs"/> carries the same native outputs plus switches, without coalescing and without waiting
+	/// for a frame, through <see cref="IPluginRealtimeOutputSource"/>. It is a kind of its own, so every
+	/// <see cref="Outputs"/> resource stays an <see cref="IPluginControllerSource"/> and an unqualified
+	/// <see cref="Outputs"/> binding (the B2S backglass) still finds exactly one resource.
+	/// </para>
 	/// </remarks>
 	public enum ResourceKind
 	{
@@ -68,7 +74,14 @@ namespace VisualPinball.Plugins
 		/// <c>outputs</c> for engines that report native outputs, such as PinMAME; the B2S backglass prefers it over
 		/// <see cref="Controller"/> to drive ROM lamps and solenoids.
 		/// </summary>
-		Outputs
+		Outputs,
+		/// <summary>
+		/// Every controller output and switch by its native number, delivered as integers through
+		/// <see cref="IPluginRealtimeOutputSource"/> on the thread that produces them (the simulation thread when it runs),
+		/// starting with the current value of every element. VPE publishes it as <c>&lt;controller&gt;/outputs/realtime</c>
+		/// with the role <c>realtime-outputs</c> for engines that report them, such as PinMAME; DOF consumes it.
+		/// </summary>
+		RealtimeOutputs
 	}
 
 	/// <summary>
@@ -674,6 +687,111 @@ namespace VisualPinball.Plugins
 		/// <param name="receive">Called with each event.</param>
 		/// <returns>Disposing it stops the receiver.</returns>
 		IDisposable Subscribe(Action<PluginControllerEvent> receive);
+	}
+
+	/// <summary>What one value of an <see cref="IPluginRealtimeOutputSource"/> reports.</summary>
+	/// <remarks>
+	/// The elements are the ones DOF and VPX's B2S event stream know: solenoids (<c>S</c>), switches (<c>W</c>), lamps
+	/// (<c>L</c>), GI strings (<c>G</c>) and mechs (<c>N</c>). Numbers and values follow the source's
+	/// <see cref="IPluginRealtimeOutputSource.Numbering"/>.
+	/// </remarks>
+	public enum RealtimeOutputKind
+	{
+		/// <summary>A solenoid or other driver output, with the value the controller reports (0/1, or 0..255 when modulated).</summary>
+		Solenoid,
+		/// <summary>A switch, 1 when closed and 0 when open, including switches the controller moves itself (mech switches).</summary>
+		Switch,
+		/// <summary>A lamp, with the value the controller reports (0/1, or 0..255 for physically faded outputs).</summary>
+		Lamp,
+		/// <summary>A GI string, in the controller's own range (0..8 on WPC, 0 or 9 on other PinMAME hardware).</summary>
+		GeneralIllumination,
+		/// <summary>
+		/// A mech: number <c>n</c> is the position of user mech <c>n</c> (from 1), number <c>-n</c> its speed, both as the
+		/// controller reports them.
+		/// </summary>
+		Mech,
+		/// <summary>
+		/// Not an element: the receiver's initial snapshot is complete, and every later value is a change. Number and value
+		/// are 0.
+		/// </summary>
+		SnapshotBoundary,
+		/// <summary>
+		/// Not an element: the producer lost values (a queue overflowed) and resynchronises next, by publishing each
+		/// element's latest value where it differs. The elements' end states are right again afterwards, but transitions in
+		/// between were skipped, so a consumer that must not miss a pulse should treat it as a fault. Number is the
+		/// <see cref="RealtimeOutputOverflow"/> that overflowed, value how many values were lost (at least 1).
+		/// </summary>
+		Overflow
+	}
+
+	/// <summary>The <c>number</c> of a <see cref="RealtimeOutputKind.Overflow"/>: which of the producer's queues lost values.</summary>
+	public static class RealtimeOutputOverflow
+	{
+		/// <summary>Solenoids, mechs and switches reported by the emulation and the simulation thread.</summary>
+		public const int Outputs = 1;
+		/// <summary>Lamps and GI strings read while the real-time poll stalled.</summary>
+		public const int Lamps = 2;
+	}
+
+	/// <summary>Receives one value of an <see cref="IPluginRealtimeOutputSource"/>.</summary>
+	/// <remarks>
+	/// Called on the producing thread, normally VPE's 1 kHz simulation thread. Implementations must return quickly, must not
+	/// allocate, block or touch Unity objects, and should hand the value to their own thread, as DOF does with its event ring.
+	/// </remarks>
+	/// <param name="kind">What the value reports.</param>
+	/// <param name="number">The element's number in the source's numbering.</param>
+	/// <param name="value">The element's new value.</param>
+	public delegate void RealtimeOutputReceiver(RealtimeOutputKind kind, int number, int value);
+
+	/// <summary>Numbering schemes of <see cref="IPluginRealtimeOutputSource.Numbering"/>.</summary>
+	public static class RealtimeOutputNumbering
+	{
+		/// <summary>
+		/// PinMAME's own numbers, as VPinMAME reports them to VPX: solenoids from 1, switches and lamps by the driver's
+		/// numbers (such as 11..88 on WPC; the cabinet switches of sequentially numbered systems such as Whitestar and SAM
+		/// are -7..0), GI strings from 0, user mechs from 1 (position) and -1 (speed).
+		/// </summary>
+		public const string PinMame = "pinmame";
+	}
+
+	/// <summary>
+	/// A source of every output and switch of a game controller by native number, published as
+	/// <see cref="ResourceKind.RealtimeOutputs"/>, for consumers that react to outputs with low latency, such as DOF.
+	/// </summary>
+	/// <remarks>
+	/// Unlike <see cref="ResourceKind.Outputs"/>, values arrive on the thread that produces them (VPE's simulation thread,
+	/// or the frame update when a game runs without it), in the order the controller reported them, and nothing is
+	/// coalesced: only a value that repeats the element's last one may be dropped, so a modulated solenoid that goes 255,
+	/// 128, 0, 255 is delivered four times. A new receiver first gets the
+	/// current value of every element the controller declares, zeros included, then one
+	/// <see cref="RealtimeOutputKind.SnapshotBoundary"/>, then changes only. The snapshot comes once the controller runs and
+	/// knows its elements, so a receiver that subscribes before the game starts waits for it. A snapshot attempt can be
+	/// abandoned before its boundary (the producer failed, or the receiver threw), and the next attempt sends the current
+	/// state again from the start: a receiver that acts on snapshot values before the boundary must tolerate that. When
+	/// the producer loses values it says so with <see cref="RealtimeOutputKind.Overflow"/>. Producers normally use
+	/// <see cref="RealtimeOutputResourceSource"/>.
+	/// <example>
+	/// <code>
+	/// var outputs = game.Lifetime.Own(game.Resources.Bind&lt;IPluginRealtimeOutputSource&gt;(
+	///     new PluginResourceSelection(ResourceKind.RealtimeOutputs) { Controller = game.ControllerId, Session = game.Session }));
+	/// game.Lifetime.Own(outputs.Connect(source =&gt; source.Subscribe((kind, number, value) =&gt; _session.Publish(kind, number, value))));
+	/// </code>
+	/// </example>
+	/// </remarks>
+	public interface IPluginRealtimeOutputSource : IPluginResourceSource
+	{
+		/// <summary>
+		/// The numbering the numbers and values follow, such as <see cref="RealtimeOutputNumbering.PinMame"/>. Consumers that
+		/// do not know it should not bind.
+		/// </summary>
+		string Numbering { get; }
+		/// <summary>
+		/// Registers a receiver. Thread-safe. Its initial snapshot arrives with the producer's next delivery, on the
+		/// producing thread, and is followed by every change.
+		/// </summary>
+		/// <param name="receive">Called with each value; see <see cref="RealtimeOutputReceiver"/> for its constraints.</param>
+		/// <returns>Disposing it stops the receiver; a delivery already under way may still reach it once.</returns>
+		IDisposable Subscribe(RealtimeOutputReceiver receive);
 	}
 
 	/// <summary>One block of PCM audio. The sample memory is borrowed for the synchronous subscriber call only.</summary>

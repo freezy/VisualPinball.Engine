@@ -226,4 +226,246 @@ namespace VisualPinball.Plugins
 		/// <summary>Drops all receivers and refuses new ones. It does not unpublish the resource.</summary>
 		public void Dispose() => _signal.Dispose();
 	}
+	/// <summary>
+	/// Ready-made <see cref="ResourceKind.RealtimeOutputs"/> source: it gives every new receiver its own initial snapshot
+	/// and then the changes, on the producer's thread, without allocating.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// Receivers subscribe from any thread. Exactly one thread produces at a time (VPE's simulation thread, or the frame
+	/// update when the game runs without it); it calls, in this order, on each delivery: changes that precede the snapshot
+	/// with <see cref="Publish"/>, then, when <see cref="BeginSnapshot"/> returns true, the current value of every element
+	/// with <see cref="PublishSnapshot"/> and <see cref="EndSnapshot"/>, then the remaining changes with
+	/// <see cref="Publish"/>. Receivers that subscribed since the last snapshot get the snapshot and its
+	/// <see cref="RealtimeOutputKind.SnapshotBoundary"/>, and from then on the changes; receivers that already had theirs
+	/// get only changes. A receiver therefore never sees a change before its snapshot, or one that its snapshot already
+	/// contains.
+	/// </para>
+	/// <para>
+	/// Delivery reads a cached array, so it allocates nothing once subscriptions are stable; subscribing and unsubscribing
+	/// take a lock and allocate on the subscribing thread. The owner disposes the source; disposing does not unpublish it.
+	/// </para>
+	/// <para>
+	/// A receiver never goes live on an incomplete snapshot. A producer that cannot finish one calls
+	/// <see cref="AbortSnapshot"/> (or simply begins the next), and a receiver that throws during its snapshot gets another
+	/// one. A producer that lost values, such as a full queue, publishes <see cref="RealtimeOutputKind.Overflow"/> before it
+	/// resynchronises, so receivers know that transitions were skipped.
+	/// </para>
+	/// <example>
+	/// The Unity integration forwards an engine's real-time listener calls:
+	/// <code>
+	/// var source = scope.Own(new RealtimeOutputResourceSource(RealtimeOutputNumbering.PinMame, fault));
+	/// scope.Own(registry.Publish(new PluginResourceDescriptor(controllerId + "/outputs/realtime", provider, controllerId,
+	///     "PinMAME real-time outputs", "realtime-outputs", ResourceKind.RealtimeOutputs, session, instance), source));
+	/// // on the producing thread, once per poll:
+	/// source.Publish(RealtimeOutputKind.Solenoid, 28, 1);
+	/// if (source.BeginSnapshot()) {
+	///     foreach (var (number, value) in solenoids) source.PublishSnapshot(RealtimeOutputKind.Solenoid, number, value);
+	///     source.EndSnapshot();
+	/// }
+	/// </code>
+	/// </example>
+	/// </remarks>
+	public sealed class RealtimeOutputResourceSource : IPluginRealtimeOutputSource, IDisposable
+	{
+		/// <summary>How many snapshots in a row a receiver may fail (by throwing) before it is dropped.</summary>
+		public const int MaxSnapshotAttempts = 3;
+		private const int Waiting = 0, InSnapshot = 1, Live = 2, Removed = 3;
+		private sealed class Receiver
+		{
+			internal readonly RealtimeOutputReceiver Receive;
+			/// <summary><see cref="Waiting"/> for its snapshot, <see cref="InSnapshot"/>, <see cref="Live"/> or <see cref="Removed"/>.</summary>
+			internal int State;
+			/// <summary>The receiver threw during its current snapshot, so it must not go live on it. Producing thread only.</summary>
+			internal bool SnapshotFailed;
+			/// <summary>Snapshots in a row the receiver failed. Producing thread only.</summary>
+			internal int FailedSnapshots;
+			/// <summary>1 once the receiver's first exception was reported.</summary>
+			internal int Reported;
+			internal Receiver(RealtimeOutputReceiver receive) { Receive = receive; }
+		}
+		private readonly List<Receiver> _receivers = new List<Receiver>();
+		private readonly Action<Exception>? _fault;
+		private readonly Action<bool>? _receiversChanged;
+		private Receiver[] _dispatch = Array.Empty<Receiver>();
+		private int _snapshotRequested;
+		// producing thread only: a snapshot began and has not ended
+		private bool _snapshotOpen;
+		private bool _disposed;
+		/// <summary>Always <see cref="ResourceKind.RealtimeOutputs"/>.</summary>
+		public ResourceKind Kind => ResourceKind.RealtimeOutputs;
+		/// <inheritdoc/>
+		public string Numbering { get; }
+		/// <summary>Creates the source.</summary>
+		/// <param name="numbering">The numbering the values follow, such as <see cref="RealtimeOutputNumbering.PinMame"/>.</param>
+		/// <param name="fault">
+		/// Receives the first exception each receiver throws, and one when a receiver is dropped for failing its snapshots,
+		/// on the producing thread. Later exceptions of the same receiver are not reported again, so a broken receiver does
+		/// not cost an allocation per value. The remaining receivers still get the value. Null ignores them.
+		/// </param>
+		/// <param name="receiversChanged">
+		/// Called with true when the first receiver subscribes and with false when the last one leaves or the source is
+		/// disposed, on the thread that subscribed or unsubscribed and outside the source's lock. VPE uses it to bind the
+		/// engine's real-time listener only while somebody listens.
+		/// </param>
+		/// <exception cref="ArgumentException"><paramref name="numbering"/> is null or empty.</exception>
+		public RealtimeOutputResourceSource(string numbering, Action<Exception>? fault = null, Action<bool>? receiversChanged = null)
+		{
+			if (string.IsNullOrEmpty(numbering)) throw new ArgumentException("Real-time outputs need a numbering.", nameof(numbering));
+			Numbering = numbering; _fault = fault; _receiversChanged = receiversChanged;
+		}
+		/// <summary>Whether at least one receiver is subscribed. Safe to read from any thread.</summary>
+		public bool HasReceivers => Volatile.Read(ref _dispatch).Length > 0;
+		/// <summary>
+		/// Whether a receiver waits for its snapshot: it subscribed, or its last snapshot was aborted or failed, since the
+		/// last <see cref="BeginSnapshot"/>. Safe to read from any thread.
+		/// </summary>
+		public bool SnapshotRequested => Volatile.Read(ref _snapshotRequested) != 0;
+		/// <summary>
+		/// Adds a receiver until the returned handle is disposed. Thread-safe. The receiver gets nothing until the producer's
+		/// next snapshot, which starts with its first value.
+		/// </summary>
+		/// <param name="receive">Called on the producing thread with each value.</param>
+		/// <returns>A handle that removes the receiver.</returns>
+		/// <exception cref="ArgumentNullException"><paramref name="receive"/> is null.</exception>
+		/// <exception cref="ObjectDisposedException">The source has been disposed.</exception>
+		public IDisposable Subscribe(RealtimeOutputReceiver receive)
+		{
+			if (receive == null) throw new ArgumentNullException(nameof(receive));
+			var receiver = new Receiver(receive);
+			bool first;
+			lock (_receivers) {
+				if (_disposed) throw new ObjectDisposedException(nameof(RealtimeOutputResourceSource));
+				_receivers.Add(receiver); first = _receivers.Count == 1;
+				Volatile.Write(ref _dispatch, _receivers.ToArray());
+			}
+			// after the receiver is in the array, so a producer that sees the request also sees the receiver
+			Volatile.Write(ref _snapshotRequested, 1);
+			if (first) _receiversChanged?.Invoke(true);
+			return new Subscription(() => Unsubscribe(receiver));
+		}
+		private bool Unsubscribe(Receiver receiver)
+		{
+			bool last;
+			lock (_receivers) {
+				if (!_receivers.Remove(receiver)) return false;
+				Volatile.Write(ref receiver.State, Removed);
+				last = _receivers.Count == 0;
+				Volatile.Write(ref _dispatch, _receivers.ToArray());
+			}
+			if (last) _receiversChanged?.Invoke(false);
+			return true;
+		}
+		/// <summary>
+		/// Producing thread: starts the snapshot of every receiver that waits for one. When it returns true, call
+		/// <see cref="PublishSnapshot"/> for the current value of every element and then <see cref="EndSnapshot"/>, before
+		/// the next <see cref="Publish"/>. A snapshot that began and never ended (the producer threw) counts as aborted: its
+		/// receivers get this one.
+		/// </summary>
+		/// <returns>True when at least one receiver waits for its snapshot.</returns>
+		public bool BeginSnapshot()
+		{
+			if (_snapshotOpen) AbortSnapshot();
+			// cleared before the receivers are read: a receiver that subscribes from now on requests the next snapshot
+			if (Interlocked.Exchange(ref _snapshotRequested, 0) == 0) return false;
+			bool any = false;
+			foreach (var receiver in Volatile.Read(ref _dispatch)) {
+				if (Interlocked.CompareExchange(ref receiver.State, InSnapshot, Waiting) != Waiting) continue;
+				receiver.SnapshotFailed = false;
+				any = true;
+			}
+			_snapshotOpen = any;
+			return any;
+		}
+		/// <summary>
+		/// Producing thread: abandons the snapshot that <see cref="BeginSnapshot"/> started, because the producer could not
+		/// finish it. Its receivers get no boundary and wait for the next snapshot, which is requested at once. They already
+		/// got the abandoned attempt's values, and the next attempt sends the current state again, so a consumer that acts on
+		/// snapshot values before the boundary must tolerate an aborted attempt.
+		/// </summary>
+		public void AbortSnapshot()
+		{
+			if (!_snapshotOpen) return;
+			_snapshotOpen = false;
+			// Known limitation: an attempt's values are delivered as they come, not staged until its boundary, so one that is
+			// aborted (the producer threw, or its game ended during the snapshot) or that the receiver failed (it threw) is
+			// not taken back. Receivers are told above to tolerate it.
+			foreach (var receiver in Volatile.Read(ref _dispatch))
+				Interlocked.CompareExchange(ref receiver.State, Waiting, InSnapshot);
+			Volatile.Write(ref _snapshotRequested, 1);
+		}
+		/// <summary>Producing thread: one element's current value, delivered only to the receivers in their snapshot.</summary>
+		/// <param name="kind">What the value reports; not <see cref="RealtimeOutputKind.SnapshotBoundary"/>.</param>
+		/// <param name="number">The element's number.</param>
+		/// <param name="value">The element's current value.</param>
+		public void PublishSnapshot(RealtimeOutputKind kind, int number, int value) => Deliver(InSnapshot, kind, number, value);
+		/// <summary>
+		/// Producing thread: ends the snapshot. The receivers in their snapshot get a
+		/// <see cref="RealtimeOutputKind.SnapshotBoundary"/> and receive every change from now on. A receiver that threw on
+		/// one of its snapshot values (or on the boundary) gets nothing more of that attempt and does not go live: it gets
+		/// another snapshot, and after <see cref="MaxSnapshotAttempts"/> failed ones in a row it is dropped and reported, as
+		/// if it had unsubscribed (the last one leaving is reported to <c>receiversChanged</c>).
+		/// </summary>
+		public void EndSnapshot()
+		{
+			if (!_snapshotOpen) return;
+			_snapshotOpen = false;
+			bool retry = false;
+			foreach (var receiver in Volatile.Read(ref _dispatch)) {
+				if (Volatile.Read(ref receiver.State) != InSnapshot) continue;
+				if (!receiver.SnapshotFailed) Call(receiver, RealtimeOutputKind.SnapshotBoundary, 0, 0);
+				if (!receiver.SnapshotFailed) {
+					receiver.FailedSnapshots = 0;
+					Interlocked.CompareExchange(ref receiver.State, Live, InSnapshot);
+				} else if (++receiver.FailedSnapshots < MaxSnapshotAttempts) {
+					Interlocked.CompareExchange(ref receiver.State, Waiting, InSnapshot);
+					retry = true;
+				} else if (Unsubscribe(receiver)) {
+					// Known limitation: this takes the receivers' lock (and may call receiversChanged) on the producing thread,
+					// which can then wait for a thread that subscribes. It only happens after MaxSnapshotAttempts failures in a
+					// row, and the source has no owner thread to hand the removal to.
+					_fault?.Invoke(new InvalidOperationException("A real-time output receiver failed " + MaxSnapshotAttempts + " snapshots in a row and receives nothing anymore."));
+				}
+			}
+			if (retry) Volatile.Write(ref _snapshotRequested, 1);
+		}
+		/// <summary>
+		/// Producing thread: delivers a change to every receiver that has had its snapshot, synchronously and in subscription
+		/// order. Does nothing after <see cref="Dispose"/>.
+		/// </summary>
+		/// <param name="kind">What the value reports; not <see cref="RealtimeOutputKind.SnapshotBoundary"/>.</param>
+		/// <param name="number">The element's number.</param>
+		/// <param name="value">The element's new value.</param>
+		public void Publish(RealtimeOutputKind kind, int number, int value) => Deliver(Live, kind, number, value);
+		private void Deliver(int state, RealtimeOutputKind kind, int number, int value)
+		{
+			foreach (var receiver in Volatile.Read(ref _dispatch)) {
+				if (Volatile.Read(ref receiver.State) != state) continue;
+				// the rest of an attempt the receiver failed is of no use to it
+				if (state == InSnapshot && receiver.SnapshotFailed) continue;
+				Call(receiver, kind, number, value);
+			}
+		}
+		private void Call(Receiver receiver, RealtimeOutputKind kind, int number, int value)
+		{
+			try {
+				receiver.Receive(kind, number, value);
+			} catch (Exception error) {
+				if (Volatile.Read(ref receiver.State) == InSnapshot) receiver.SnapshotFailed = true;
+				if (Interlocked.Exchange(ref receiver.Reported, 1) == 0) _fault?.Invoke(error);
+			}
+		}
+		/// <summary>Drops all receivers and refuses new ones. It does not unpublish the resource.</summary>
+		public void Dispose()
+		{
+			bool had;
+			lock (_receivers) {
+				if (_disposed) return;
+				_disposed = true; had = _receivers.Count > 0;
+				foreach (var receiver in _receivers) Volatile.Write(ref receiver.State, Removed);
+				_receivers.Clear(); Volatile.Write(ref _dispatch, Array.Empty<Receiver>());
+			}
+			if (had) _receiversChanged?.Invoke(false);
+		}
+	}
 }
