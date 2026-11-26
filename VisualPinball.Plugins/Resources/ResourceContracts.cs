@@ -721,7 +721,14 @@ namespace VisualPinball.Plugins
 		/// between were skipped, so a consumer that must not miss a pulse should treat it as a fault. Number is the
 		/// <see cref="RealtimeOutputOverflow"/> that overflowed, value how many values were lost (at least 1).
 		/// </summary>
-		Overflow
+		Overflow,
+		/// <summary>
+		/// Not an element: the receiver's snapshot attempt was abandoned before its boundary (the producer could not finish
+		/// it, the game ended during it, or the receiver threw), so the values it got since its last boundary or abort are
+		/// not a state to act on. The next attempt sends the current state again from the start. A receiver that stages
+		/// snapshot values until the boundary discards them here. Number and value are 0.
+		/// </summary>
+		SnapshotAborted
 	}
 
 	/// <summary>The <c>number</c> of a <see cref="RealtimeOutputKind.Overflow"/>: which of the producer's queues lost values.</summary>
@@ -766,8 +773,9 @@ namespace VisualPinball.Plugins
 	/// current value of every element the controller declares, zeros included, then one
 	/// <see cref="RealtimeOutputKind.SnapshotBoundary"/>, then changes only. The snapshot comes once the controller runs and
 	/// knows its elements, so a receiver that subscribes before the game starts waits for it. A snapshot attempt can be
-	/// abandoned before its boundary (the producer failed, or the receiver threw), and the next attempt sends the current
-	/// state again from the start: a receiver that acts on snapshot values before the boundary must tolerate that. When
+	/// abandoned before its boundary (the producer failed, or the receiver threw); the receiver then gets
+	/// <see cref="RealtimeOutputKind.SnapshotAborted"/>, and the next attempt sends the current state again from the start.
+	/// A receiver that must not act on an abandoned attempt stages the snapshot values until the boundary. When
 	/// the producer loses values it says so with <see cref="RealtimeOutputKind.Overflow"/>. Producers normally use
 	/// <see cref="RealtimeOutputResourceSource"/>.
 	/// <example>

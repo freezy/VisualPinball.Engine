@@ -234,6 +234,8 @@ namespace VisualPinball.Unity
 		public Dictionary<string, IApiSwitchStatus> SwitchStatuses => _switchPlayer.SwitchStatuses;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStates;
+		/// <summary>The lamps of the table; <see cref="LampPlayer.LampChanged"/> reports every lamp change, whichever path it took.</summary>
+		public LampPlayer LampPlayer => _lampPlayer;
 		public Dictionary<string, (bool, float)> WireStatuses => _wirePlayer.WireStatuses;
 
 		public int NextBallId => ++_currentBallId;

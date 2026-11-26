@@ -82,6 +82,19 @@ namespace VisualPinball.Unity
 			=> api is IApiLampDevice device ? device.Lamp(deviceItem) ?? api : api;
 
 		internal Dictionary<string, LampState> LampStates { get; } = new();
+
+		/// <summary>
+		/// Raised for every value or status a lamp ID gets, mapped or not, whichever way it arrived: the
+		/// gamelogic engine's lamp events, also for a table that maps no lamps, or
+		/// <see cref="Player.SetLamp(string, float, LampSource)"/> as PinMAME's threaded playback uses instead.
+		/// A status is reported as 1 (on or blinking) or 0. Coil-driven lamps, colours and the state the lamps
+		/// are set to when the game starts are not reported.
+		/// </summary>
+		public event EventHandler<LampEventArgs>? LampChanged;
+
+		// While the lamps get their initial state, which is not a change of the game.
+		private bool _initializing;
+
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
 
 		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine)
@@ -101,6 +114,7 @@ namespace VisualPinball.Unity
 				var configuredMappings = 0;
 				var assignedMappings = 0;
 				var unassignedMappings = 0;
+				_initializing = true;
 				foreach (var lampMapping in config.Lamps) {
 					configuredMappings++;
 
@@ -142,6 +156,7 @@ namespace VisualPinball.Unity
 						}
 					}
 				}
+				_initializing = false;
 				Logger.Info(
 					$"LampPlayer mapped lamps: configured={configuredMappings}, assigned={assignedMappings}, " +
 					$"unassigned={unassignedMappings}, assignmentKeys={_lampAssignments.Count}, registeredApis={_lamps.Count}.");
@@ -150,8 +165,24 @@ namespace VisualPinball.Unity
 				if (_lampAssignments.Count > 0) {
 					_gamelogicEngine.OnLampChanged += HandleLampEvent;
 					_gamelogicEngine.OnLampsChanged += HandleLampsEvent;
+				} else {
+					// nothing to light, but the lamps are still reported
+					_gamelogicEngine.OnLampChanged += ReportLampEvent;
+					_gamelogicEngine.OnLampsChanged += ReportLampsEvent;
 				}
 			}
+		}
+
+		private void ReportLampsEvent(object sender, LampsEventArgs lampsEvent)
+		{
+			foreach (var lampEvent in lampsEvent.LampsChanged) {
+				Report(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, LampEvent.Of(lampEvent.Value));
+			}
+		}
+
+		private void ReportLampEvent(object sender, LampEventArgs lampEvent)
+		{
+			Report(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, LampEvent.Of(lampEvent.Value));
 		}
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
@@ -209,6 +240,7 @@ namespace VisualPinball.Unity
 		{
 			VpeProfiler.Mark(ProfileEvent.FirstUseLight);
 			VpeProfiler.Count(ProfileCounter.LampChanges);
+			Report(id, lampSource, isCoil, lampEvent);
 			if (_lampAssignments.TryGetValue(id, out var mappings)) {
 				var applied = false;
 				foreach (var mapping in mappings) {
@@ -231,6 +263,22 @@ namespace VisualPinball.Unity
 				LampStates.TryAdd(id, LampState.Default);
 				ApplyEvent(id, lampEvent, null, null);
 				LogLampEvent(id, lampSource, isCoil, true, mapped: false);
+			}
+		}
+
+		/// <summary>Raises <see cref="LampChanged"/> for a lamp's change.</summary>
+		private void Report(string id, LampSource lampSource, bool isCoil, in LampEvent lampEvent)
+		{
+			var lampChanged = LampChanged;
+			if (lampChanged == null || _initializing || isCoil || lampEvent.Kind == LampEventKind.Color) {
+				return;
+			}
+			var value = lampEvent.Kind == LampEventKind.Value ? lampEvent.Value : lampEvent.Status == LampStatus.Off ? 0f : 1f;
+			try {
+				lampChanged(this, new LampEventArgs(id, value, lampSource));
+			} catch (Exception e) {
+				// a listener must not keep the lamp from being applied
+				Logger.Error(e, "A lamp change listener failed.");
 			}
 		}
 
@@ -381,6 +429,9 @@ namespace VisualPinball.Unity
 			if (_lampAssignments.Count > 0 && _gamelogicEngine != null) {
 				_gamelogicEngine.OnLampChanged -= HandleLampEvent;
 				_gamelogicEngine.OnLampsChanged -= HandleLampsEvent;
+			} else if (_gamelogicEngine != null) {
+				_gamelogicEngine.OnLampChanged -= ReportLampEvent;
+				_gamelogicEngine.OnLampsChanged -= ReportLampsEvent;
 			}
 		}
 

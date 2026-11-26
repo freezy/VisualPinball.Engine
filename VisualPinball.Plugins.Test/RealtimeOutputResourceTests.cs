@@ -191,10 +191,43 @@ namespace VisualPinball.Plugins.Test
 			source.Publish(RealtimeOutputKind.Solenoid, 2, 1);
 
 			Assert.That(values, Is.EqualTo(new[] {
-				(RealtimeOutputKind.Solenoid, 1, 0),
+				(RealtimeOutputKind.Solenoid, 1, 0), (RealtimeOutputKind.SnapshotAborted, 0, 0),
 				(RealtimeOutputKind.Solenoid, 1, 1), (RealtimeOutputKind.Solenoid, 2, 0), (RealtimeOutputKind.SnapshotBoundary, 0, 0),
 				(RealtimeOutputKind.Solenoid, 2, 1),
 			}));
+		}
+
+		[Test]
+		public void AReceiverLearnsWhenItsAttemptIsAbandoned()
+		{
+			using var source = new RealtimeOutputResourceSource(RealtimeOutputNumbering.PinMame);
+			var throwing = 1;
+			var flaky = new List<(RealtimeOutputKind, int, int)>();
+			var steady = new List<(RealtimeOutputKind, int, int)>();
+			using var flakySubscription = source.Subscribe((kind, number, value) => {
+				flaky.Add((kind, number, value));
+				if (kind == RealtimeOutputKind.Lamp && throwing-- > 0) throw new InvalidOperationException("flaky");
+			});
+			using var steadySubscription = source.Subscribe((kind, number, value) => steady.Add((kind, number, value)));
+
+			// the receiver throws: its attempt is called off, the other one goes live
+			Assert.That(source.BeginSnapshot(), Is.True);
+			source.PublishSnapshot(RealtimeOutputKind.Lamp, 11, 1);
+			source.EndSnapshot();
+			// the producer gives up: nobody is in a snapshot but the flaky receiver
+			Assert.That(source.BeginSnapshot(), Is.True);
+			source.PublishSnapshot(RealtimeOutputKind.Lamp, 11, 0);
+			source.AbortSnapshot();
+			Assert.That(source.BeginSnapshot(), Is.True);
+			source.PublishSnapshot(RealtimeOutputKind.Lamp, 11, 0);
+			source.EndSnapshot();
+
+			Assert.That(flaky, Is.EqualTo(new[] {
+				(RealtimeOutputKind.Lamp, 11, 1), (RealtimeOutputKind.SnapshotAborted, 0, 0),
+				(RealtimeOutputKind.Lamp, 11, 0), (RealtimeOutputKind.SnapshotAborted, 0, 0),
+				(RealtimeOutputKind.Lamp, 11, 0), (RealtimeOutputKind.SnapshotBoundary, 0, 0),
+			}));
+			Assert.That(steady, Is.EqualTo(new[] { (RealtimeOutputKind.Lamp, 11, 1), (RealtimeOutputKind.SnapshotBoundary, 0, 0) }));
 		}
 
 		[Test]
@@ -271,8 +304,9 @@ namespace VisualPinball.Plugins.Test
 				source.PublishSnapshot(RealtimeOutputKind.Lamp, 13, 0);
 				source.EndSnapshot();
 			}
-			// the rest of each failed attempt is skipped, and the last receiver leaving stops the producer
-			Assert.That(calls, Is.EqualTo(RealtimeOutputResourceSource.MaxSnapshotAttempts));
+			// the rest of each failed attempt is skipped, each retried one is called off, and the last receiver leaving stops
+			// the producer
+			Assert.That(calls, Is.EqualTo(RealtimeOutputResourceSource.MaxSnapshotAttempts * 2 - 1));
 			Assert.That(source.HasReceivers, Is.False);
 			Assert.That(changes, Is.EqualTo(new[] { true, false }));
 			Assert.That(faults, Has.Count.EqualTo(2));

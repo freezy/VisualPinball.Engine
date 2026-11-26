@@ -248,7 +248,7 @@ namespace VisualPinball.Plugins
 	/// <para>
 	/// A receiver never goes live on an incomplete snapshot. A producer that cannot finish one calls
 	/// <see cref="AbortSnapshot"/> (or simply begins the next), and a receiver that throws during its snapshot gets another
-	/// one. A producer that lost values, such as a full queue, publishes <see cref="RealtimeOutputKind.Overflow"/> before it
+	/// one; either way the receiver gets <see cref="RealtimeOutputKind.SnapshotAborted"/> first. A producer that lost values, such as a full queue, publishes <see cref="RealtimeOutputKind.Overflow"/> before it
 	/// resynchronises, so receivers know that transitions were skipped.
 	/// </para>
 	/// <example>
@@ -379,19 +379,19 @@ namespace VisualPinball.Plugins
 		}
 		/// <summary>
 		/// Producing thread: abandons the snapshot that <see cref="BeginSnapshot"/> started, because the producer could not
-		/// finish it. Its receivers get no boundary and wait for the next snapshot, which is requested at once. They already
-		/// got the abandoned attempt's values, and the next attempt sends the current state again, so a consumer that acts on
-		/// snapshot values before the boundary must tolerate an aborted attempt.
+		/// finish it. Its receivers get <see cref="RealtimeOutputKind.SnapshotAborted"/> instead of a boundary and wait for
+		/// the next snapshot, which is requested at once. They already got the abandoned attempt's values, and the next
+		/// attempt sends the current state again, so a consumer that must not act on them stages them until the boundary.
 		/// </summary>
 		public void AbortSnapshot()
 		{
 			if (!_snapshotOpen) return;
 			_snapshotOpen = false;
-			// Known limitation: an attempt's values are delivered as they come, not staged until its boundary, so one that is
-			// aborted (the producer threw, or its game ended during the snapshot) or that the receiver failed (it threw) is
-			// not taken back. Receivers are told above to tolerate it.
-			foreach (var receiver in Volatile.Read(ref _dispatch))
+			foreach (var receiver in Volatile.Read(ref _dispatch)) {
+				if (Volatile.Read(ref receiver.State) != InSnapshot) continue;
+				Call(receiver, RealtimeOutputKind.SnapshotAborted, 0, 0);
 				Interlocked.CompareExchange(ref receiver.State, Waiting, InSnapshot);
+			}
 			Volatile.Write(ref _snapshotRequested, 1);
 		}
 		/// <summary>Producing thread: one element's current value, delivered only to the receivers in their snapshot.</summary>
@@ -403,7 +403,8 @@ namespace VisualPinball.Plugins
 		/// Producing thread: ends the snapshot. The receivers in their snapshot get a
 		/// <see cref="RealtimeOutputKind.SnapshotBoundary"/> and receive every change from now on. A receiver that threw on
 		/// one of its snapshot values (or on the boundary) gets nothing more of that attempt and does not go live: it gets
-		/// another snapshot, and after <see cref="MaxSnapshotAttempts"/> failed ones in a row it is dropped and reported, as
+		/// <see cref="RealtimeOutputKind.SnapshotAborted"/> and another snapshot, and after
+		/// <see cref="MaxSnapshotAttempts"/> failed ones in a row it is dropped and reported, as
 		/// if it had unsubscribed (the last one leaving is reported to <c>receiversChanged</c>).
 		/// </summary>
 		public void EndSnapshot()
@@ -418,6 +419,8 @@ namespace VisualPinball.Plugins
 					receiver.FailedSnapshots = 0;
 					Interlocked.CompareExchange(ref receiver.State, Live, InSnapshot);
 				} else if (++receiver.FailedSnapshots < MaxSnapshotAttempts) {
+					// the attempt it failed is not a state to act on; told before it waits, while it is still in its snapshot
+					Call(receiver, RealtimeOutputKind.SnapshotAborted, 0, 0);
 					Interlocked.CompareExchange(ref receiver.State, Waiting, InSnapshot);
 					retry = true;
 				} else if (Unsubscribe(receiver)) {
