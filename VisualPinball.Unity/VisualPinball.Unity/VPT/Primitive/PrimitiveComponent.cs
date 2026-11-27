@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 			// mesh
 			var meshComponent = GetComponent<PrimitiveMeshComponent>();
 			if (meshComponent) {
-				data.IsVisible = GetEnabled<Renderer>();
+				data.IsVisible = GetRendererVisible();
 				data.Sides = meshComponent.Sides;
 				data.Use3DMesh = !meshComponent.UseLegacyMesh;
 

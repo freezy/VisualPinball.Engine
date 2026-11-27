@@ -131,7 +131,7 @@ namespace VisualPinball.Unity
 			data.Size = ((Vector3)Size).ToVertex3D();
 
 			data.TargetType = _targetType;
-			data.IsVisible = GetEnabled<Renderer>();
+			data.IsVisible = GetRendererVisible();
 
 			return data;
 		}

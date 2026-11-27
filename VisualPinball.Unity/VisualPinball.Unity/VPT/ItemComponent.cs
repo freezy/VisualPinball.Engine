@@ -72,6 +72,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Whether the item's mesh shows: the renderer is enabled and its GameObject is active.
+		/// Mesh components no longer turn the renderer off when the GameObject is deactivated,
+		/// so the renderer flag alone doesn't say whether the item is hidden.
+		/// </summary>
+		protected bool GetRendererVisible() => gameObject.activeInHierarchy && GetEnabled<Renderer>();
+
 		protected bool GetEnabled<T>() where T : Object
 		{
 			var comp = GetComponent<T>();
