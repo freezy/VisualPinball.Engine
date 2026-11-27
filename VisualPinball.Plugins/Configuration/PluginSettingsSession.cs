@@ -135,14 +135,14 @@ namespace VisualPinball.Plugins
 		}
 		/// <summary>
 		/// Empties the draft, so every field goes back to its inherited value (the global value in a game session, the default in a
-		/// global session), and marks every field editable in this scope as pending, so <see cref="ApplyAsync"/> removes their stored
+		/// global session), and marks every field that stores a value and is editable in this scope as pending, so <see cref="ApplyAsync"/> removes their stored
 		/// values. Nothing is saved until then. The Player's Reset button calls it.
 		/// </summary>
 		public void Reset()
 		{
 			Draft = new PluginSettingsSnapshot(_factory.Schema.Version);
 			foreach (var field in _factory.Schema.Fields)
-				if (Game.HasValue ? field.Scope != ConfigurationScope.GlobalOnly : field.Scope != ConfigurationScope.GameOnly) _resetFields.Add(field.Id);
+				if (field.StoresValue && (Game.HasValue ? field.Scope != ConfigurationScope.GlobalOnly : field.Scope != ConfigurationScope.GameOnly)) _resetFields.Add(field.Id);
 		}
 		/// <summary>
 		/// Checks <see cref="Effective"/> against the schema and the plugin's <see cref="IPluginSettingsProvider.Validate"/>. Catalog
@@ -167,6 +167,16 @@ namespace VisualPinball.Plugins
 		public Task<PluginChoiceCatalog> DiscoverAsync(string provider, CancellationToken cancellation)
 			=> _factory.SettingsProvider?.DiscoverAsync(provider, Request(Effective, _resources()), cancellation) ?? Task.FromResult(new PluginChoiceCatalog("empty", Array.Empty<PluginChoice>()));
 		/// <summary>
+		/// Works out what an <see cref="SettingKind.Info"/> field shows, through the plugin's
+		/// <see cref="IPluginSettingsInfoProvider.DescribeAsync"/>, based on the draft's effective values, <see cref="Package"/> and
+		/// the currently published resources. The task may complete on a worker thread.
+		/// </summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="cancellation">Passed to the provider; cancel it when the field is no longer shown.</param>
+		/// <returns>The provider's information, or an empty one when the plugin's settings provider has none.</returns>
+		public Task<PluginInfo> DescribeAsync(string provider, CancellationToken cancellation)
+			=> (_factory.SettingsProvider as IPluginSettingsInfoProvider)?.DescribeAsync(provider, Request(Effective, _resources()), cancellation) ?? Task.FromResult(new PluginInfo(""));
+		/// <summary>
 		/// Runs the action of an action field through <see cref="IPluginSettingsProvider.RunActionAsync"/>, such as PinUP locating
 		/// LibVLC. When it succeeds and returns <see cref="PluginActionResult.Changes"/>, the values of the fields editable in this
 		/// scope are put into the draft as pending edits; the user still has to apply them.
@@ -187,7 +197,7 @@ namespace VisualPinball.Plugins
 			var result = await _factory.SettingsProvider.RunActionAsync(action, request, cancellation);
 			cancellation.ThrowIfCancellationRequested();
 			if (result.Success && result.Changes != null) foreach (var field in _factory.Schema.Fields) {
-				if (Game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) continue;
+				if (!field.StoresValue || (Game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly)) continue;
 				if (result.Changes.Values.TryGetValue(field.Id, out var value)) Set(field.Id, value);
 			}
 			return result;

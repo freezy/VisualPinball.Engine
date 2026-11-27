@@ -18,7 +18,8 @@ namespace VisualPinball.Plugins
 	/// which editor the Player shows for it.
 	/// </summary>
 	/// <remarks>
-	/// <see cref="Status"/>, <see cref="Action"/> and <see cref="Preview"/> store nothing: they are never validated or saved.
+	/// <see cref="Status"/>, <see cref="Action"/>, <see cref="Preview"/> and <see cref="Info"/> store nothing: they are never validated or
+	/// saved.
 	/// </remarks>
 	public enum SettingKind
 	{
@@ -83,7 +84,14 @@ namespace VisualPinball.Plugins
 		/// A live preview area. The Player opens it from the plugin's Unity preview provider with <see cref="PluginField.Provider"/> as the
 		/// preview name, such as PinUP's pack preview. Stores nothing.
 		/// </summary>
-		Preview
+		Preview,
+		/// <summary>
+		/// Read-only information the plugin works out while its settings page is shown, such as which configuration is active or which
+		/// devices are connected. The Player asks <see cref="IPluginSettingsInfoProvider.DescribeAsync"/> with
+		/// <see cref="PluginField.Provider"/> as the name each time it draws the page, so the block also shows what an action just
+		/// changed. Stores nothing. Only for top-level fields, not inside composite or collection records.
+		/// </summary>
+		Info
 	}
 
 	/// <summary>
@@ -142,6 +150,19 @@ namespace VisualPinball.Plugins
 		/// <remarks>The B2S plugin puts its fade-in and fade-out times on one row with <c>Row = "fade"</c>.</remarks>
 		public string Row { get; set; } = "";
 		/// <summary>
+		/// For a <see cref="SettingKind.Action"/> field, the <see cref="Id"/> of another field in the same group whose row shows the
+		/// button, after its editor; the action then gets no row of its own, and its result is shown under that row. Empty (the default)
+		/// gives the action its own row. The target must not be an action itself.
+		/// </summary>
+		/// <remarks>
+		/// An import button belongs next to the file it imports, and an undo button next to what it undoes:
+		/// <code>
+		/// new PluginField("ImportZip", "Config Tool zip", SettingKind.File) { Default = "" },
+		/// new PluginField("Import", "Import", SettingKind.Action) { Provider = "import-zip", AttachTo = "ImportZip" },
+		/// </code>
+		/// </remarks>
+		public string AttachTo { get; set; } = "";
+		/// <summary>
 		/// The editor style for <see cref="SettingKind.Integer"/> and <see cref="SettingKind.Number"/> fields. Defaults to a number box.
 		/// </summary>
 		public PluginFieldPresentation Presentation { get; set; }
@@ -185,8 +206,9 @@ namespace VisualPinball.Plugins
 		/// <summary>
 		/// The name the Player passes to the plugin's providers for this field: the catalog name for
 		/// <see cref="IPluginSettingsProvider.DiscoverAsync"/> (<see cref="SettingKind.Choice"/> and <see cref="SettingKind.ScreenLayout"/>),
-		/// the action name for <see cref="IPluginSettingsProvider.RunActionAsync"/> (<see cref="SettingKind.Action"/>), or the preview name
-		/// (<see cref="SettingKind.Preview"/>). Empty for other kinds. The names are private to the plugin, such as PinUP's
+		/// the action name for <see cref="IPluginSettingsProvider.RunActionAsync"/> (<see cref="SettingKind.Action"/>), the preview name
+		/// (<see cref="SettingKind.Preview"/>), or the information name for <see cref="IPluginSettingsInfoProvider.DescribeAsync"/>
+		/// (<see cref="SettingKind.Info"/>). Empty for other kinds. The names are private to the plugin, such as PinUP's
 		/// <c>packs</c> and <c>presets</c> catalogs.
 		/// </summary>
 		public string Provider { get; set; } = "";
@@ -246,6 +268,11 @@ namespace VisualPinball.Plugins
 		/// field's value equals <see cref="VisibleValue"/> (or <c>true</c>). A controlling field without a value hides the field.
 		/// </summary>
 		/// <param name="snapshot">The values to test, normally the effective settings or, inside a record, that record's values.</param>
+		/// <summary>
+		/// Whether the field holds a setting: false for <see cref="SettingKind.Status"/>, <see cref="SettingKind.Action"/>,
+		/// <see cref="SettingKind.Preview"/> and <see cref="SettingKind.Info"/>, which are never validated, saved or reset.
+		/// </summary>
+		public bool StoresValue => Kind != SettingKind.Status && Kind != SettingKind.Action && Kind != SettingKind.Preview && Kind != SettingKind.Info;
 		public bool Visible(PluginSettingsSnapshot snapshot) => VisibleWhen.Length == 0 || JToken.DeepEquals(snapshot.Value(VisibleWhen), VisibleValue ?? new JValue(true));
 	}
 
@@ -343,7 +370,12 @@ namespace VisualPinball.Plugins
 		/// <param name="version">The version of the stored layout; start at 1.</param>
 		/// <param name="groups">The groups of the settings page, in display order. The array is used as is, not copied.</param>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="version"/> is less than 1.</exception>
-		/// <exception cref="ArgumentException">Two top-level fields share an <see cref="PluginField.Id"/>.</exception>
+		/// <exception cref="ArgumentException">
+		/// Two top-level fields share an <see cref="PluginField.Id"/>, a composite or collection record has an
+		/// <see cref="SettingKind.Info"/> field or a field with <see cref="PluginField.AttachTo"/>, or a top-level
+		/// <see cref="PluginField.AttachTo"/> is set on a field that is not an action or names no other non-action field of the same
+		/// group.
+		/// </exception>
 		public PluginSettingsSchema(int version, params PluginSettingsGroup[] groups)
 		{
 			if (version < 1) throw new ArgumentOutOfRangeException(nameof(version));
@@ -351,6 +383,23 @@ namespace VisualPinball.Plugins
 			Groups = groups;
 			var seen = new HashSet<string>(StringComparer.Ordinal);
 			foreach (var field in Fields) if (!seen.Add(field.Id)) throw new ArgumentException("Duplicate plugin field " + field.Id + ".");
+			foreach (var field in Fields) CheckRecordFields(field.Children);
+			foreach (var group in Groups) foreach (var field in group.Fields) {
+				if (field.AttachTo.Length == 0) continue;
+				if (field.Kind != SettingKind.Action) throw new ArgumentException("Only an action can be attached to another field: " + field.Id + ".");
+				if (!group.Fields.Any(target => target.Id == field.AttachTo && target.Kind != SettingKind.Action))
+					throw new ArgumentException("Plugin field " + field.Id + " is attached to " + field.AttachTo + ", which is no other field of its group.");
+			}
+		}
+		// A record's fields are values of the record, each in a row of its own: information has no value to keep there, and an
+		// action is not attached to another field.
+		private static void CheckRecordFields(IReadOnlyList<PluginField> children)
+		{
+			foreach (var child in children) {
+				if (child.Kind == SettingKind.Info) throw new ArgumentException("Information can only be a top-level field: " + child.Id + ".");
+				if (child.AttachTo.Length > 0) throw new ArgumentException("Only a top-level action can be attached to another field: " + child.Id + ".");
+				CheckRecordFields(child.Children);
+			}
 		}
 		/// <summary>
 		/// Brings values saved by an older version up to <see cref="Version"/> by running each <see cref="Migrations"/> step in turn.
@@ -401,7 +450,7 @@ namespace VisualPinball.Plugins
 		/// </summary>
 		/// <remarks>
 		/// Only visible fields are checked (see <see cref="PluginField.Visible"/>), and <see cref="SettingKind.Status"/>,
-		/// <see cref="SettingKind.Action"/> and <see cref="SettingKind.Preview"/> fields are skipped. For each field, its
+		/// <see cref="SettingKind.Action"/>, <see cref="SettingKind.Preview"/> and <see cref="SettingKind.Info"/> fields are skipped. For each field, its
 		/// <see cref="PluginField.Validate"/> runs first; if it reports nothing and a value is present, the value is checked against
 		/// <see cref="PluginField.Kind"/> and, for numbers, <see cref="PluginField.Minimum"/> and <see cref="PluginField.Maximum"/>. An
 		/// absent value is valid. Records of composite and collection fields are checked against their <see cref="PluginField.Children"/>,
@@ -418,7 +467,7 @@ namespace VisualPinball.Plugins
 		{
 			var issues = new List<PluginValidationIssue>();
 			foreach (var field in Fields) {
-				if (!field.Visible(snapshot) || field.Kind == SettingKind.Status || field.Kind == SettingKind.Action || field.Kind == SettingKind.Preview) continue;
+				if (!field.Visible(snapshot) || !field.StoresValue) continue;
 				var value = snapshot.Value(field.Id);
 				string? error = field.Validate?.Invoke(value);
 				if (error == null && value != null) {
@@ -796,5 +845,58 @@ namespace VisualPinball.Plugins
 		/// <param name="request">The game, table and effective settings to check.</param>
 		/// <returns>The issues found; empty when the settings are valid.</returns>
 		IReadOnlyList<PluginValidationIssue> Validate(PluginChoiceRequest request);
+	}
+
+	/// <summary>How the Player marks a <see cref="PluginInfo"/>.</summary>
+	public enum PluginInfoTone
+	{
+		/// <summary>Plain information.</summary>
+		Neutral,
+		/// <summary>Everything is in place, such as an active configuration without warnings.</summary>
+		Good,
+		/// <summary>Works, but needs attention, such as an import with warnings.</summary>
+		Warning,
+		/// <summary>Does not work until the user acts, such as no configuration at all.</summary>
+		Problem
+	}
+
+	/// <summary>What an <see cref="SettingKind.Info"/> field shows: a headline, its tone and label/value lines.</summary>
+	public sealed class PluginInfo
+	{
+		/// <summary>The headline, such as the active configuration and when it was imported.</summary>
+		public string Summary { get; }
+		/// <summary>How the Player marks the headline.</summary>
+		public PluginInfoTone Tone { get; }
+		/// <summary>The details as label/value pairs, in order; may be empty.</summary>
+		public IReadOnlyList<KeyValuePair<string, string>> Lines { get; }
+		/// <summary>Creates the information of an <see cref="SettingKind.Info"/> field.</summary>
+		/// <param name="summary">The headline.</param>
+		/// <param name="tone">How the headline is marked.</param>
+		/// <param name="lines">The label/value lines, or null for none.</param>
+		public PluginInfo(string summary, PluginInfoTone tone = PluginInfoTone.Neutral, IReadOnlyList<KeyValuePair<string, string>>? lines = null)
+		{
+			Summary = summary ?? "";
+			Tone = tone;
+			Lines = lines ?? Array.Empty<KeyValuePair<string, string>>();
+		}
+	}
+
+	/// <summary>
+	/// Implemented, in addition to <see cref="IPluginSettingsProvider"/>, by a settings provider whose schema has
+	/// <see cref="SettingKind.Info"/> fields.
+	/// </summary>
+	/// <remarks>
+	/// The same rules as for <see cref="IPluginSettingsProvider"/> apply: no plugin instance may exist, calls can come from any thread,
+	/// and file system work belongs off the calling thread. The Player asks again each time it draws the page, after every action
+	/// among others, so keep it quick: cache what is slow to find, such as connected devices, and refresh it in an action.
+	/// </remarks>
+	public interface IPluginSettingsInfoProvider
+	{
+		/// <summary>Works out what an <see cref="SettingKind.Info"/> field shows.</summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="request">The game, table, draft settings and published resources.</param>
+		/// <param name="cancellation">Cancelled when the page is redrawn or closed; stop work and throw <see cref="OperationCanceledException"/>.</param>
+		/// <returns>The information to show.</returns>
+		Task<PluginInfo> DescribeAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation);
 	}
 }

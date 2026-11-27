@@ -56,10 +56,64 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(run.Result.Success, Is.True); Assert.That(progress.Last.Fraction, Is.EqualTo(.5)); Assert.That(progress.Last.Message, Is.EqualTo("Preparing files"));
 			Assert.That(Directory.Exists(_directory), Is.False);
 		}
+		[Test]
+		public void AttachedActionsMustNameAnotherFieldOfTheirGroup()
+		{
+			PluginSettingsSchema Schema(PluginField attached) => new PluginSettingsSchema(1,
+				new PluginSettingsGroup("Import", "", new PluginField("zip", "Zip", SettingKind.File) { Default = "" }, attached),
+				new PluginSettingsGroup("Other", "", new PluginField("folder", "Folder", SettingKind.Folder) { Default = "" }));
+			Assert.DoesNotThrow(() => Schema(new PluginField("import", "Import", SettingKind.Action) { Provider = "import", AttachTo = "zip" }));
+			Assert.Throws<ArgumentException>(() => Schema(new PluginField("import", "Import", SettingKind.Action) { Provider = "import", AttachTo = "folder" }));
+			Assert.Throws<ArgumentException>(() => Schema(new PluginField("import", "Import", SettingKind.Action) { Provider = "import", AttachTo = "import" }));
+			Assert.Throws<ArgumentException>(() => Schema(new PluginField("name", "Name", SettingKind.Text) { Default = "", AttachTo = "zip" }));
+		}
+		[Test]
+		public void InfoFieldsAreTopLevelOnlyAndResetLeavesThemOut()
+		{
+			Assert.Throws<ArgumentException>(() => new PluginSettingsSchema(1, new PluginSettingsGroup("Ports", "",
+				new PluginField("ports", "Ports", SettingKind.Collection) { Default = new JArray(), Children = new[] { new PluginField("state", "State", SettingKind.Info) } })));
+			Assert.Throws<ArgumentException>(() => new PluginSettingsSchema(1, new PluginSettingsGroup("Ports", "",
+				new PluginField("ports", "Ports", SettingKind.Collection) { Default = new JArray(), Children = new[] {
+					new PluginField("port", "Port", SettingKind.Text) { Default = "" },
+					new PluginField("test", "Test", SettingKind.Action) { Provider = "test", AttachTo = "port" } } })));
+			var factory = new TestFactory("setup") { SettingsProvider = new Provider(), Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Setup", "",
+				new PluginField("active", "Active", SettingKind.Info) { Provider = "active" },
+				new PluginField("name", "Name", SettingKind.Text) { Default = "" })) };
+			var host = Host(factory); using var session = new PluginSettingsSession(factory, host.Configuration, "windows");
+			session.Reset();
+			Assert.That(session.HasEdits("name"), Is.True); Assert.That(session.HasEdits("active"), Is.False);
+		}
+		[Test]
+		public void InfoFieldsComeFromTheProviderAndAreNeverStored()
+		{
+			var provider = new Provider();
+			var factory = new TestFactory("setup") { SettingsProvider = provider, Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Setup", "",
+				new PluginField("active", "Active", SettingKind.Info) { Provider = "active" },
+				new PluginField("name", "Name", SettingKind.Text) { Default = "" })) };
+			var host = Host(factory); using var session = new PluginSettingsSession(factory, host.Configuration, "windows");
+			var info = session.DescribeAsync("active", default); PluginHostTests.Run(host, info);
+			Assert.That(info.Result.Summary, Is.EqualTo("active")); Assert.That(info.Result.Tone, Is.EqualTo(PluginInfoTone.Good));
+			Assert.That(info.Result.Lines[0].Value, Is.EqualTo("1"));
+			Assert.That(factory.Schema.Validate(host.Configuration.Effective(factory.Descriptor, factory.Schema)), Is.Empty);
+			Assert.Throws<ArgumentException>(() => host.CommitSettingAsync(factory, "active", new JValue("x")));
+			var plain = new TestFactory("plain") { SettingsProvider = new PlainProvider() };
+			using var plainSession = new PluginSettingsSession(plain, Host(plain).Configuration, "windows");
+			Assert.That(plainSession.DescribeAsync("active", default).Result.Summary, Is.Empty);
+		}
+		private sealed class PlainProvider : IPluginSettingsProvider
+		{
+			public Task<PluginChoiceCatalog> DiscoverAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
+				=> Task.FromResult(new PluginChoiceCatalog("empty", Array.Empty<PluginChoice>()));
+			public IReadOnlyList<PluginValidationIssue> Validate(PluginChoiceRequest request) => Array.Empty<PluginValidationIssue>();
+			public Task<PluginActionResult> RunActionAsync(string action, PluginChoiceRequest request, CancellationToken cancellation)
+				=> Task.FromResult(new PluginActionResult(false, "No actions"));
+		}
 		private sealed class ProgressSink : IProgress<PluginActionProgress>
 		{ internal PluginActionProgress Last; public void Report(PluginActionProgress value) => Last = value; }
-		private sealed class Provider : IPluginSettingsProvider
+		private sealed class Provider : IPluginSettingsProvider, IPluginSettingsInfoProvider
 		{
+			public Task<PluginInfo> DescribeAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
+				=> Task.FromResult(new PluginInfo(provider, PluginInfoTone.Good, new[] { new KeyValuePair<string, string>("Count", "1") }));
 			internal PluginPackageReference? Package;
 			public Task<PluginChoiceCatalog> DiscoverAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
 			{ Package = request.Package; return Task.FromResult(new PluginChoiceCatalog("one", new[] { new PluginChoice("available", "Available") })); }
