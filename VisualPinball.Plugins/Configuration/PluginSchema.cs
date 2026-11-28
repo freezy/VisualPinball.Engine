@@ -152,7 +152,9 @@ namespace VisualPinball.Plugins
 		/// <summary>
 		/// For a <see cref="SettingKind.Action"/> field, the <see cref="Id"/> of another field in the same group whose row shows the
 		/// button, after its editor; the action then gets no row of its own, and its result is shown under that row. Empty (the default)
-		/// gives the action its own row. The target must not be an action itself.
+		/// gives the action its own row. The target must not be an action itself. The button is disabled while the target has nothing
+		/// to act on: an empty text, file or folder, an empty list, or a choice without an available item picked; on an
+		/// <see cref="SettingKind.Info"/> field, while <see cref="PluginInfo.UnavailableActions"/> names it.
 		/// </summary>
 		/// <remarks>
 		/// An import button belongs next to the file it imports, and an undo button next to what it undoes:
@@ -869,15 +871,22 @@ namespace VisualPinball.Plugins
 		public PluginInfoTone Tone { get; }
 		/// <summary>The details as label/value pairs, in order; may be empty.</summary>
 		public IReadOnlyList<KeyValuePair<string, string>> Lines { get; }
+		/// <summary>
+		/// The ids of the actions attached to the field (<see cref="PluginField.AttachTo"/>) that have nothing to act on in this
+		/// state, such as undo without a previous configuration. The Player shows their buttons disabled; other ids are ignored.
+		/// </summary>
+		public IReadOnlyCollection<string> UnavailableActions { get; }
 		/// <summary>Creates the information of an <see cref="SettingKind.Info"/> field.</summary>
 		/// <param name="summary">The headline.</param>
 		/// <param name="tone">How the headline is marked.</param>
 		/// <param name="lines">The label/value lines, or null for none.</param>
-		public PluginInfo(string summary, PluginInfoTone tone = PluginInfoTone.Neutral, IReadOnlyList<KeyValuePair<string, string>>? lines = null)
+		/// <param name="unavailableActions">The ids of the attached actions that have nothing to act on, or null for none.</param>
+		public PluginInfo(string summary, PluginInfoTone tone = PluginInfoTone.Neutral, IReadOnlyList<KeyValuePair<string, string>>? lines = null, IReadOnlyCollection<string>? unavailableActions = null)
 		{
 			Summary = summary ?? "";
 			Tone = tone;
 			Lines = lines ?? Array.Empty<KeyValuePair<string, string>>();
+			UnavailableActions = unavailableActions ?? Array.Empty<string>();
 		}
 	}
 

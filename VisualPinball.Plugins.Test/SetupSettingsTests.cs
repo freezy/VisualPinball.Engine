@@ -93,12 +93,13 @@ namespace VisualPinball.Plugins.Test
 			var host = Host(factory); using var session = new PluginSettingsSession(factory, host.Configuration, "windows");
 			var info = session.DescribeAsync("active", default); PluginHostTests.Run(host, info);
 			Assert.That(info.Result.Summary, Is.EqualTo("active")); Assert.That(info.Result.Tone, Is.EqualTo(PluginInfoTone.Good));
-			Assert.That(info.Result.Lines[0].Value, Is.EqualTo("1"));
+			Assert.That(info.Result.Lines[0].Value, Is.EqualTo("1")); Assert.That(info.Result.UnavailableActions, Is.EqualTo(new[] { "undo" }));
 			Assert.That(factory.Schema.Validate(host.Configuration.Effective(factory.Descriptor, factory.Schema)), Is.Empty);
 			Assert.Throws<ArgumentException>(() => host.CommitSettingAsync(factory, "active", new JValue("x")));
 			var plain = new TestFactory("plain") { SettingsProvider = new PlainProvider() };
 			using var plainSession = new PluginSettingsSession(plain, Host(plain).Configuration, "windows");
-			Assert.That(plainSession.DescribeAsync("active", default).Result.Summary, Is.Empty);
+			var plainInfo = plainSession.DescribeAsync("active", default).Result;
+			Assert.That(plainInfo.Summary, Is.Empty); Assert.That(plainInfo.UnavailableActions, Is.Empty);
 		}
 		private sealed class PlainProvider : IPluginSettingsProvider
 		{
@@ -113,7 +114,7 @@ namespace VisualPinball.Plugins.Test
 		private sealed class Provider : IPluginSettingsProvider, IPluginSettingsInfoProvider
 		{
 			public Task<PluginInfo> DescribeAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
-				=> Task.FromResult(new PluginInfo(provider, PluginInfoTone.Good, new[] { new KeyValuePair<string, string>("Count", "1") }));
+				=> Task.FromResult(new PluginInfo(provider, PluginInfoTone.Good, new[] { new KeyValuePair<string, string>("Count", "1") }, new[] { "undo" }));
 			internal PluginPackageReference? Package;
 			public Task<PluginChoiceCatalog> DiscoverAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
 			{ Package = request.Package; return Task.FromResult(new PluginChoiceCatalog("one", new[] { new PluginChoice("available", "Available") })); }
