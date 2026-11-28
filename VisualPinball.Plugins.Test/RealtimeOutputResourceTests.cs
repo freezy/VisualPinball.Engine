@@ -173,6 +173,52 @@ namespace VisualPinball.Plugins.Test
 		}
 
 		[Test]
+		public void ALiveReceiverThatThrowsDoesNotStopTheOthers()
+		{
+			var faults = new List<Exception>();
+			using var source = new RealtimeOutputResourceSource(RealtimeOutputNumbering.PinMame, faults.Add);
+			var received = new List<int>();
+			using var failing = source.Subscribe((kind, _, _) => { if (kind == RealtimeOutputKind.Switch) throw new InvalidOperationException("broken"); });
+			using var working = source.Subscribe((kind, _, value) => { if (kind == RealtimeOutputKind.Switch) received.Add(value); });
+			Assert.That(source.BeginSnapshot(), Is.True);
+			source.EndSnapshot();
+			source.Publish(RealtimeOutputKind.Switch, 21, 1);
+			source.Publish(RealtimeOutputKind.Switch, 21, 0);
+			Assert.That(received, Is.EqualTo(new[] { 1, 0 }));
+			Assert.That(faults, Has.Count.EqualTo(1), "one report per receiver, however often it throws");
+		}
+
+		[Test]
+		public void AFaultReporterThatThrowsDoesNotStopTheSnapshot()
+		{
+			using var source = new RealtimeOutputResourceSource(RealtimeOutputNumbering.PinMame, _ => throw new InvalidOperationException("reporter"));
+			var working = new List<RealtimeOutputKind>();
+			using var failing = source.Subscribe((kind, _, _) => { if (kind == RealtimeOutputKind.SnapshotBoundary) throw new InvalidOperationException("broken"); });
+			using var subscription = source.Subscribe((kind, _, _) => working.Add(kind));
+			Assert.That(source.BeginSnapshot(), Is.True);
+			Assert.DoesNotThrow(source.EndSnapshot);
+			source.Publish(RealtimeOutputKind.Switch, 21, 1);
+			Assert.That(working, Is.EqualTo(new[] { RealtimeOutputKind.SnapshotBoundary, RealtimeOutputKind.Switch }));
+			Assert.That(source.SnapshotRequested, Is.True, "the failing receiver gets another snapshot");
+		}
+
+		[Test]
+		public void ASubscriptionWhoseStartFailsLeavesNoReceiver()
+		{
+			var changes = new List<bool>();
+			var fail = true;
+			using var source = new RealtimeOutputResourceSource(RealtimeOutputNumbering.PinMame, null, has => {
+				changes.Add(has);
+				if (has && fail) throw new InvalidOperationException("start");
+			});
+			Assert.Throws<InvalidOperationException>(() => source.Subscribe((_, _, _) => { }));
+			Assert.That(source.HasReceivers, Is.False);
+			fail = false;
+			using var subscription = source.Subscribe((_, _, _) => { });
+			Assert.That(changes, Is.EqualTo(new[] { true, false, true }), "the next first receiver starts the producer again");
+		}
+
+		[Test]
 		public void AnAbortedSnapshotIsSentAgainAndOnlyACompleteOneEndsWithTheBoundary()
 		{
 			using var source = new RealtimeOutputResourceSource(RealtimeOutputNumbering.PinMame);
@@ -305,9 +351,9 @@ namespace VisualPinball.Plugins.Test
 				source.PublishSnapshot(RealtimeOutputKind.Lamp, 13, 0);
 				source.EndSnapshot();
 			}
-			// the rest of each failed attempt is skipped, each retried one is called off, and the last receiver leaving stops
-			// the producer
-			Assert.That(calls, Is.EqualTo(RealtimeOutputResourceSource.MaxSnapshotAttempts * 2 - 1));
+			// the rest of each failed attempt is skipped, each one is called off, the last one too before the receiver is
+			// dropped, and the last receiver leaving stops the producer
+			Assert.That(calls, Is.EqualTo(RealtimeOutputResourceSource.MaxSnapshotAttempts * 2));
 			Assert.That(source.HasReceivers, Is.False);
 			Assert.That(changes, Is.EqualTo(new[] { true, false }));
 			Assert.That(faults, Has.Count.EqualTo(2));

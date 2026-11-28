@@ -301,12 +301,16 @@ namespace VisualPinball.Plugins
 		/// <param name="fault">
 		/// Receives the first exception each receiver throws, and one when a receiver is dropped for failing its snapshots,
 		/// on the producing thread. Later exceptions of the same receiver are not reported again, so a broken receiver does
-		/// not cost an allocation per value. The remaining receivers still get the value. Null ignores them.
+		/// not cost an allocation per value. The remaining receivers still get the value. Null ignores them. An exception it
+		/// throws itself is ignored, so it cannot keep the other receivers from their values or their snapshot's end.
 		/// </param>
 		/// <param name="receiversChanged">
 		/// Called with true when the first receiver subscribes and with false when the last one leaves or the source is
-		/// disposed, on the thread that subscribed or unsubscribed and outside the source's lock. VPE uses it to bind the
-		/// engine's real-time listener only while somebody listens.
+		/// disposed, on the thread that subscribed or unsubscribed and outside any lock. It is a signal: when a subscription
+		/// and the last unsubscription race on two threads, their calls can arrive in either order, so read
+		/// <see cref="HasReceivers"/> in it rather than keeping the value. If the call with true throws, that subscription
+		/// fails: its receiver is removed again (reported with false when no other receiver came meanwhile) and the
+		/// exception is rethrown. VPE uses it to bind the engine's real-time listener only while somebody listens.
 		/// </param>
 		/// <exception cref="ArgumentException"><paramref name="numbering"/> is null or empty.</exception>
 		public RealtimeOutputResourceSource(string numbering, Action<Exception>? fault = null, Action<bool>? receiversChanged = null)
@@ -341,7 +345,19 @@ namespace VisualPinball.Plugins
 			}
 			// after the receiver is in the array, so a producer that sees the request also sees the receiver
 			Volatile.Write(ref _snapshotRequested, 1);
-			if (first) _receiversChanged?.Invoke(true);
+			if (first && _receiversChanged != null) {
+				try {
+					_receiversChanged(true);
+				} catch {
+					// nobody could remove a receiver whose subscription failed; the cleanup's own failure must not hide why
+					try {
+						Unsubscribe(receiver);
+					} catch {
+						// the exception below says what went wrong
+					}
+					throw;
+				}
+			}
 			return new Subscription(() => Unsubscribe(receiver));
 		}
 		private bool Unsubscribe(Receiver receiver)
@@ -355,6 +371,15 @@ namespace VisualPinball.Plugins
 			}
 			if (last) _receiversChanged?.Invoke(false);
 			return true;
+		}
+		// A fault reporter that throws has nowhere to report to: it must not stop the delivery that called it.
+		private void ReportFault(Exception error)
+		{
+			try {
+				_fault?.Invoke(error);
+			} catch {
+				// ignored, see the constructor
+			}
 		}
 		/// <summary>
 		/// Producing thread: starts the snapshot of every receiver that waits for one. When it returns true, call
@@ -418,16 +443,19 @@ namespace VisualPinball.Plugins
 				if (!receiver.SnapshotFailed) {
 					receiver.FailedSnapshots = 0;
 					Interlocked.CompareExchange(ref receiver.State, Live, InSnapshot);
-				} else if (++receiver.FailedSnapshots < MaxSnapshotAttempts) {
-					// the attempt it failed is not a state to act on; told before it waits, while it is still in its snapshot
-					Call(receiver, RealtimeOutputKind.SnapshotAborted, 0, 0);
+					continue;
+				}
+				// the attempt it failed is not a state to act on: told while it is still in its snapshot, before it waits for
+				// the next one or is dropped
+				Call(receiver, RealtimeOutputKind.SnapshotAborted, 0, 0);
+				if (++receiver.FailedSnapshots < MaxSnapshotAttempts) {
 					Interlocked.CompareExchange(ref receiver.State, Waiting, InSnapshot);
 					retry = true;
 				} else if (Unsubscribe(receiver)) {
 					// Known limitation: this takes the receivers' lock (and may call receiversChanged) on the producing thread,
 					// which can then wait for a thread that subscribes. It only happens after MaxSnapshotAttempts failures in a
 					// row, and the source has no owner thread to hand the removal to.
-					_fault?.Invoke(new InvalidOperationException("A real-time output receiver failed " + MaxSnapshotAttempts + " snapshots in a row and receives nothing anymore."));
+					ReportFault(new InvalidOperationException("A real-time output receiver failed " + MaxSnapshotAttempts + " snapshots in a row and receives nothing anymore."));
 				}
 			}
 			if (retry) Volatile.Write(ref _snapshotRequested, 1);
@@ -455,7 +483,7 @@ namespace VisualPinball.Plugins
 				receiver.Receive(kind, number, value);
 			} catch (Exception error) {
 				if (Volatile.Read(ref receiver.State) == InSnapshot) receiver.SnapshotFailed = true;
-				if (Interlocked.Exchange(ref receiver.Reported, 1) == 0) _fault?.Invoke(error);
+				if (Interlocked.Exchange(ref receiver.Reported, 1) == 0) ReportFault(error);
 			}
 		}
 		/// <summary>Drops all receivers and refuses new ones. It does not unpublish the resource.</summary>

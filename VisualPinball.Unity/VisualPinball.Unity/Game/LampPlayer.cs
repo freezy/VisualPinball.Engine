@@ -274,11 +274,14 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var value = lampEvent.Kind == LampEventKind.Value ? lampEvent.Value : lampEvent.Status == LampStatus.Off ? 0f : 1f;
-			try {
-				lampChanged(this, new LampEventArgs(id, value, lampSource));
-			} catch (Exception e) {
-				// a listener must not keep the lamp from being applied
-				Logger.Error(e, "A lamp change listener failed.");
+			var args = new LampEventArgs(id, value, lampSource);
+			// one by one: a listener that fails must keep neither the lamp from being applied nor the other listeners from the change
+			foreach (var listener in lampChanged.GetInvocationList()) {
+				try {
+					((EventHandler<LampEventArgs>)listener)(this, args);
+				} catch (Exception e) {
+					Logger.Error(e, "A lamp change listener failed.");
+				}
 			}
 		}
 
