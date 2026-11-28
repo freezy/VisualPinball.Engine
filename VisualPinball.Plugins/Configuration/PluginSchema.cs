@@ -18,7 +18,8 @@ namespace VisualPinball.Plugins
 	/// which editor the Player shows for it.
 	/// </summary>
 	/// <remarks>
-	/// <see cref="Status"/>, <see cref="Action"/> and <see cref="Preview"/> store nothing: they are never validated or saved.
+	/// <see cref="Status"/>, <see cref="Action"/>, <see cref="Preview"/>, <see cref="Info"/> and <see cref="Outputs"/> store nothing: they
+	/// are never validated or saved.
 	/// </remarks>
 	public enum SettingKind
 	{
@@ -83,7 +84,22 @@ namespace VisualPinball.Plugins
 		/// A live preview area. The Player opens it from the plugin's Unity preview provider with <see cref="PluginField.Provider"/> as the
 		/// preview name, such as PinUP's pack preview. Stores nothing.
 		/// </summary>
-		Preview
+		Preview,
+		/// <summary>
+		/// Read-only information the plugin works out while its settings page is shown, such as which configuration is active or which
+		/// devices are connected. The Player asks <see cref="IPluginSettingsInfoProvider.DescribeAsync"/> with
+		/// <see cref="PluginField.Provider"/> as the name each time it draws the page, so the block also shows what an action just
+		/// changed. Stores nothing. Only for top-level fields, not inside composite or collection records.
+		/// </summary>
+		Info,
+		/// <summary>
+		/// The outputs a plugin drives, such as the ports of the boards in a cabinet: the Player shows each board's outputs as a grid,
+		/// with what is wired to each and a button that tests it. It asks <see cref="IPluginOutputMapProvider.DescribeOutputsAsync"/>
+		/// with <see cref="PluginField.Provider"/> as the name each time it draws the page, and
+		/// <see cref="IPluginOutputMapProvider.TestOutputAsync"/> when a test button is pressed. Stores nothing. Only for top-level
+		/// fields, not inside composite or collection records.
+		/// </summary>
+		Outputs
 	}
 
 	/// <summary>
@@ -142,6 +158,21 @@ namespace VisualPinball.Plugins
 		/// <remarks>The B2S plugin puts its fade-in and fade-out times on one row with <c>Row = "fade"</c>.</remarks>
 		public string Row { get; set; } = "";
 		/// <summary>
+		/// For a <see cref="SettingKind.Action"/> field, the <see cref="Id"/> of another field in the same group whose row shows the
+		/// button, after its editor; the action then gets no row of its own, and its result is shown under that row. Empty (the default)
+		/// gives the action its own row. The target must not be an action itself. The button is disabled while the target has nothing
+		/// to act on: an empty text, file or folder, an empty list, or a choice without an available item picked; on an
+		/// <see cref="SettingKind.Info"/> field, while <see cref="PluginInfo.UnavailableActions"/> names it.
+		/// </summary>
+		/// <remarks>
+		/// An import button belongs next to the file it imports, and an undo button next to what it undoes:
+		/// <code>
+		/// new PluginField("ImportZip", "Config Tool zip", SettingKind.File) { Default = "" },
+		/// new PluginField("Import", "Import", SettingKind.Action) { Provider = "import-zip", AttachTo = "ImportZip" },
+		/// </code>
+		/// </remarks>
+		public string AttachTo { get; set; } = "";
+		/// <summary>
 		/// The editor style for <see cref="SettingKind.Integer"/> and <see cref="SettingKind.Number"/> fields. Defaults to a number box.
 		/// </summary>
 		public PluginFieldPresentation Presentation { get; set; }
@@ -185,8 +216,9 @@ namespace VisualPinball.Plugins
 		/// <summary>
 		/// The name the Player passes to the plugin's providers for this field: the catalog name for
 		/// <see cref="IPluginSettingsProvider.DiscoverAsync"/> (<see cref="SettingKind.Choice"/> and <see cref="SettingKind.ScreenLayout"/>),
-		/// the action name for <see cref="IPluginSettingsProvider.RunActionAsync"/> (<see cref="SettingKind.Action"/>), or the preview name
-		/// (<see cref="SettingKind.Preview"/>). Empty for other kinds. The names are private to the plugin, such as PinUP's
+		/// the action name for <see cref="IPluginSettingsProvider.RunActionAsync"/> (<see cref="SettingKind.Action"/>), the preview name
+		/// (<see cref="SettingKind.Preview"/>), or the information name for <see cref="IPluginSettingsInfoProvider.DescribeAsync"/>
+		/// (<see cref="SettingKind.Info"/>). Empty for other kinds. The names are private to the plugin, such as PinUP's
 		/// <c>packs</c> and <c>presets</c> catalogs.
 		/// </summary>
 		public string Provider { get; set; } = "";
@@ -246,6 +278,12 @@ namespace VisualPinball.Plugins
 		/// field's value equals <see cref="VisibleValue"/> (or <c>true</c>). A controlling field without a value hides the field.
 		/// </summary>
 		/// <param name="snapshot">The values to test, normally the effective settings or, inside a record, that record's values.</param>
+		/// <summary>
+		/// Whether the field holds a setting: false for <see cref="SettingKind.Status"/>, <see cref="SettingKind.Action"/>,
+		/// <see cref="SettingKind.Preview"/>, <see cref="SettingKind.Info"/> and <see cref="SettingKind.Outputs"/>, which are never
+		/// validated, saved or reset.
+		/// </summary>
+		public bool StoresValue => Kind != SettingKind.Status && Kind != SettingKind.Action && Kind != SettingKind.Preview && Kind != SettingKind.Info && Kind != SettingKind.Outputs;
 		public bool Visible(PluginSettingsSnapshot snapshot) => VisibleWhen.Length == 0 || JToken.DeepEquals(snapshot.Value(VisibleWhen), VisibleValue ?? new JValue(true));
 	}
 
@@ -343,7 +381,12 @@ namespace VisualPinball.Plugins
 		/// <param name="version">The version of the stored layout; start at 1.</param>
 		/// <param name="groups">The groups of the settings page, in display order. The array is used as is, not copied.</param>
 		/// <exception cref="ArgumentOutOfRangeException"><paramref name="version"/> is less than 1.</exception>
-		/// <exception cref="ArgumentException">Two top-level fields share an <see cref="PluginField.Id"/>.</exception>
+		/// <exception cref="ArgumentException">
+		/// Two top-level fields share an <see cref="PluginField.Id"/>, a composite or collection record has an
+		/// <see cref="SettingKind.Info"/> field or a field with <see cref="PluginField.AttachTo"/>, or a top-level
+		/// <see cref="PluginField.AttachTo"/> is set on a field that is not an action or names no other non-action field of the same
+		/// group.
+		/// </exception>
 		public PluginSettingsSchema(int version, params PluginSettingsGroup[] groups)
 		{
 			if (version < 1) throw new ArgumentOutOfRangeException(nameof(version));
@@ -351,6 +394,24 @@ namespace VisualPinball.Plugins
 			Groups = groups;
 			var seen = new HashSet<string>(StringComparer.Ordinal);
 			foreach (var field in Fields) if (!seen.Add(field.Id)) throw new ArgumentException("Duplicate plugin field " + field.Id + ".");
+			foreach (var field in Fields) CheckRecordFields(field.Children);
+			foreach (var group in Groups) foreach (var field in group.Fields) {
+				if (field.AttachTo.Length == 0) continue;
+				if (field.Kind != SettingKind.Action) throw new ArgumentException("Only an action can be attached to another field: " + field.Id + ".");
+				if (!group.Fields.Any(target => target.Id == field.AttachTo && target.Kind != SettingKind.Action))
+					throw new ArgumentException("Plugin field " + field.Id + " is attached to " + field.AttachTo + ", which is no other field of its group.");
+			}
+		}
+		// A record's fields are values of the record, each in a row of its own: information has no value to keep there, and an
+		// action is not attached to another field.
+		private static void CheckRecordFields(IReadOnlyList<PluginField> children)
+		{
+			foreach (var child in children) {
+				if (child.Kind == SettingKind.Info) throw new ArgumentException("Information can only be a top-level field: " + child.Id + ".");
+				if (child.Kind == SettingKind.Outputs) throw new ArgumentException("Outputs can only be a top-level field: " + child.Id + ".");
+				if (child.AttachTo.Length > 0) throw new ArgumentException("Only a top-level action can be attached to another field: " + child.Id + ".");
+				CheckRecordFields(child.Children);
+			}
 		}
 		/// <summary>
 		/// Brings values saved by an older version up to <see cref="Version"/> by running each <see cref="Migrations"/> step in turn.
@@ -401,7 +462,7 @@ namespace VisualPinball.Plugins
 		/// </summary>
 		/// <remarks>
 		/// Only visible fields are checked (see <see cref="PluginField.Visible"/>), and <see cref="SettingKind.Status"/>,
-		/// <see cref="SettingKind.Action"/> and <see cref="SettingKind.Preview"/> fields are skipped. For each field, its
+		/// <see cref="SettingKind.Action"/>, <see cref="SettingKind.Preview"/> and <see cref="SettingKind.Info"/> fields are skipped. For each field, its
 		/// <see cref="PluginField.Validate"/> runs first; if it reports nothing and a value is present, the value is checked against
 		/// <see cref="PluginField.Kind"/> and, for numbers, <see cref="PluginField.Minimum"/> and <see cref="PluginField.Maximum"/>. An
 		/// absent value is valid. Records of composite and collection fields are checked against their <see cref="PluginField.Children"/>,
@@ -418,7 +479,7 @@ namespace VisualPinball.Plugins
 		{
 			var issues = new List<PluginValidationIssue>();
 			foreach (var field in Fields) {
-				if (!field.Visible(snapshot) || field.Kind == SettingKind.Status || field.Kind == SettingKind.Action || field.Kind == SettingKind.Preview) continue;
+				if (!field.Visible(snapshot) || !field.StoresValue) continue;
 				var value = snapshot.Value(field.Id);
 				string? error = field.Validate?.Invoke(value);
 				if (error == null && value != null) {
@@ -796,5 +857,172 @@ namespace VisualPinball.Plugins
 		/// <param name="request">The game, table and effective settings to check.</param>
 		/// <returns>The issues found; empty when the settings are valid.</returns>
 		IReadOnlyList<PluginValidationIssue> Validate(PluginChoiceRequest request);
+	}
+
+	/// <summary>How the Player marks a <see cref="PluginInfo"/>.</summary>
+	public enum PluginInfoTone
+	{
+		/// <summary>Plain information.</summary>
+		Neutral,
+		/// <summary>Everything is in place, such as an active configuration without warnings.</summary>
+		Good,
+		/// <summary>Works, but needs attention, such as an import with warnings.</summary>
+		Warning,
+		/// <summary>Does not work until the user acts, such as no configuration at all.</summary>
+		Problem
+	}
+
+	/// <summary>What an <see cref="SettingKind.Info"/> field shows: a headline, its tone and label/value lines.</summary>
+	public sealed class PluginInfo
+	{
+		/// <summary>The headline, such as the active configuration and when it was imported.</summary>
+		public string Summary { get; }
+		/// <summary>How the Player marks the headline.</summary>
+		public PluginInfoTone Tone { get; }
+		/// <summary>The details as label/value pairs, in order; may be empty.</summary>
+		public IReadOnlyList<KeyValuePair<string, string>> Lines { get; }
+		/// <summary>
+		/// The ids of the actions attached to the field (<see cref="PluginField.AttachTo"/>) that have nothing to act on in this
+		/// state, such as undo without a previous configuration. The Player shows their buttons disabled; other ids are ignored.
+		/// </summary>
+		public IReadOnlyCollection<string> UnavailableActions { get; }
+		/// <summary>Creates the information of an <see cref="SettingKind.Info"/> field.</summary>
+		/// <param name="summary">The headline.</param>
+		/// <param name="tone">How the headline is marked.</param>
+		/// <param name="lines">The label/value lines, or null for none.</param>
+		/// <param name="unavailableActions">The ids of the attached actions that have nothing to act on, or null for none.</param>
+		public PluginInfo(string summary, PluginInfoTone tone = PluginInfoTone.Neutral, IReadOnlyList<KeyValuePair<string, string>>? lines = null, IReadOnlyCollection<string>? unavailableActions = null)
+		{
+			Summary = summary ?? "";
+			Tone = tone;
+			Lines = lines ?? Array.Empty<KeyValuePair<string, string>>();
+			UnavailableActions = unavailableActions ?? Array.Empty<string>();
+		}
+	}
+
+	/// <summary>
+	/// Implemented, in addition to <see cref="IPluginSettingsProvider"/>, by a settings provider whose schema has
+	/// <see cref="SettingKind.Info"/> fields.
+	/// </summary>
+	/// <remarks>
+	/// The same rules as for <see cref="IPluginSettingsProvider"/> apply: no plugin instance may exist, calls can come from any thread,
+	/// and file system work belongs off the calling thread. The Player asks again each time it draws the page, after every action
+	/// among others, so keep it quick: cache what is slow to find, such as connected devices, and refresh it in an action.
+	/// </remarks>
+	public interface IPluginSettingsInfoProvider
+	{
+		/// <summary>Works out what an <see cref="SettingKind.Info"/> field shows.</summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="request">The game, table, draft settings and published resources.</param>
+		/// <param name="cancellation">Cancelled when the page is redrawn or closed; stop work and throw <see cref="OperationCanceledException"/>.</param>
+		/// <returns>The information to show.</returns>
+		Task<PluginInfo> DescribeAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation);
+	}
+
+	/// <summary>The colour an output drives of an RGB toy, which takes three outputs in a row.</summary>
+	public enum PluginOutputChannel
+	{
+		/// <summary>An output of its own, such as a solenoid or a single-colour light, or nothing.</summary>
+		None,
+		Red,
+		Green,
+		Blue
+	}
+
+	/// <summary>One output of a <see cref="PluginOutputBoard"/>, such as a port of a LedWiz.</summary>
+	public sealed class PluginOutput
+	{
+		/// <summary>
+		/// What <see cref="IPluginOutputMapProvider.TestOutputAsync"/> gets to test this output, unique in its map. Private to the plugin.
+		/// </summary>
+		public string Id { get; }
+		/// <summary>The output's number on its board, as the board counts them (usually from 1).</summary>
+		public int Number { get; }
+		/// <summary>
+		/// What is wired to it, such as <c>Flipper Left</c>, or empty when nothing is. Of an RGB toy, the first output names the toy
+		/// and the other two may leave it empty.
+		/// </summary>
+		public string Label { get; }
+		/// <summary>The colour it drives of an RGB toy, or <see cref="PluginOutputChannel.None"/>.</summary>
+		public PluginOutputChannel Channel { get; }
+		/// <summary>Creates an output.</summary>
+		/// <param name="id">What the test gets; see <see cref="Id"/>.</param>
+		/// <param name="number">The number on its board.</param>
+		/// <param name="label">What is wired to it; null or empty for nothing.</param>
+		/// <param name="channel">The colour it drives of an RGB toy.</param>
+		public PluginOutput(string id, int number, string label, PluginOutputChannel channel = PluginOutputChannel.None)
+		{ Id = id ?? ""; Number = number; Label = label ?? ""; Channel = channel; }
+	}
+
+	/// <summary>A board of a <see cref="PluginOutputMap"/> and its outputs.</summary>
+	public sealed class PluginOutputBoard
+	{
+		/// <summary>The board's name, such as <c>LedWiz 1</c>.</summary>
+		public string Title { get; }
+		/// <summary>Where it is set up or how it is connected, such as the file that configures it; may be empty.</summary>
+		public string Detail { get; }
+		/// <summary>The outputs in board order.</summary>
+		public IReadOnlyList<PluginOutput> Outputs { get; }
+		/// <summary>Creates a board.</summary>
+		/// <param name="title">The board's name.</param>
+		/// <param name="detail">Where it is set up or how it is connected, or null for nothing.</param>
+		/// <param name="outputs">The outputs in board order.</param>
+		public PluginOutputBoard(string title, string detail, IReadOnlyList<PluginOutput> outputs)
+		{ Title = title ?? ""; Detail = detail ?? ""; Outputs = outputs ?? Array.Empty<PluginOutput>(); }
+	}
+
+	/// <summary>What an <see cref="SettingKind.Outputs"/> field shows: the boards, and whether their outputs can be tested now.</summary>
+	public sealed class PluginOutputMap
+	{
+		/// <summary>The boards in display order; may be empty.</summary>
+		public IReadOnlyList<PluginOutputBoard> Boards { get; }
+		/// <summary>Shown instead of the grid when there are no boards, such as how to get a configuration that names them.</summary>
+		public string EmptyMessage { get; }
+		/// <summary>
+		/// Why no output can be tested now, such as a game that holds the boards; empty when they can. The Player shows it above the
+		/// grid and turns the test buttons off.
+		/// </summary>
+		public string TestUnavailableReason { get; }
+		/// <summary>Creates the map of an <see cref="SettingKind.Outputs"/> field.</summary>
+		/// <param name="boards">The boards in display order.</param>
+		/// <param name="emptyMessage">Shown when there are no boards.</param>
+		/// <param name="testUnavailableReason">Why nothing can be tested now, or null when it can.</param>
+		/// <exception cref="ArgumentException">Two outputs have the same <see cref="PluginOutput.Id"/>, so a test could not tell them apart.</exception>
+		public PluginOutputMap(IReadOnlyList<PluginOutputBoard> boards, string emptyMessage = "", string testUnavailableReason = "")
+		{
+			Boards = boards ?? Array.Empty<PluginOutputBoard>(); EmptyMessage = emptyMessage ?? ""; TestUnavailableReason = testUnavailableReason ?? "";
+			var ids = new HashSet<string>(StringComparer.Ordinal);
+			foreach (var board in Boards)
+				foreach (var output in board.Outputs)
+					if (!ids.Add(output.Id)) throw new ArgumentException($"Output {output.Id} is in the map more than once.", nameof(boards));
+		}
+	}
+
+	/// <summary>
+	/// Implemented, in addition to <see cref="IPluginSettingsProvider"/>, by a settings provider whose schema has
+	/// <see cref="SettingKind.Outputs"/> fields.
+	/// </summary>
+	/// <remarks>
+	/// The same rules as for <see cref="IPluginSettingsProvider"/> apply: no plugin instance may exist, calls can come from any thread,
+	/// and file system or hardware work belongs off the calling thread. The Player runs one test at a time per plugin.
+	/// </remarks>
+	public interface IPluginOutputMapProvider
+	{
+		/// <summary>Lists the boards and outputs an <see cref="SettingKind.Outputs"/> field shows.</summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="request">The game, table, draft settings and published resources.</param>
+		/// <param name="cancellation">Cancelled when the page is redrawn or closed; stop work and throw <see cref="OperationCanceledException"/>.</param>
+		/// <returns>The map to show.</returns>
+		Task<PluginOutputMap> DescribeOutputsAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation);
+		/// <summary>
+		/// Tests one output, such as turning it on for a moment, and says how it went. Returns when the test is over, so the Player can
+		/// show the output as tested until then.
+		/// </summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="output">The <see cref="PluginOutput.Id"/> of the output.</param>
+		/// <param name="request">The game, table and draft settings; <see cref="PluginChoiceRequest.Resources"/> is empty.</param>
+		/// <param name="cancellation">Cancelled when the page is closed; leave the output off and throw <see cref="OperationCanceledException"/>.</param>
+		/// <returns>The result to show; <see cref="PluginActionResult.Changes"/> is ignored.</returns>
+		Task<PluginActionResult> TestOutputAsync(string provider, string output, PluginChoiceRequest request, CancellationToken cancellation);
 	}
 }

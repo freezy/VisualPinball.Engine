@@ -77,14 +77,14 @@ namespace VisualPinball.Plugins
 		{
 			var field = factory.Schema.Fields.FirstOrDefault(item => item.Id == fieldId) ?? throw new ArgumentException("Unknown setting.");
 			if (game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) throw new ArgumentException("This setting cannot be edited in this scope.");
-			if (field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Preview) throw new ArgumentException("This field does not store a setting.");
+			if (!field.StoresValue) throw new ArgumentException("This field does not store a setting.");
 			var patch = new PluginSettingsSnapshot(factory.Schema.Version); patch.Set(fieldId, value);
 			return CommitSettingsCoreAsync(factory, patch, game, cancellation, new[] { fieldId }, field, package);
 		}
 		private async Task<PluginActionResult> CommitSettingsCoreAsync(IPlayerPluginFactory factory, PluginSettingsSnapshot draft, GameIdentity? game, CancellationToken cancellation, IReadOnlyCollection<string>? edited, PluginField? single = null, PluginPackageReference? package = null)
 		{
 			if (!_factories.TryGetValue(factory.Descriptor.Id, out var installed) || installed != factory) throw new ArgumentException("The factory is not installed in this host.");
-			var patch = draft.Copy(); var fields = (edited ?? factory.Schema.Fields.Select(field => field.Id).ToArray()).ToArray();
+			var patch = draft.Copy(); var fields = (edited ?? factory.Schema.Fields.Where(field => field.StoresValue).Select(field => field.Id).ToArray()).ToArray();
 			await _operation.WaitAsync(cancellation).ConfigureAwait(false);
 			await Scheduler.Switch();
 			Instance? entry = null;

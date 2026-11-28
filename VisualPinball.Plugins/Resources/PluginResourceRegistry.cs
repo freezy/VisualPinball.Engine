@@ -101,7 +101,8 @@ namespace VisualPinball.Plugins
 		/// <remarks>
 		/// The source must implement the payload contract of the descriptor's kind: <see cref="IPluginDisplaySource"/> for
 		/// <see cref="ResourceKind.Display"/>, <see cref="IPluginControllerSource"/> for <see cref="ResourceKind.Controller"/>
-		/// and <see cref="ResourceKind.Outputs"/>, <see cref="IPluginAudioSource"/>, <see cref="IPluginSegmentSource"/>,
+		/// and <see cref="ResourceKind.Outputs"/>, <see cref="IPluginRealtimeOutputSource"/> for
+		/// <see cref="ResourceKind.RealtimeOutputs"/>, <see cref="IPluginAudioSource"/>, <see cref="IPluginSegmentSource"/>,
 		/// <see cref="IPluginInputSource"/>, <see cref="IPluginSurface"/> or <see cref="IPluginTriggerSource"/> for the others.
 		/// Parents must be published first. To replace a resource, dispose the old publication and publish again with a new
 		/// <see cref="PluginResourceDescriptor.Instance"/>, so bindings rebind and derived resources built on the old one
@@ -122,6 +123,7 @@ namespace VisualPinball.Plugins
 			if (descriptor.Kind != source.Kind) throw new ArgumentException("Resource kind and VPE source interface disagree.");
 			if (descriptor.Kind == ResourceKind.Display && !(source is IPluginDisplaySource)
 				|| (descriptor.Kind == ResourceKind.Controller || descriptor.Kind == ResourceKind.Outputs) && !(source is IPluginControllerSource)
+				|| descriptor.Kind == ResourceKind.RealtimeOutputs && !(source is IPluginRealtimeOutputSource)
 				|| descriptor.Kind == ResourceKind.Audio && !(source is IPluginAudioSource)
 				|| descriptor.Kind == ResourceKind.Segments && !(source is IPluginSegmentSource)
 				|| descriptor.Kind == ResourceKind.Input && !(source is IPluginInputSource)

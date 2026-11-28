@@ -141,8 +141,8 @@ namespace VisualPinball.Plugins
 		/// or is removed from the file when the snapshot has none (for a game layer, removing means "inherit the global value").
 		/// </summary>
 		/// <remarks>
-		/// Fields outside the layer's scope, and <see cref="SettingKind.Action"/>, <see cref="SettingKind.Status"/> and
-		/// <see cref="SettingKind.Preview"/> fields, are never written. Stored values the schema does not know are kept. The values are
+		/// Fields outside the layer's scope, and <see cref="SettingKind.Action"/>, <see cref="SettingKind.Status"/>,
+		/// <see cref="SettingKind.Preview"/> and <see cref="SettingKind.Info"/> fields, are never written. Stored values the schema does not know are kept. The values are
 		/// not validated here; the host and the settings session validate before they save. To change only some fields without
 		/// overwriting concurrent edits to others, use <see cref="SavePatch"/>.
 		/// </remarks>
@@ -166,7 +166,7 @@ namespace VisualPinball.Plugins
 			var stored = Read(plugin, schema, game).Values;
 			foreach (var field in schema.Fields) {
 				bool allowed = game.HasValue ? field.Scope != ConfigurationScope.GlobalOnly : field.Scope != ConfigurationScope.GameOnly;
-				if (!allowed || field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Preview) continue;
+				if (!allowed || !field.StoresValue) continue;
 				if (values.Values.TryGetValue(field.Id, out var value)) stored[field.Id] = value.DeepClone();
 				else stored.Remove(field.Id);
 			}
@@ -178,7 +178,8 @@ namespace VisualPinball.Plugins
 		/// <summary>Merges a scoped edit into the latest profile without replacing unrelated fields.</summary>
 		/// <remarks>
 		/// Reads the stored layer and copies over only the fields named in <paramref name="changed"/> that are allowed in that layer and
-		/// hold a value (not <see cref="SettingKind.Action"/>, <see cref="SettingKind.Status"/> or <see cref="SettingKind.Preview"/>). A
+		/// hold a value (not <see cref="SettingKind.Action"/>, <see cref="SettingKind.Status"/>, <see cref="SettingKind.Preview"/> or
+		/// <see cref="SettingKind.Info"/>). A
 		/// changed field that <paramref name="values"/> does not contain is removed, which resets it to the inherited value. Nothing is
 		/// written; the host uses the result to validate an edit before <see cref="SavePatch"/> stores it.
 		/// </remarks>
@@ -195,7 +196,7 @@ namespace VisualPinball.Plugins
 			if (latest.SchemaVersion > schema.Version) throw new InvalidOperationException("This configuration was written by a newer plugin and cannot be overwritten.");
 			foreach (var field in schema.Fields) {
 				if (!changed.Contains(field.Id) || (game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly)
-					|| field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Preview) continue;
+					|| !field.StoresValue) continue;
 				latest.Set(field.Id, values.Value(field.Id));
 			}
 			return latest;

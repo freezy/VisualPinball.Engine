@@ -203,6 +203,87 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
+	/// Receives a controller's outputs and switches in its own numbering, on the thread that polls them.
+	/// </summary>
+	/// <remarks>
+	/// VPE implements this interface and hands it to engines through
+	/// <see cref="IGamelogicRealtimeOutputs.SetRealtimeOutputListener"/>; engine authors call it, plugins do not implement
+	/// it. VPE republishes each call on the game's <see cref="ResourceKind.RealtimeOutputs"/> resource. All methods are
+	/// called from <see cref="IGamelogicRealtimeOutputs.PollRealtimeOutputs"/> and nowhere else, so they run on the
+	/// simulation thread (or on the main thread when the game runs without it). They do not allocate, block or touch
+	/// Unity objects.
+	/// </remarks>
+	public interface IRealtimeOutputListener
+	{
+		/// <summary>
+		/// Asks whether a receiver is waiting for the current state. When it returns true, report every element's current
+		/// value through <see cref="SnapshotValue"/> and finish with <see cref="EndSnapshot"/>, in the same poll and before
+		/// any <see cref="OutputChanged"/> of that poll that the snapshot does not contain. Only call it once the engine knows
+		/// its elements and their state (the game runs), so a receiver never starts from an incomplete snapshot.
+		/// </summary>
+		/// <returns>True when the engine should report a snapshot now.</returns>
+		bool BeginSnapshot();
+		/// <summary>Reports one element's current value as part of a snapshot, including elements that are off.</summary>
+		/// <param name="kind">The element's type.</param>
+		/// <param name="number">The element's number in the engine's numbering.</param>
+		/// <param name="value">The element's current value.</param>
+		void SnapshotValue(RealtimeOutputKind kind, int number, int value);
+		/// <summary>Ends a snapshot. The receivers that got it are sent the snapshot boundary and get changes from now on.</summary>
+		void EndSnapshot();
+		/// <summary>
+		/// Abandons a snapshot the engine could not finish (it threw half-way, or the game ended meanwhile). Its receivers
+		/// get no boundary and are sent a complete snapshot later; call <see cref="BeginSnapshot"/> again on a later poll.
+		/// They already got the abandoned attempt's values, and the next attempt sends the current state again, so a
+		/// consumer that acts on snapshot values before the boundary must tolerate an aborted attempt.
+		/// </summary>
+		void AbortSnapshot();
+		/// <summary>
+		/// Reports a change, in the order the engine saw it. Repeated values may be dropped, distinct ones may not. When the
+		/// engine lost changes, it reports <see cref="RealtimeOutputKind.Overflow"/> here before the elements' latest values.
+		/// </summary>
+		/// <param name="kind">The element's type.</param>
+		/// <param name="number">The element's number in the engine's numbering.</param>
+		/// <param name="value">The new value.</param>
+		void OutputChanged(RealtimeOutputKind kind, int number, int value);
+	}
+
+	/// <summary>
+	/// A gamelogic engine that reports its solenoids, lamps, GI strings, mechs and switches by native number with low
+	/// latency, for consumers driving cabinet hardware such as DOF.
+	/// </summary>
+	/// <remarks>
+	/// When an engine implements this interface, <see cref="GamelogicPluginResources"/> publishes a
+	/// <see cref="ResourceKind.RealtimeOutputs"/> resource (<c>&lt;controller&gt;/outputs/realtime</c>) and sets a
+	/// listener while that resource has subscribers. VPE then calls <see cref="PollRealtimeOutputs"/> on every tick of
+	/// the simulation thread, after the time fence and before the shared state is written, or once per frame from
+	/// <see cref="Player"/> when the game runs without the simulation thread.
+	/// <para>
+	/// Unlike <see cref="IGamelogicNativeOutputs"/>, which reports from the engine's frame update, the feed carries
+	/// switches, delivers the current state to each new receiver first, and keeps the order of modulated values. The
+	/// engine keeps a single poll running at a time.
+	/// </para>
+	/// </remarks>
+	public interface IGamelogicRealtimeOutputs
+	{
+		/// <summary>
+		/// The numbering the reported numbers use, published as <see cref="IPluginRealtimeOutputSource.Numbering"/>, such
+		/// as <see cref="RealtimeOutputNumbering.PinMame"/>.
+		/// </summary>
+		string RealtimeNumbering { get; }
+		/// <summary>
+		/// Sets the single listener, or null. Called on Unity's main thread. A new listener asks for a snapshot through
+		/// <see cref="IRealtimeOutputListener.BeginSnapshot"/>; with null, the engine drops what it queued for the feed.
+		/// </summary>
+		/// <param name="listener">The listener the poll reports to, or null to stop reporting.</param>
+		void SetRealtimeOutputListener(IRealtimeOutputListener listener);
+		/// <summary>
+		/// Reports what changed since the last poll to the listener. Returns at once when no listener is set, and when
+		/// another poll is still running. It must not allocate or block, and must not touch Unity objects.
+		/// </summary>
+		void PollRealtimeOutputs();
+	}
+
+	/// <summary>
 	/// Implemented by a gamelogic engine to declare the layout and technology of its segment displays, as published in
 	/// <see cref="PluginSegmentFrame"/>.
 	/// </summary>
