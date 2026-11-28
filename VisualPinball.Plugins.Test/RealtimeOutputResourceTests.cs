@@ -134,7 +134,8 @@ namespace VisualPinball.Plugins.Test
 				source.Publish(RealtimeOutputKind.Solenoid, i & 63, i & 255);
 			}
 			long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
-			Assert.That(allocated, Is.EqualTo(0));
+			// Is.Zero, not Is.EqualTo(0): optimized code may box the 0 for EqualTo before the second reading, counting 24 bytes
+			Assert.That(allocated, Is.Zero);
 			// both receivers: one snapshot value, the boundary and two warm-up changes, then every change
 			Assert.That(counter.Count, Is.EqualTo(2 * (1 + 1 + 2) + 2 * 10000));
 		}
