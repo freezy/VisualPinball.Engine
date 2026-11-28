@@ -177,6 +177,24 @@ namespace VisualPinball.Plugins
 		public Task<PluginInfo> DescribeAsync(string provider, CancellationToken cancellation)
 			=> (_factory.SettingsProvider as IPluginSettingsInfoProvider)?.DescribeAsync(provider, Request(Effective, _resources()), cancellation) ?? Task.FromResult(new PluginInfo(""));
 		/// <summary>
+		/// Lists what an <see cref="SettingKind.Outputs"/> field shows, through the plugin's
+		/// <see cref="IPluginOutputMapProvider.DescribeOutputsAsync"/>, like <see cref="DescribeAsync"/>.
+		/// </summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="cancellation">Passed to the provider; cancel it when the field is no longer shown.</param>
+		/// <returns>The provider's map, or an empty one when the plugin's settings provider has none.</returns>
+		public Task<PluginOutputMap> DescribeOutputsAsync(string provider, CancellationToken cancellation)
+			=> (_factory.SettingsProvider as IPluginOutputMapProvider)?.DescribeOutputsAsync(provider, Request(Effective, _resources()), cancellation)
+				?? Task.FromResult(new PluginOutputMap(Array.Empty<PluginOutputBoard>()));
+		/// <summary>Tests one output of an <see cref="SettingKind.Outputs"/> field through <see cref="IPluginOutputMapProvider.TestOutputAsync"/>.</summary>
+		/// <param name="provider">The field's <see cref="PluginField.Provider"/>.</param>
+		/// <param name="output">The <see cref="PluginOutput.Id"/> to test.</param>
+		/// <param name="cancellation">Passed to the provider.</param>
+		/// <returns>The provider's result, or a failure when the plugin has no output map provider.</returns>
+		public Task<PluginActionResult> TestOutputAsync(string provider, string output, CancellationToken cancellation)
+			=> (_factory.SettingsProvider as IPluginOutputMapProvider)?.TestOutputAsync(provider, output, Request(Effective), cancellation)
+				?? Task.FromResult(new PluginActionResult(false, "This plugin cannot test outputs."));
+		/// <summary>
 		/// Runs the action of an action field through <see cref="IPluginSettingsProvider.RunActionAsync"/>, such as PinUP locating
 		/// LibVLC. When it succeeds and returns <see cref="PluginActionResult.Changes"/>, the values of the fields editable in this
 		/// scope are put into the draft as pending edits; the user still has to apply them.
